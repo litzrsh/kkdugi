@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.core.code.mapper.CoreCodeMapper">
+
+  <resultMap id="Code" type="kkdugi.core.code.models.Code">
+    <id column="CODE_VAL" property="code" />
+    <result column="ETC_VAL1" property="extra1" />
+    <result column="ETC_VAL2" property="extra2" />
+    <result column="ETC_VAL3" property="extra3" />
+    <result column="ETC_VAL4" property="extra4" />
+    <result column="ETC_VAL5" property="extra5" />
+    <result column="CODE_PATH" property="path" />
+    <result column="SORT_SEQ" property="sort" />
+    <collection property="langs" ofType="kkdugi.core.code.models.CodeLang" notNullColumn="LANG_CD">
+      <id column="LANG_CD" property="lang" />
+      <result column="CODE_NM" property="text" />
+      <result column="CODE_DC" property="remarks" />
+    </collection>
+  </resultMap>
+
+  <!--
+      * QueryID=findCodes
+      * Description=Find all codes in path
+      -->
+  <select id="findCodes" resultMap="Code">
+<![CDATA[
+/* QueryID=kkdugi.core.code.mapper.CoreCodeMapper.findCodes */
+SELECT
+  C.CODE_VAL
+, C.ETC_VAL1, C.ETC_VAL2, C.ETC_VAL3, C.ETC_VAL4, C.ETC_VAL5
+, C.CODE_PATH, C.SORT_SEQ
+, L.LANG_CD, L.CODE_NM, L.CODE_DC
+FROM KKDUGI_CODE C
+  LEFT JOIN KKDUGI_LANG L
+    ON  L.CODE_ID = C.CODE_ID
+WHERE C.CODE_PATH = #{path}
+ORDER BY C.SORT_SEQ
+]]>
+    </select>
+</mapper>

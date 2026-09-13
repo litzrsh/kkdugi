@@ -1,0 +1,3 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+kkdugi.core.config.KkdugiDefaultPropertiesEnvironmentPostProcessor,\
+kkdugi.core.crypto.EncryptedPropertyEnvironmentPostProcessor
