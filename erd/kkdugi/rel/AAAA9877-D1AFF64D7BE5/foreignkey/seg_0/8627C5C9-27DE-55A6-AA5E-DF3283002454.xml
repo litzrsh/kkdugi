@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="8627C5C9-27DE-55A6-AA5E-DF3283002454" containerWithKeyObject="F4A32D4F-8F9E-5307-B6CB-842D4501AAE5" localFKIndex="755A56DB-6123-5842-A665-445096C8F3AE" name="KKDUGI_CREDIT_TXN_FK_CHARGE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<referredTableLongName>KKDUGI_AI_CHARGE</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>B2A245D3-F762-55E1-8E7B-26F196915D89</referredTableID>
+<keyObject>6A9A3F18-F786-53E1-93F7-6073E51DF20C</keyObject>
+<referredKeyID>6A9A3F18-F786-53E1-93F7-6073E51DF20C</referredKeyID>
+<mandatory>false</mandatory>
+<refColNames>CHARGE_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>false</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

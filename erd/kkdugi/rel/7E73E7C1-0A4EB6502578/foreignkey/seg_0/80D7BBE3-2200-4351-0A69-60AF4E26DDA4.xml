@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="80D7BBE3-2200-4351-0A69-60AF4E26DDA4" containerWithKeyObject="3C109E43-256F-B0F4-1DF5-A47B9BD1000C" localFKIndex="C758D8FE-53FC-E246-5629-D24F19CA2C86" name="KKDUGI_WIDGET_DATASET_REV_ID_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<referredTableLongName>KKDUGI_WIDGET_REVISION</referredTableLongName>
+<deleteRule>CASCADE</deleteRule>
+<referredTableID>3C31A700-2BB2-19BB-35F1-21137AC16766</referredTableID>
+<keyObject>5423B001-8B64-7C84-1F6F-18333BFBD324</keyObject>
+<referredKeyID>5423B001-8B64-7C84-1F6F-18333BFBD324</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>REV_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

@@ -1,0 +1,218 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="8E5EAF11-E848-5F94-8DF9-182EFDE684C4" name="KKDUGI_AI_PRICE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>어댑터/모델/미터별 불변 요금 버전; 실제 단가는 운영자가 등록</commentInRDBMS>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="PRICE_ID" id="E0982BD4-0FA7-552C-A6C9-99A34FE3C0B3">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>요금 항목 ID</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="AGI_ID" id="C4B0B917-45A6-570A-9DC7-B0376E5FA1AB">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>어댑터 ID</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="09B4F70D-FB7B-59EC-9E3E-97B556E907A8" referredColumn="631638E1-BD9D-2F3F-F74D-2CAEA20184B4" />
+</associations>
+</Column>
+<Column name="MODEL_CD" id="AA507221-6EAD-5BBD-BA19-90066AB2D9FA">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>공급자 모델 코드</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>962492F5-6744-E7FB-E3C2-3841BA51A57E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PRICE_VER_CD" id="DB6D838A-34D3-5E4B-A92A-7A343AFAF51D">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>요금 버전</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="METER_CD" id="B28D11D0-9F6B-56CB-8769-274F02A71506">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>INPUT/OUTPUT/CACHE_READ/CACHE_WRITE/REQUEST/SECOND</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UNIT_QTY" id="7D299ECB-D3C9-537D-AA38-B108392B865C">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>단가 적용 기준량 (예: 1000000 토큰)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>BC71121B-2284-5438-B74E-C4223EBDD1EA</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="COST_CCY_CD" id="06E7B56E-6174-517A-9F72-296AB0854F01">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>공급자 원가 통화 코드</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="COST_UNIT_AMT" id="3ECCB8B5-2F72-5D40-A901-61E97F803812">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>기준량당 공급자 원가; 판매 크레딧과 별개</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>8FFE35EF-17E3-5445-8D37-EF2C355B6B5A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="CREDIT_UNIT_QTY" id="18FA5486-F48B-5464-ACFB-8FCF27EDD613">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>기준량당 판매 크레딧</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>8FFE35EF-17E3-5445-8D37-EF2C355B6B5A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="VALID_FROM" id="A35DF48D-2D1F-588D-A22B-75FE6688F3E8">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>적용 시작 UTC (포함)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="VALID_TO" id="E605294F-B076-5DAB-AA2E-0BCB86B01172">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>적용 종료 UTC (미포함)</commentInRDBMS>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="7A45FE22-5D02-5E5A-9F91-BD90AF5821D0">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록일시 (UTC)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="13D2CB92-F853-5D5E-8077-CC2459D1281A">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록 주체 ID (사용자 또는 서비스)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="B2FEF145-DABB-50A6-8AF9-569A5ECEC8A8" name="KKDUGI_AI_PRICE_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="E0982BD4-0FA7-552C-A6C9-99A34FE3C0B3" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="A65B6FA7-C3B3-5934-8868-21D03A13D577" name="KKDUGI_AI_PRICE_UK_VER">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="C4B0B917-45A6-570A-9DC7-B0376E5FA1AB" />
+<colUsage columnID="AA507221-6EAD-5BBD-BA19-90066AB2D9FA" />
+<colUsage columnID="DB6D838A-34D3-5E4B-A92A-7A343AFAF51D" />
+<colUsage columnID="B28D11D0-9F6B-56CB-8769-274F02A71506" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="F9143C3A-9C22-5D24-A48E-8D2F53DA94BD" name="KKDUGI_AI_PRICE_FK_AI">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="C4B0B917-45A6-570A-9DC7-B0376E5FA1AB" />
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<tableCheckConstraints itemClass="oracle.dbtools.crest.model.design.constraint.TableLevelConstraint">
+<tableCheckConstraint id="47898EFB-AA69-536C-837B-A7EC95DA7705" name="KKDUGI_AI_PRICE_CK_PRICE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>UNIT_QTY &gt; 0 AND COST_UNIT_AMT &gt;= 0 AND CREDIT_UNIT_QTY &gt;= 0</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+<tableCheckConstraint id="6DC3DE94-DC5D-589E-A608-752D0C1321E6" name="KKDUGI_AI_PRICE_CK_TIME">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>VALID_TO IS NULL OR VALID_TO &gt; VALID_FROM</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+<tableCheckConstraint id="26238FF4-8BD0-57D9-90C7-ED76C38375D4" name="KKDUGI_AI_PRICE_CK_METER">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>METER_CD IN ('INPUT','OUTPUT','CACHE_READ','CACHE_WRITE','REQUEST','SECOND')</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+</tableCheckConstraints>
+</Table>

@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="D2D32377-B16C-5776-A45D-A9204573358F" containerWithKeyObject="2C402FFF-E827-522E-8DB0-9CE0298A16A5" localFKIndex="0631AC64-CF18-5F87-8655-E72F322D2845" name="KKDUGI_CREDIT_WALLET_FK_ACCT">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<referredTableLongName>KKDUGI_BILL_ACCT</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>EF913CBF-710E-563D-AF10-271932DF445B</referredTableID>
+<keyObject>9251296D-3021-5EC5-AA6D-B3D60232BB47</keyObject>
+<referredKeyID>9251296D-3021-5EC5-AA6D-B3D60232BB47</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>ACCT_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>false</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

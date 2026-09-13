@@ -1,0 +1,130 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="F94C0DB3-CD1C-F3F0-6A9E-2A1C2A0D7ABB" name="KKDUGI_AI_LANG">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:15:51 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<ordsAlias>table_4</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="AGI_ID" id="3168534A-3A68-EDDF-5112-BF71086353C3">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:09 UTC</createdTime>
+<commentInRDBMS><![CDATA[AI Agent ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="D980664F-B302-EFB0-AC03-11A0D40B1C96" referredColumn="631638E1-BD9D-2F3F-F74D-2CAEA20184B4"/>
+</associations>
+</Column>
+<Column name="LANG_CD" id="7E01CA9D-0F1A-8BB3-C791-CE00A4017AA3">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:54 UTC</createdTime>
+<commentInRDBMS><![CDATA[언어 코드 (공통코드 /SYS/LANG)]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="AGI_NM" id="82CBE929-5E1C-F3C4-F2EE-B5FEE7C7EDEB">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:54 UTC</createdTime>
+<commentInRDBMS><![CDATA[AI Agent 이름]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>962492F5-6744-E7FB-E3C2-3841BA51A57E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="AGI_DC" id="1B182395-5B86-6DE9-71B7-735D2DAC55B8">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:54 UTC</createdTime>
+<commentInRDBMS><![CDATA[AI Agent 설명]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>9C5F9569-7417-9AF0-0059-814EEC4A0205</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="99CE8924-61C2-EA53-A2EC-A5DBA1C62E33">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:09 UTC</createdTime>
+<commentInRDBMS><![CDATA[등록일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="8904F0D6-A66D-360C-8396-371C321414CE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:09 UTC</createdTime>
+<commentInRDBMS><![CDATA[등록자 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_DTM" id="D86DAABD-4E68-02A1-61E8-D0DAC364D9F6">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:09 UTC</createdTime>
+<commentInRDBMS><![CDATA[수정일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_ID" id="A3949E5C-4111-689B-5BB0-B4ED423E0705">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:16:09 UTC</createdTime>
+<commentInRDBMS><![CDATA[수정자 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="08C7E537-87FF-D0A0-CEDA-B7BD89F40B8B" name="KKDUGI_AI_LANG_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:17:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="3168534A-3A68-EDDF-5112-BF71086353C3"/>
+<colUsage columnID="7E01CA9D-0F1A-8BB3-C791-CE00A4017AA3"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="6FF5BEAF-9B71-7180-733E-5316DA230960" name="KKDUGI_AI_LANG_KKDUGI_AI_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:17:04 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="3168534A-3A68-EDDF-5112-BF71086353C3"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>

@@ -1,0 +1,17 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="127689AE-0CF4-FC9D-8A19-ADC5443A9804" containerWithKeyObject="2DC9BF4F-7817-4838-D9C6-D55EDD35B70B" localFKIndex="BD797560-C13C-9F23-744A-87D779C669E0" name="KKDUGI_ORGA_AUTH_KKDUGI_ORGA_BASE_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:37:25 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<usedAsRemoteObject>true</usedAsRemoteObject>
+<referredTableLongName>KKDUGI_ORGA_BASE</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>F210E2CA-D8BC-D29A-2439-7E560D6A534D</referredTableID>
+<keyObject>6830318D-D98E-1C26-0048-A39969F10FF9</keyObject>
+<referredKeyID>6830318D-D98E-1C26-0048-A39969F10FF9</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>ORGA_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

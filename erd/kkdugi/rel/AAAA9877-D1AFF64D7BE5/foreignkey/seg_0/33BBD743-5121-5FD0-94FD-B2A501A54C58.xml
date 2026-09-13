@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="33BBD743-5121-5FD0-94FD-B2A501A54C58" containerWithKeyObject="B2A245D3-F762-55E1-8E7B-26F196915D89" localFKIndex="3D61F550-C4EB-52B4-9FAE-D158C06C959D" name="KKDUGI_AI_CHARGE_FK_HOLD">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<referredTableLongName>KKDUGI_CREDIT_HOLD</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>FC6F9DD5-996F-5ED8-B1DB-111F69F6AC23</referredTableID>
+<keyObject>E4BD1068-93E1-5D26-ABD9-26D3781753AF</keyObject>
+<referredKeyID>E4BD1068-93E1-5D26-ABD9-26D3781753AF</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>HOLD_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>false</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

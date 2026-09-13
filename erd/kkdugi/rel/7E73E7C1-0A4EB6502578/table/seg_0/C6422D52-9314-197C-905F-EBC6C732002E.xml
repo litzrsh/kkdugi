@@ -1,0 +1,156 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="C6422D52-9314-197C-905F-EBC6C732002E" name="KKDUGI_ORGA_USER">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:27:03 UTC</createdTime>
+<commentInRDBMS><![CDATA[조직 사용자]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<ordsAlias>table_14</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="ORGA_ID" id="6A65571A-BC3C-F275-0974-8409BE829EDC">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:27:47 UTC</createdTime>
+<commentInRDBMS><![CDATA[조직 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="F8D99FEB-F348-AE66-9F82-A9060A9D7A18" referredColumn="7D296752-4ADA-2B7D-C2D2-430862300F95"/>
+</associations>
+</Column>
+<Column name="USER_ID" id="D66A80CA-2A28-137C-757F-4053A767D37F">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:03 UTC</createdTime>
+<commentInRDBMS><![CDATA[사용자 ID (시스템 생성)]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="15677100-181F-C95A-7F43-C64ABDC9FA8A" referredColumn="E84675E8-21D6-E4EF-58FD-CA31D4681A93"/>
+</associations>
+</Column>
+<Column name="USER_POSA_CD" id="F95CF170-36E9-D580-8987-7AD3CD714C95">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:03 UTC</createdTime>
+<commentInRDBMS><![CDATA[직책코드 (공통코드 /SYS/ORGA/POSA)]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="USER_JOBA_CD" id="E820E099-4749-C77C-DA7F-7E83A11F20BE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:03 UTC</createdTime>
+<commentInRDBMS><![CDATA[직급 코드 (공통코드 /SYS/ORGA/JOBA)]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="MNGR_YN" id="5ECC9B5C-7F7F-C799-9EC4-E0E38750FBF7">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:31 UTC</createdTime>
+<commentInRDBMS><![CDATA[조직 관리자 여부]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<domain>3EA06EAD-FEA1-55BF-32A0-0B048C2C4DF4</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="019EB051-8FA1-A2D7-A86A-9FD11E8A9E90">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:31 UTC</createdTime>
+<commentInRDBMS><![CDATA[등록일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="AA3C9B28-0482-594B-7216-554E2CE4B2EF">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:31 UTC</createdTime>
+<commentInRDBMS><![CDATA[등록자 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_DTM" id="609F42E1-59E7-444C-10D2-7DCB865E87A0">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:31 UTC</createdTime>
+<commentInRDBMS><![CDATA[수정일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_ID" id="9B2CD0BD-60D3-A315-7FDF-0606EC602F6D">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:29:31 UTC</createdTime>
+<commentInRDBMS><![CDATA[수정자 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="B1E4F206-8A3C-45D1-9E77-2C6A8F013B4D" name="KKDUGI_ORGA_USER_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:31:28 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="6A65571A-BC3C-F275-0974-8409BE829EDC"/>
+<colUsage columnID="D66A80CA-2A28-137C-757F-4053A767D37F"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="A8F37099-FCEC-5C3D-9568-C4FF33B75E3C" name="KKDUGI_ORGA_USER_KKDUGI_ORGA_BASE_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:31:28 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="6A65571A-BC3C-F275-0974-8409BE829EDC"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="370A6A2B-1C80-CABF-E529-39023AF1E540" name="KKDUGI_ORGA_USER_KKDUGI_USER_BASE_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:31:38 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="D66A80CA-2A28-137C-757F-4053A767D37F"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>

@@ -1,0 +1,217 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="D32F80B4-93CD-5ED1-A5FA-30D195E6FFFF" name="KKDUGI_CREDIT_ORDER">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>선불 크레딧 충전 주문; 검증된 결제 성공 시 원장에 한 번만 입금</commentInRDBMS>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="ORDER_ID" id="0ED7A086-4E98-5E19-9899-F38DE1628B77">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>충전 주문 ID</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="WALLET_ID" id="708EAB3C-D99F-59A5-9CFE-ECBB7CE54A50">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>충전 지갑</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="16CDC6C2-5E19-5CD9-A320-4B0CC723A70D" referredColumn="62544B4F-2F97-5EDB-88D6-61C2BA205312" />
+</associations>
+</Column>
+<Column name="REQ_KEY" id="AE754269-6CEC-5CC6-9C91-82C2B7EDACE3">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>주문 중복 방지 키</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>962492F5-6744-E7FB-E3C2-3841BA51A57E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PG_CD" id="2772CA13-8EF4-5889-B0F1-854527A4C86A">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>결제 제공자 코드</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PG_PAY_ID" id="AC21FD96-F492-5572-A669-59F5CAC3DD76">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>제공자 결제 ID; 검증 완료 후 기록</commentInRDBMS>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>962492F5-6744-E7FB-E3C2-3841BA51A57E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PAY_CCY_CD" id="7534CE3E-654F-5B8E-A0F8-04E236A80298">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>실제 결제 통화</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PAY_AMT" id="46612704-8EF4-5BC2-A731-8716D3A5CBBD">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>실제 결제 금액; 통화 최소 단위 검증 필요</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>8FFE35EF-17E3-5445-8D37-EF2C355B6B5A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="CREDIT_QTY" id="8F05E063-4B68-560B-A035-8F2B3B0047F4">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>구매 크레딧; 주문 시 환산값 고정</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>6B4F2AD9-5694-5C3F-966B-6357DEE4AD3A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="STAT_CD" id="FF157493-E875-5244-9837-8140F94DCBD8">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>PENDING/PAID/FAILED/CANCELLED</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PAID_DTM" id="D4DFD719-FB2B-5AB1-9C4C-C20FCCB6E11D">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>결제 확정 UTC</commentInRDBMS>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="46E0EEAD-8AE2-5B8E-866B-2AED0F34EDCC">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록일시 (UTC)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="B0D090DD-F5D7-5748-A5FB-A0495491360B">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록 주체 ID (사용자 또는 서비스)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="876E64E2-3BE1-5F6B-8B18-B4D77007CBF3" name="KKDUGI_CREDIT_ORDER_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="0ED7A086-4E98-5E19-9899-F38DE1628B77" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="CD14DB46-E97B-582A-88CB-A523139B81B2" name="KKDUGI_CREDIT_ORDER_UK_REQ">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="708EAB3C-D99F-59A5-9CFE-ECBB7CE54A50" />
+<colUsage columnID="AE754269-6CEC-5CC6-9C91-82C2B7EDACE3" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="E1B1159E-0AA8-57A5-A739-30772D5F6B77" name="KKDUGI_CREDIT_ORDER_UK_PG">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="2772CA13-8EF4-5889-B0F1-854527A4C86A" />
+<colUsage columnID="AC21FD96-F492-5572-A669-59F5CAC3DD76" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="B5A71B04-A680-597F-BF76-FB76B563BB2F" name="KKDUGI_CREDIT_ORDER_FK_WALLET">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="708EAB3C-D99F-59A5-9CFE-ECBB7CE54A50" />
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<tableCheckConstraints itemClass="oracle.dbtools.crest.model.design.constraint.TableLevelConstraint">
+<tableCheckConstraint id="FD0802C2-1C20-5FAF-AF6A-140DE5008414" name="KKDUGI_CREDIT_ORDER_CK_AMT">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>PAY_AMT &gt; 0 AND CREDIT_QTY &gt; 0</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+<tableCheckConstraint id="7E61C30C-A766-5061-81CF-D49BE8216250" name="KKDUGI_CREDIT_ORDER_CK_STAT">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>STAT_CD IN ('PENDING','PAID','FAILED','CANCELLED')</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+<tableCheckConstraint id="6BBC02A3-F208-5687-BB9D-C8C33062B12B" name="KKDUGI_CREDIT_ORDER_CK_PAID">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>STAT_CD &lt;&gt; 'PAID' OR (PG_PAY_ID IS NOT NULL AND PAID_DTM IS NOT NULL)</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+</tableCheckConstraints>
+</Table>

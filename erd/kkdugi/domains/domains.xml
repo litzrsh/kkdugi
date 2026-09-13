@@ -1,0 +1,319 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<DomainFile class="oracle.dbtools.crest.model.design.DomainFileWrapper" fileName="domains">
+<domains>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Date (string)" id="07586E43-E1AC-BBB8-EBF3-C0CD160EEF8A">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>07586E43-E1AC-BBB8-EBF3-C0CD160EEF8A</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>8</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT025</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG JSONB" id="0DC45D62-6FD7-9E2F-5544-DADD323F890C">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>0DC45D62-6FD7-9E2F-5544-DADD323F890C</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT028</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG TEXT" id="17DCE402-689F-9024-166C-F1827949AEB8">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>17DCE402-689F-9024-166C-F1827949AEB8</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT028</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(30)" id="256BE487-812C-4D5A-6420-66756C77B481">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>256BE487-812C-4D5A-6420-66756C77B481</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>30</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(63)" id="33C9D763-3A09-9C58-22AF-581D09DB8081">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>33C9D763-3A09-9C58-22AF-581D09DB8081</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>63</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Boolean" id="3EA06EAD-FEA1-55BF-32A0-0B048C2C4DF4">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>3EA06EAD-FEA1-55BF-32A0-0B048C2C4DF4</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>1</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT025</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="ID" id="452DB87B-56C8-B572-7DC2-B4A84E66EB2E">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>20</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Date" id="536B23E5-1B81-189C-3582-0B26CE62252F">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>536B23E5-1B81-189C-3582-0B26CE62252F</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT007</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Timestamp" id="596C479B-9DFA-A302-4E09-F0C6ED9B65CB">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT015</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG INTEGER" id="601EC256-5DFC-C4E1-5A45-A28AE3E53727">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>601EC256-5DFC-C4E1-5A45-A28AE3E53727</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT011</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Credit quantity" id="6B4F2AD9-5694-5C3F-966B-6357DEE4AD3A">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>6B4F2AD9-5694-5C3F-966B-6357DEE4AD3A</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypePrecision>24</dataTypePrecision>
+<dataTypeScale>6</dataTypeScale>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT019</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Clob" id="7F308678-D917-33E4-D644-B4FFA4D0E24E">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:55:37 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>7F308678-D917-33E4-D644-B4FFA4D0E24E</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT028</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="AI rate and cost" id="8FFE35EF-17E3-5445-8D37-EF2C355B6B5A">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>8FFE35EF-17E3-5445-8D37-EF2C355B6B5A</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypePrecision>28</dataTypePrecision>
+<dataTypeScale>12</dataTypeScale>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT019</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Text field" id="962492F5-6744-E7FB-E3C2-3841BA51A57E">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>962492F5-6744-E7FB-E3C2-3841BA51A57E</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>200</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Text field (Long)" id="9C5F9569-7417-9AF0-0059-814EEC4A0205">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>9C5F9569-7417-9AF0-0059-814EEC4A0205</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>4000</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(50)" id="A1DC9033-C017-89A0-0C47-7CA5A2AC9F4C">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>A1DC9033-C017-89A0-0C47-7CA5A2AC9F4C</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>50</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Integer" id="A36D3924-8371-BA32-FF12-7F41B1E29E4A">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:55:15 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>A36D3924-8371-BA32-FF12-7F41B1E29E4A</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT011</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG CHAR(1)" id="B52CFF98-42FE-EDA1-4BD2-42BBC924E3AD">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>B52CFF98-42FE-EDA1-4BD2-42BBC924E3AD</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>1</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT025</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(500)" id="B852BED1-83FF-C354-53A2-9984BEBF2947">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>B852BED1-83FF-C354-53A2-9984BEBF2947</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>500</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Metered quantity" id="BC71121B-2284-5438-B74E-C4223EBDD1EA">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>BC71121B-2284-5438-B74E-C4223EBDD1EA</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypePrecision>24</dataTypePrecision>
+<dataTypeScale>6</dataTypeScale>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT019</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Blob" id="BEA43A08-1D3C-BC10-F0A0-F91B6EBA7E0D">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>BEA43A08-1D3C-BC10-F0A0-F91B6EBA7E0D</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT029</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(20)" id="C054E14B-7D05-F518-B9FF-AC01C5FC1ABB">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>C054E14B-7D05-F518-B9FF-AC01C5FC1ABB</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>20</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Code" id="C891F0B4-38C8-5DC0-175D-62284AE0AFA9">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>20</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG BIGINT" id="D8FD0E70-73C1-FE22-2F77-F0884CF25309">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>D8FD0E70-73C1-FE22-2F77-F0884CF25309</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypePrecision>19</dataTypePrecision>
+<dataTypeScale>0</dataTypeScale>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT019</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(36)" id="DBB9382E-1749-C735-13FC-39445522D4D8">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>DBB9382E-1749-C735-13FC-39445522D4D8</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>36</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Unknown" id="DOM3000004">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:30:21 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>DOM3000004</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT017</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(100)" id="EA009207-B984-FF20-48FA-C270B8C01410">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>EA009207-B984-FF20-48FA-C270B8C01410</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>100</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG TIMESTAMP" id="EE2F3C6E-FE4D-D5C3-685A-678267EBDEC0">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>EE2F3C6E-FE4D-D5C3-685A-678267EBDEC0</importedID>
+<avTSortOrder>0</avTSortOrder>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT015</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Text field (Short)" id="F2F0B0EC-9619-C9BF-CD42-4867462BC4E5">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>F2F0B0EC-9619-C9BF-CD42-4867462BC4E5</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>50</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Encrypted field" id="F50FB5D0-442B-C992-21A4-FED958770C30">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:39:58 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>F50FB5D0-442B-C992-21A4-FED958770C30</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>2048</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="Widget PG VARCHAR(12)" id="F7139BAB-1C5A-5041-243F-59CE4F366681">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>F7139BAB-1C5A-5041-243F-59CE4F366681</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>12</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+<Domain class="oracle.dbtools.crest.model.design.Domain" name="URL" id="FD889E28-7203-0A86-C112-4A2C32938CF6">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:38:54 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<importedID>FD889E28-7203-0A86-C112-4A2C32938CF6</importedID>
+<avTSortOrder>0</avTSortOrder>
+<dataTypeSize>2000</dataTypeSize>
+<fileName>domains</fileName>
+<logicalDatatype>LOGDT024</logicalDatatype>
+</Domain>
+</domains>
+</DomainFile>

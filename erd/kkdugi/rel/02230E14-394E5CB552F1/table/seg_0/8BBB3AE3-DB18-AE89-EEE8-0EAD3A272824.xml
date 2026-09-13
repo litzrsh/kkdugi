@@ -1,0 +1,154 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="8BBB3AE3-DB18-AE89-EEE8-0EAD3A272824" name="KKDUGI_BATCH_JOB_PARAM">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:43:49 UTC</createdTime>
+<commentInRDBMS><![CDATA[배치 JOB 파라미터]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<ordsAlias>table_2</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="JOB_ID" id="2F8A1D85-CF18-807E-C455-283C3911B489">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:05 UTC</createdTime>
+<commentInRDBMS><![CDATA[JOB ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="9E93A5A5-1FF5-B021-92ED-E928832EB5F1" referredColumn="C6536055-F7FA-E1E1-DA82-A92BFBE98BD5"/>
+</associations>
+</Column>
+<Column name="PARAM_CD" id="A343E5E6-BAF5-5D9E-DB52-E110B9168893">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:05 UTC</createdTime>
+<commentInRDBMS><![CDATA[파라미터 필드]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>F2F0B0EC-9619-C9BF-CD42-4867462BC4E5</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PARAM_NM" id="B5657D23-E92B-1937-63BC-422505570E5D">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:05 UTC</createdTime>
+<commentInRDBMS><![CDATA[파라미터 이름]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>962492F5-6744-E7FB-E3C2-3841BA51A57E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PARAM_DC" id="5CA51714-D7FB-46DA-ED70-DCD01F71FC22">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:05 UTC</createdTime>
+<commentInRDBMS><![CDATA[파라미터 설명]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>9C5F9569-7417-9AF0-0059-814EEC4A0205</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PARAM_TP_CD" id="C3881AA7-90B4-FA9F-5FB0-1D860B9A0F84">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:05 UTC</createdTime>
+<commentInRDBMS><![CDATA[파라미터 값 유형 (/SYS/BATCH/PARAM_TYPE)]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PARAM_DEF_VAL" id="E7933063-4A19-1052-01E5-EA48D7EE4AFB">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:05 UTC</createdTime>
+<commentInRDBMS><![CDATA[파라미터 기본값]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>9C5F9569-7417-9AF0-0059-814EEC4A0205</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="CB362A60-3E90-1546-E5EC-7CE3302740E0">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:14 UTC</createdTime>
+<commentInRDBMS><![CDATA[등록일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="0E4342A8-ABC5-7E62-F712-1793149827F5">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:14 UTC</createdTime>
+<commentInRDBMS><![CDATA[등록자 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_DTM" id="E6A4953E-CDD1-222F-641C-33015972E3E5">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:14 UTC</createdTime>
+<commentInRDBMS><![CDATA[수정일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_ID" id="B77B9664-C3C5-84AE-AB57-00D9F5029A45">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:14 UTC</createdTime>
+<commentInRDBMS><![CDATA[수정자 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="EEFBC976-7015-529F-8F9C-61DCB8AF641C" name="KKDUGI_BATCH_JOB_PARAM_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:05 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="2F8A1D85-CF18-807E-C455-283C3911B489"/>
+<colUsage columnID="A343E5E6-BAF5-5D9E-DB52-E110B9168893"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="791932F2-634C-ADA4-1CC2-4DB5D57B793F" name="KKDUGI_BATCH_JOB_PARAM_KKDUGI_BATCH_JOB_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:46:20 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="2F8A1D85-CF18-807E-C455-283C3911B489"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>

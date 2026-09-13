@@ -1,0 +1,13 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<OSDM_Design class="oracle.dbtools.crest.model.design.Design" name="kkdugi" id="7670C148-B293-C99F-2D89-8EC9AF51324D" version="3.5">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:30:21 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<capitalNames>false</capitalNames>
+<designId>7670C148-B293-C99F-2D89-8EC9AF51324D</designId>
+<usedDesignStorageDescriptors>
+<designDescr class="oracle.dbtools.crest.model.design.Design$DesignStorageDesc" id="7670C148-B293-C99F-2D89-8EC9AF51324D">
+<designStoragePath>C:\projects\kkdugi\kkdugi-erd\kkdugi</designStoragePath>
+</designDescr>
+</usedDesignStorageDescriptors>
+</OSDM_Design>

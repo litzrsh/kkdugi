@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="5DF0165B-4373-541F-8D3E-65B72C843DA3" containerWithKeyObject="F5BF7E78-6E75-56F3-9E67-1F978A61E5FD" localFKIndex="F5AF9AB0-314B-53A2-9C7F-110741EB71D5" name="KKDUGI_AI_APPROVAL_FK_RUN">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<referredTableLongName>KKDUGI_AI_TASK_RUN</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>113D58A1-7595-5DE8-B762-2EED6E444D28</referredTableID>
+<keyObject>DC65E66E-6FAD-5C82-A86F-2F41F9622D85</keyObject>
+<referredKeyID>DC65E66E-6FAD-5C82-A86F-2F41F9622D85</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>TASK_RUN_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>false</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

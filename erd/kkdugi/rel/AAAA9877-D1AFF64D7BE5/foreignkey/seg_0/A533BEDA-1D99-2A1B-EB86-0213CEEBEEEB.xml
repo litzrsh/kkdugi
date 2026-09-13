@@ -1,0 +1,20 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="A533BEDA-1D99-2A1B-EB86-0213CEEBEEEB" containerWithKeyObject="8C90C750-B23B-3CFB-1079-3BB6234472AB" localFKIndex="AF57B3D2-6B59-CF93-F4F6-104D6ECD396E" name="KKDUGI_USER_AUTH_KKDUGI_AUTH_BASE_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:21:22 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<remoteDesignID>7670C148-B293-C99F-2D89-8EC9AF51324D</remoteDesignID>
+<remoteModelID>7E73E7C1-3BAB-4C54-D1F6-0A4EB6502578</remoteModelID>
+<remoteObjectID>8293C4D5-F0FB-2C48-850F-557F5EFF8960</remoteObjectID>
+<remoteObjectRelativeStorageName>\rel\7E73E7C1-0A4EB6502578\foreignkey\seg_0\8293C4D5-F0FB-2C48-850F-557F5EFF8960.xml</remoteObjectRelativeStorageName>
+<referredTableLongName>KKDUGI_AUTH_BASE</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>E3590BFB-2D2F-7E99-D5A8-DAB1127AF7FB</referredTableID>
+<keyObject>E53059E6-61CA-5877-22CD-64DAA955975A</keyObject>
+<referredKeyID>E53059E6-61CA-5877-22CD-64DAA955975A</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>AUTH_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="D53A7B30-E326-662F-C7B8-996233896F3B" containerWithKeyObject="011EB5E9-9CBE-AC52-295A-78575BD960E8" localFKIndex="205C9F57-7F8C-1E86-A1F5-427A258A1735" name="KKDUGI_MENU_LANG_KKDUGI_MENU_BASE_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 04:59:33 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<referredTableLongName>KKDUGI_MENU_BASE</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>48C941AF-E492-5C05-2E47-3EEFADB1A3F4</referredTableID>
+<keyObject>FC3966B1-9958-9303-05B9-E30518BECD00</keyObject>
+<referredKeyID>FC3966B1-9958-9303-05B9-E30518BECD00</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>MENU_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>true</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

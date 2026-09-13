@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<FKIndexAssociation class="oracle.dbtools.crest.model.design.relational.FKIndexAssociation" directorySegmentName="seg_0" id="4795E93A-5037-51DE-B9C2-3D812FCB55FB" containerWithKeyObject="70EA510C-01A2-51EA-8236-69DBEBEA6B1B" localFKIndex="62A730C7-DDE5-5DF1-83CC-AED32BB54F98" name="KKDUGI_AI_STEP_RUN_FK_SESS">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<referredTableLongName>KKDUGI_AI_SESSION</referredTableLongName>
+<deleteRule>NO ACTION</deleteRule>
+<referredTableID>A544098C-801C-53A1-9A60-A0E0CCF14D79</referredTableID>
+<keyObject>0E19E673-3633-56A1-8404-9CDE62B0448D</keyObject>
+<referredKeyID>0E19E673-3633-56A1-8404-9CDE62B0448D</referredKeyID>
+<mandatory>true</mandatory>
+<refColNames>SESS_ID</refColNames>
+<transferable>true</transferable>
+<rely>false</rely>
+<columnDependencyConstraintGenerateInDDL>false</columnDependencyConstraintGenerateInDDL>
+</FKIndexAssociation>

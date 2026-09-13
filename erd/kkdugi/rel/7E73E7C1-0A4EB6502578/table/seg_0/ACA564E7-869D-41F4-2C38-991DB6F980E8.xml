@@ -1,0 +1,81 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="ACA564E7-869D-41F4-2C38-991DB6F980E8" name="KKDUGI_WIDGET_ACCESS">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>위젯 열람 역할 코드. 기본 SYS_ADMIN. AUTH_CD는 AUTH_ID 외래키가 아님.</commentInRDBMS>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="WIDG_ID" id="7FE0A38D-6F8D-60E9-B7E9-7D41AA46047B">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>위젯 ID | PostgreSQL: VARCHAR(20) NOT NULL</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C054E14B-7D05-F518-B9FF-AC01C5FC1ABB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations><colAssociation fkAssociation="AB733115-2FC0-63D7-6CA8-F4D50D090606" referredColumn="E327E0FC-B8DC-C8CE-ACB1-0F9F342D0E57" /></associations>
+</Column>
+<Column name="AUTH_CD" id="3A97C45F-1EA0-A701-90C5-E42EC87A0C65">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>열람 역할 코드 | PostgreSQL: VARCHAR(100) NOT NULL</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>EA009207-B984-FF20-48FA-C270B8C01410</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="118496DD-C593-93AE-5BEA-019DC54576EC">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록일시 | PostgreSQL: TIMESTAMP NOT NULL DEFAULT now()</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>EE2F3C6E-FE4D-D5C3-685A-678267EBDEC0</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="7CD14D1D-BF6B-CBBE-CFF8-89DD0CFF5DA7">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록자 ID | PostgreSQL: VARCHAR(20) NOT NULL</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C054E14B-7D05-F518-B9FF-AC01C5FC1ABB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="8565CDB2-B31C-F2C5-1BB1-AFC9C1C1BD0C" name="KKDUGI_WIDGET_ACCESS_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="7FE0A38D-6F8D-60E9-B7E9-7D41AA46047B"/>
+<colUsage columnID="3A97C45F-1EA0-A701-90C5-E42EC87A0C65"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="1206AD8E-9B13-AAA2-2881-5D820C81E5F4" name="KKDUGI_WIDGET_ACCESS_WIDG_ID_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="7FE0A38D-6F8D-60E9-B7E9-7D41AA46047B"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>

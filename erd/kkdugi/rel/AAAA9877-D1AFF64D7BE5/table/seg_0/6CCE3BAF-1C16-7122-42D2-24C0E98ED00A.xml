@@ -1,0 +1,152 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="6CCE3BAF-1C16-7122-42D2-24C0E98ED00A" name="KKDUGI_AUTH_AI">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:18:18 UTC</createdTime>
+<commentInRDBMS>AI 사용 권한</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<ordsAlias>table_6</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="AUTH_ID" id="C8998F17-3B0C-8D69-EB70-071DCE5AD585">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:19:33 UTC</createdTime>
+<commentInRDBMS>권한 ID</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="7351CCF4-11DB-7BAA-2C1D-E66670CD174B" referredColumn="7F34091C-DF6E-B087-24C0-C6ADF4F40BAC" />
+</associations>
+</Column>
+<Column name="AGI_ID" id="7D4469A4-775A-EEEE-672B-8C5B82B9F173">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:18:54 UTC</createdTime>
+<commentInRDBMS>AI Agent ID</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="0D90BA99-378E-AEBD-84E8-1E4E4B7F6B50" referredColumn="631638E1-BD9D-2F3F-F74D-2CAEA20184B4" />
+</associations>
+</Column>
+<Column name="TOKEN_LMT" id="35B6A8AB-A665-2BE1-D468-A36728E45F6C">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:19:33 UTC</createdTime>
+<commentInRDBMS>토큰 사용 한도 (0인 경우 무한)</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<domain>A36D3924-8371-BA32-FF12-7F41B1E29E4A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="255F0E0D-A684-F9CA-D40D-3280C2FF6AB7">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:18:54 UTC</createdTime>
+<commentInRDBMS>등록일시</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="BB4B8C54-1B4D-D3B1-4017-7C267CA138ED">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:18:54 UTC</createdTime>
+<commentInRDBMS>등록자 ID</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_DTM" id="68D9A38A-7804-0387-E7B0-C59BCD1C6FE2">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:18:54 UTC</createdTime>
+<commentInRDBMS>수정일시</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_ID" id="30C8C98F-DFCD-0A79-A929-59A2A52FDB66">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:18:54 UTC</createdTime>
+<commentInRDBMS>수정자 ID</commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="LMT_PERIOD_CD" id="78313CE3-C7A7-57D8-BB23-38C64F17C10F">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>TOKEN_LMT 집계 기간: DAY 또는 MONTH (UTC); 0은 무제한</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="89A016E4-D854-DF3F-1B9F-C7E25FAB7E95" name="KKDUGI_AUTH_AI_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:19:33 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="C8998F17-3B0C-8D69-EB70-071DCE5AD585" />
+<colUsage columnID="7D4469A4-775A-EEEE-672B-8C5B82B9F173" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="92964868-1C58-4840-C77C-FE2C929DD44D" name="KKDUGI_AUTH_AI_KKDUGI_AUTH_BASE_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:19:37 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="C8998F17-3B0C-8D69-EB70-071DCE5AD585" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="9B5B7159-176C-9269-E150-C0246228C036" name="KKDUGI_AUTH_AI_KKDUGI_AI_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 10:19:53 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="7D4469A4-775A-EEEE-672B-8C5B82B9F173" />
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<tableCheckConstraints itemClass="oracle.dbtools.crest.model.design.constraint.TableLevelConstraint">
+<tableCheckConstraint id="5EFC9D48-1C06-5FF3-A1AF-2ED002A86D9F" name="KKDUGI_AUTH_AI_CK_LMT">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>TOKEN_LMT &gt;= 0 AND LMT_PERIOD_CD IN ('DAY','MONTH')</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+</tableCheckConstraints>
+</Table>

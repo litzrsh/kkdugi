@@ -1,0 +1,302 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="F4A32D4F-8F9E-5307-B6CB-842D4501AAE5" name="KKDUGI_CREDIT_TXN">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>수정/삭제 금지 크레딧 원장. 정정은 원거래를 참조하는 반대 거래</commentInRDBMS>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="TXN_ID" id="8374E170-88C1-572D-9671-DE7473215E23">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>원장 거래 ID</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="WALLET_ID" id="EE6CCBDA-09C0-528F-B8DD-2D3AA3D500A9">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>지갑 ID</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="4BC14C35-2AF9-5E93-8154-8CCB62E79F07" referredColumn="62544B4F-2F97-5EDB-88D6-61C2BA205312" />
+</associations>
+</Column>
+<Column name="TXN_NO" id="3C0A0CD3-141F-57D7-9D92-D0789AE0B089">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>지갑 내 연속 잔액 거래 순번</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<domain>A36D3924-8371-BA32-FF12-7F41B1E29E4A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="IDEMP_KEY" id="0FB7546B-3991-5320-AA0E-F616C4AEE417">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>중복 처리 방지 키</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>962492F5-6744-E7FB-E3C2-3841BA51A57E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="TXN_TP_CD" id="767FBE3E-9E66-55F1-B6C8-5F2BD2483A95">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>TOPUP/CHARGE/REVERSAL/ADJUST</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="DELTA_QTY" id="87894AE8-95A9-5949-9854-F4C6B66ABAC7">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>부호 있는 크레딧 증감량</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>6B4F2AD9-5694-5C3F-966B-6357DEE4AD3A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="BEFORE_QTY" id="0AC4E39A-9228-5927-8296-9E7065BE9506">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>거래 전 장부 잔액</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>6B4F2AD9-5694-5C3F-966B-6357DEE4AD3A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="AFTER_QTY" id="E50A58F6-F539-541C-AF57-6932A9B35B47">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>거래 후 장부 잔액</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT019</logicalDatatype>
+<domain>6B4F2AD9-5694-5C3F-966B-6357DEE4AD3A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="ORDER_ID" id="79757167-0CAE-5BD6-A7D5-237F0A019A84">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>TOPUP 원천 주문; 주문당 한 번</commentInRDBMS>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="F179C4DC-EB39-5071-AA78-B22031CDBFE4" referredColumn="0ED7A086-4E98-5E19-9899-F38DE1628B77" />
+</associations>
+</Column>
+<Column name="CHARGE_ID" id="A79BAA93-BC76-5BFE-8F04-963EBC123D4B">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>CHARGE 원천 정산; 정산당 한 번</commentInRDBMS>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="8627C5C9-27DE-55A6-AA5E-DF3283002454" referredColumn="828B8204-C44C-554C-BAD6-CB1E96F57D81" />
+</associations>
+</Column>
+<Column name="ORIG_TXN_ID" id="D66F1DBC-332E-5B0A-BCAE-297ADC3EFD45">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>REVERSAL 대상 차감 거래; 초기에는 전액 복원만</commentInRDBMS>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="5DAD5F0B-BDB2-5F54-B12F-54A74AC9F2F7" referredColumn="8374E170-88C1-572D-9671-DE7473215E23" />
+</associations>
+</Column>
+<Column name="REASON" id="B4BBA0AB-E720-5507-92AA-4C5B161438B8">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>거래 사유 또는 승인된 운영 정정 근거</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>9C5F9569-7417-9AF0-0059-814EEC4A0205</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_DTM" id="05837748-E63D-5951-9600-0DA2DCF82CB8">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록일시 (UTC)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REG_ID" id="990CCBAF-E7CC-59E7-88A0-FFADFA92573E">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>등록 주체 ID (사용자 또는 서비스)</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="DEA4CCDD-96E0-5ECB-B110-B6955437FB06" name="KKDUGI_CREDIT_TXN_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="8374E170-88C1-572D-9671-DE7473215E23" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="DA567D84-024B-5A58-B9D3-588CFE9B8FAF" name="KKDUGI_CREDIT_TXN_UK_SEQ">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="EE6CCBDA-09C0-528F-B8DD-2D3AA3D500A9" />
+<colUsage columnID="3C0A0CD3-141F-57D7-9D92-D0789AE0B089" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="2F25395A-1170-51C6-93EF-F9AEAFCDD5C0" name="KKDUGI_CREDIT_TXN_UK_IDEMP">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="EE6CCBDA-09C0-528F-B8DD-2D3AA3D500A9" />
+<colUsage columnID="0FB7546B-3991-5320-AA0E-F616C4AEE417" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="465DE38E-4575-5A9F-9CCD-EF18DC7EB628" name="KKDUGI_CREDIT_TXN_UK_ORDER">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="79757167-0CAE-5BD6-A7D5-237F0A019A84" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="8C5A0239-E89C-59D9-A7F5-E1C98E979956" name="KKDUGI_CREDIT_TXN_UK_CHARGE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="A79BAA93-BC76-5BFE-8F04-963EBC123D4B" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="8460448B-3E50-5570-A88C-98AB31DC54B5" name="KKDUGI_CREDIT_TXN_UK_REV">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="D66F1DBC-332E-5B0A-BCAE-297ADC3EFD45" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="9854E142-ED14-5832-9113-D9FEF72A7ED5" name="KKDUGI_CREDIT_TXN_FK_WALLET">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="EE6CCBDA-09C0-528F-B8DD-2D3AA3D500A9" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="3B66319A-7212-55CA-B7E6-07F66EE69AD2" name="KKDUGI_CREDIT_TXN_FK_ORDER">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="79757167-0CAE-5BD6-A7D5-237F0A019A84" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="755A56DB-6123-5842-A665-445096C8F3AE" name="KKDUGI_CREDIT_TXN_FK_CHARGE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="A79BAA93-BC76-5BFE-8F04-963EBC123D4B" />
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="1D7B656D-7E68-53C7-B8A4-E704DF35C9EF" name="KKDUGI_CREDIT_TXN_FK_ORIG">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="D66F1DBC-332E-5B0A-BCAE-297ADC3EFD45" />
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<tableCheckConstraints itemClass="oracle.dbtools.crest.model.design.constraint.TableLevelConstraint">
+<tableCheckConstraint id="548676EF-F32F-57C3-8B6A-768A5E485A8F" name="KKDUGI_CREDIT_TXN_CK_BAL">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>TXN_NO &gt; 0 AND DELTA_QTY &lt;&gt; 0 AND BEFORE_QTY &gt;= 0 AND AFTER_QTY &gt;= 0 AND AFTER_QTY = BEFORE_QTY + DELTA_QTY</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+<tableCheckConstraint id="4366E4AA-0AA6-549F-B630-B0ACD9B7E516" name="KKDUGI_CREDIT_TXN_CK_SOURCE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 11:14:07 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<rule>(TXN_TP_CD = 'TOPUP' AND DELTA_QTY &gt; 0 AND ORDER_ID IS NOT NULL AND CHARGE_ID IS NULL AND ORIG_TXN_ID IS NULL) OR (TXN_TP_CD = 'CHARGE' AND DELTA_QTY &lt; 0 AND ORDER_ID IS NULL AND CHARGE_ID IS NOT NULL AND ORIG_TXN_ID IS NULL) OR (TXN_TP_CD = 'REVERSAL' AND DELTA_QTY &gt; 0 AND ORDER_ID IS NULL AND CHARGE_ID IS NULL AND ORIG_TXN_ID IS NOT NULL) OR (TXN_TP_CD = 'ADJUST' AND ORDER_ID IS NULL AND CHARGE_ID IS NULL AND ORIG_TXN_ID IS NULL)</rule>
+<generateInDDL>YES</generateInDDL>
+</tableCheckConstraint>
+</tableCheckConstraints>
+</Table>

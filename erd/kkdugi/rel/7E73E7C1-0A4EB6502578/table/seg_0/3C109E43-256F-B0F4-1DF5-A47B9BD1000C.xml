@@ -1,0 +1,81 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="3C109E43-256F-B0F4-1DF5-A47B9BD1000C" name="KKDUGI_WIDGET_DATASET">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>버전별 SQL 데이터셋. PARAM_DEF는 PostgreSQL JSONB.</commentInRDBMS>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="REV_ID" id="76241592-6D95-376F-E97A-DF855E1E8442">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>버전 ID | PostgreSQL: VARCHAR(36) NOT NULL</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>DBB9382E-1749-C735-13FC-39445522D4D8</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations><colAssociation fkAssociation="80D7BBE3-2200-4351-0A69-60AF4E26DDA4" referredColumn="BA9353B1-8535-4B14-AF0E-45A14068DC35" /></associations>
+</Column>
+<Column name="DATASET_KEY" id="0FA52AC2-05E6-C5E3-1F69-A03F717059C9">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>데이터셋 키 | PostgreSQL: VARCHAR(50) NOT NULL</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>A1DC9033-C017-89A0-0C47-7CA5A2AC9F4C</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="SQL_SRC" id="5CB4BD73-2A91-8D3D-2037-3E1B000B5AD5">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>조회 SQL 소스 | PostgreSQL: TEXT NOT NULL</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT028</logicalDatatype>
+<domain>17DCE402-689F-9024-166C-F1827949AEB8</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="PARAM_DEF" id="E93241B3-6035-A5F3-BCCF-B9FBBAFADAFD">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<commentInRDBMS>파라미터 타입 정의 | PostgreSQL: JSONB NOT NULL DEFAULT '{}'::jsonb</commentInRDBMS>
+<use>0</use>
+<logicalDatatype>LOGDT028</logicalDatatype>
+<domain>0DC45D62-6FD7-9E2F-5544-DADD323F890C</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="1CB8CA01-1CA8-13D4-B2B2-6A4C3918E22E" name="KKDUGI_WIDGET_DATASET_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="76241592-6D95-376F-E97A-DF855E1E8442"/>
+<colUsage columnID="0FA52AC2-05E6-C5E3-1F69-A03F717059C9"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="C758D8FE-53FC-E246-5629-D24F19CA2C86" name="KKDUGI_WIDGET_DATASET_REV_ID_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-12 15:00:00 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="76241592-6D95-376F-E97A-DF855E1E8442"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>

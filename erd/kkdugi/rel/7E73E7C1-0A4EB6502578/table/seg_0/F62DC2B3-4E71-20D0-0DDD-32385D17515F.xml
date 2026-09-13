@@ -1,0 +1,70 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="F62DC2B3-4E71-20D0-0DDD-32385D17515F" name="KKDUGI_SERIAL_BASE">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:05:04 UTC</createdTime>
+<commentInRDBMS><![CDATA[일련번호]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<ordsAlias>table_9</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="SERIAL_ID" id="2CFB41D6-F8FB-0C37-AB5E-B1D2B414A008">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:06:40 UTC</createdTime>
+<commentInRDBMS><![CDATA[일련번호 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="SEQ_BASE" id="0059EE8A-E993-6977-5820-AC30CA17B6AF">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:06:40 UTC</createdTime>
+<commentInRDBMS><![CDATA[일련번호 채번 기준]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="SEQ_VAL" id="262E289E-08BE-E1BF-FF11-E745BF9C6E23">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:06:40 UTC</createdTime>
+<commentInRDBMS><![CDATA[일련번호 값]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<domain>A36D3924-8371-BA32-FF12-7F41B1E29E4A</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="UPD_DTM" id="13BC52EC-7B32-0B53-FC3B-24B3DF087401">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:06:40 UTC</createdTime>
+<commentInRDBMS><![CDATA[수정일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT015</logicalDatatype>
+<domain>596C479B-9DFA-A302-4E09-F0C6ED9B65CB</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="2A5D1791-ADDF-6D82-31CE-EAC0DC1C8287" name="KKDUGI_SERIAL_BASE_PK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-07 05:06:40 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="2CFB41D6-F8FB-0C37-AB5E-B1D2B414A008"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+</Table>
