@@ -1,8 +1,0 @@
-<?xml version = '1.0' encoding = 'UTF-8'?>
-<relationalModel class="oracle.dbtools.crest.model.design.relational.RelationalDesign" name="03.AI Agent" id="AAAA9877-93E5-E6EF-9CF9-D1AFF64D7BE5" mainViewID="6B5D324B-50E9-3C58-AE8B-60C08BA18D33">
-<createdBy>litzrsh</createdBy>
-<createdTime>2026-09-08 22:54:43 UTC</createdTime>
-<ownerDesignName>kkdugi</ownerDesignName>
-<shouldBeOpen>false</shouldBeOpen>
-<selectedRDBMSSite>32076570-2523-435C-2E92-BF29817DFF70</selectedRDBMSSite>
-</relationalModel>

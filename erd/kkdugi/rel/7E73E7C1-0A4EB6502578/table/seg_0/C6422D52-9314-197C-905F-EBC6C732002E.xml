@@ -61,17 +61,6 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
-<Column name="MNGR_YN" id="5ECC9B5C-7F7F-C799-9EC4-E0E38750FBF7">
-<createdBy>litzrsh</createdBy>
-<createdTime>2026-09-07 05:29:31 UTC</createdTime>
-<commentInRDBMS><![CDATA[조직 관리자 여부]]></commentInRDBMS>
-<ownerDesignName>kkdugi</ownerDesignName>
-<use>0</use>
-<logicalDatatype>LOGDT025</logicalDatatype>
-<domain>3EA06EAD-FEA1-55BF-32A0-0B048C2C4DF4</domain>
-<ownDataTypeParameters>,,</ownDataTypeParameters>
-<autoIncrementCycle>false</autoIncrementCycle>
-</Column>
 <Column name="REG_DTM" id="019EB051-8FA1-A2D7-A86A-9FD11E8A9E90">
 <createdBy>litzrsh</createdBy>
 <createdTime>2026-09-07 05:29:31 UTC</createdTime>

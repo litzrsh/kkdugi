@@ -105,6 +105,21 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
+<Column name="MNGR_ID" id="CB600F67-4AAE-162A-ED95-5E0C6E961B7E">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-14 17:21:21 UTC</createdTime>
+<commentInRDBMS><![CDATA[관리자 ID]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+<associations>
+<colAssociation fkAssociation="0A1AD07F-5E9D-60D6-EF6A-94DE6E2F8C5E" referredColumn="E84675E8-21D6-E4EF-58FD-CA31D4681A93"/>
+</associations>
+</Column>
 <Column name="REG_DTM" id="8019CC12-A58C-AB8A-E89C-53A23FEFB715">
 <createdBy>litzrsh</createdBy>
 <createdTime>2026-09-07 05:21:08 UTC</createdTime>
@@ -151,6 +166,16 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
+<Column name="KKDUGI_USER_BASE_USER_ID" id="FC5AACF5-58E9-CF2C-5460-4F8A05E640A1">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-14 17:21:25 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
 </columns>
 <indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
 <ind_PK_UK id="6830318D-D98E-1C26-0048-A39969F10FF9" name="KKDUGI_ORGA_BASE_PK">
@@ -172,6 +197,16 @@
 <isSurrogateKey>false</isSurrogateKey>
 <indexColumnUsage>
 <colUsage columnID="CE9213D2-B1C5-2F88-11FD-86B212F61EA7"/>
+</indexColumnUsage>
+</ind_PK_UK>
+<ind_PK_UK id="AB2D5F98-8525-5E60-7862-3D3252204050" name="KKDUGI_ORGA_BASE_KKDUGI_USER_BASE_FK">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-14 17:21:25 UTC</createdTime>
+<ownerDesignName>kkdugi</ownerDesignName>
+<indexState>Foreign Key</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="CB600F67-4AAE-162A-ED95-5E0C6E961B7E"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>
