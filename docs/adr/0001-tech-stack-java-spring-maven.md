@@ -1,6 +1,6 @@
 # ADR-0001: 기술 스택 - Java + Spring Boot + Maven
 
-- 상태: Accepted
+- 상태: Superseded by [ADR-0008](0008-backend-stack-revision-java17-springboot4.md) (버전만 변경, Java/Spring Boot/Maven 조합 자체는 유지)
 - 날짜: 2026-09-15
 
 ## 컨텍스트
