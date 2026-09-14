@@ -19,9 +19,6 @@
 <domain>452DB87B-56C8-B572-7DC2-B4A84E66EB2E</domain>
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
-<associations>
-<colAssociation fkAssociation="E8DDFE9E-8C0D-4DE6-B1EC-7085F575408D" referredColumn="E327E0FC-B8DC-C8CE-ACB1-0F9F342D0E57"/>
-</associations>
 </Column>
 <Column name="LANG_CD" id="CC9EDAB1-772E-47A6-ABDB-A4CC40DA0C16">
 <createdBy>litzrsh</createdBy>
@@ -115,16 +112,6 @@
 <indexColumnUsage>
 <colUsage columnID="5FD081E4-64E7-4F06-99A5-753BB545D2E1"/>
 <colUsage columnID="CC9EDAB1-772E-47A6-ABDB-A4CC40DA0C16"/>
-</indexColumnUsage>
-</ind_PK_UK>
-<ind_PK_UK id="F0D648E5-F715-434D-942F-B0183EDF3916" name="KKDUGI_WIDGET_LANG_KKDUGI_WIDGET_FK">
-<createdBy>litzrsh</createdBy>
-<createdTime>2026-09-08 00:29:55 UTC</createdTime>
-<ownerDesignName>kkdugi</ownerDesignName>
-<indexState>Foreign Key</indexState>
-<isSurrogateKey>false</isSurrogateKey>
-<indexColumnUsage>
-<colUsage columnID="5FD081E4-64E7-4F06-99A5-753BB545D2E1"/>
 </indexColumnUsage>
 </ind_PK_UK>
 </indexes>

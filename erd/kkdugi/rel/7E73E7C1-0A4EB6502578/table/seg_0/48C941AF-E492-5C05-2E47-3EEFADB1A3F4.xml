@@ -106,6 +106,17 @@
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>
+<Column name="CLOSE_YN" id="647F17A9-FAF2-B9BA-1449-73E3BDD40565">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-13 23:56:12 UTC</createdTime>
+<commentInRDBMS><![CDATA[탭 UI인 경우 닫을 수 있는지 여부]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<use>0</use>
+<logicalDatatype>LOGDT025</logicalDatatype>
+<domain>3EA06EAD-FEA1-55BF-32A0-0B048C2C4DF4</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
 <Column name="REG_DTM" id="1D5C5330-A310-0C3D-91E9-664CF93766FB">
 <createdBy>litzrsh</createdBy>
 <createdTime>2026-09-07 04:54:18 UTC</createdTime>
