@@ -2,6 +2,7 @@ package kkdugi.core.models;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,6 +29,13 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
     private String name;
+    @JsonIgnore
+    private Date lastLoginAt;
+    @JsonIgnore
+    private Date lastChangePasswordAt;
+    private boolean passwordExpired;
+    @JsonIgnore
+    private String status;
     private List<Authority> authorities = new ArrayList<>();
     private List<Menu> menus = new ArrayList<>();
 
