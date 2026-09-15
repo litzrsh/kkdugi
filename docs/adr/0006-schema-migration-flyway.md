@@ -30,7 +30,7 @@
 
 ## 결과
 
-- `pom.xml`에 `flyway-core`, `flyway-database-postgresql`을 추가한다.
+- `pom.xml`에 `spring-boot-starter-flyway`, `flyway-database-postgresql`을 추가한다.
 - 마이그레이션 파일은 `src/main/resources/db/migration/V{n}__{설명}.sql`
   네이밍을 따르며, 한 번 커밋된 마이그레이션 파일은 이후 수정하지 않고
   새 버전 파일을 추가하는 방식으로 스키마를 변경한다.
