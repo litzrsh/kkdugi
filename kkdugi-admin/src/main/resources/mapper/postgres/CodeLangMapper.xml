@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.core.code.mapper.CodeLangMapper">
+
+  <!-- CodeLang은 record라 setter가 없다. <constructor>로 canonical
+       생성자를 통해 매핑한다. -->
+  <resultMap id="codeLangResultMap" type="kkdugi.core.code.models.CodeLang">
+    <constructor>
+      <idArg column="code_id" javaType="java.lang.String"/>
+      <idArg column="lang_cd" javaType="java.lang.String"/>
+      <arg column="code_nm" javaType="java.lang.String"/>
+      <arg column="code_dc" javaType="java.lang.String"/>
+      <arg column="reg_dtm" javaType="java.time.LocalDateTime"/>
+      <arg column="reg_id" javaType="java.lang.String"/>
+      <arg column="upd_dtm" javaType="java.time.LocalDateTime"/>
+      <arg column="upd_id" javaType="java.lang.String"/>
+    </constructor>
+  </resultMap>
+
+  <sql id="columns">
+<![CDATA[
+code_id, lang_cd, code_nm, code_dc, reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <!--
+    * QueryID=findByCodeId
+    * Description=Find all language rows for one code
+    -->
+  <select id="findByCodeId" resultMap="codeLangResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.code.mapper.CodeLangMapper.findByCodeId */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_code_lang
+WHERE code_id = #{codeId}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByCodeIds
+    * Description=Find all language rows for a set of codes
+    -->
+  <select id="findByCodeIds" resultMap="codeLangResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.code.mapper.CodeLangMapper.findByCodeIds */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_code_lang
+WHERE code_id IN
+]]>
+    <foreach item="id" collection="codeIds" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+<![CDATA[
+ORDER BY code_id, lang_cd
+]]>
+  </select>
+
+  <!--
+    * QueryID=insert
+    * Description=Insert one code-language row
+    -->
+  <insert id="insert" parameterType="kkdugi.core.code.models.CodeLang">
+<![CDATA[
+/* QueryID=kkdugi.core.code.mapper.CodeLangMapper.insert */
+INSERT INTO kkdugi_code_lang (code_id, lang_cd, code_nm, code_dc, reg_dtm, reg_id)
+VALUES (#{codeId}, #{langCode}, #{name}, #{remarks}, #{createdAt}, #{createdId})
+]]>
+  </insert>
+
+  <!--
+    * QueryID=update
+    * Description=Update one code-language row
+    -->
+  <update id="update" parameterType="kkdugi.core.code.models.CodeLang">
+<![CDATA[
+/* QueryID=kkdugi.core.code.mapper.CodeLangMapper.update */
+UPDATE kkdugi_code_lang
+SET code_nm = #{name},
+    code_dc = #{remarks},
+    upd_dtm = #{updatedAt},
+    upd_id  = #{updatedId}
+WHERE code_id = #{codeId} AND lang_cd = #{langCode}
+]]>
+  </update>
+
+  <!--
+    * QueryID=deleteByCodeIds
+    * Description=Delete language rows for a set of codes
+    -->
+  <delete id="deleteByCodeIds">
+<![CDATA[
+/* QueryID=kkdugi.core.code.mapper.CodeLangMapper.deleteByCodeIds */
+DELETE FROM kkdugi_code_lang
+WHERE code_id IN
+]]>
+    <foreach item="id" collection="codeIds" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </delete>
+
+</mapper>

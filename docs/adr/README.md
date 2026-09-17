@@ -12,6 +12,10 @@ kkdugi-admin 프로젝트의 아키텍처 결정을 기록한다. 각 ADR은 번
 | [0004](0004-i18n-messagesource-spring-integration.md) | 다국어 API: Spring `MessageSource` 인터페이스 구현 | Accepted |
 | [0005](0005-persistence-mybatis.md) | 영속성 프레임워크: MyBatis | Accepted |
 | [0006](0006-schema-migration-flyway.md) | 스키마 관리: Flyway 마이그레이션 | Accepted |
-| [0007](0007-admin-crud-single-endpoint-batch-save.md) | 관리 CRUD API: 단일 엔드포인트 배치 저장, flat 행 모델, 전체 트랜잭션 | Accepted |
+| [0007](0007-admin-crud-single-endpoint-batch-save.md) | 관리 CRUD API: 단일 엔드포인트 배치 저장, flat 행 모델, 전체 트랜잭션 | Superseded by 0011 (전체 트랜잭션 원칙만 계승) |
 | [0008](0008-backend-stack-revision-java17-springboot4.md) | 백엔드 스택 버전 확정: Java 17 + Spring Boot 4.0.4 | Accepted |
 | [0009](0009-frontend-direction-thymeleaf-dependency-only.md) | 프론트엔드 방향: Thymeleaf 의존성만 지금 추가, 나머지 TODO | Accepted |
+| [0010](0010-common-base-model-adoption.md) | 공통 베이스 모델 도입 (`core.models`/`core.util`) 및 i18n 필드 리네이밍 | Superseded by 0011 (BaseModel/BaseParams 상속 메커니즘에 한함) |
+| [0011](0011-api-define-admin-contract-and-record-models.md) | i18n API를 api-define-admin.md 계약으로 재구현, record 기반 모델과 계층별 패키지 규약 도입 | Accepted |
+| [0012](0012-common-code-system.md) | 공통코드 시스템: 채번 방식(core.serial), 계층 저장/삭제, 검색 범위 확정 | Accepted |
+| [0013](0013-code-enums-mybatis-integration.md) | 코드성 enum(`CodeEnums`)과 MyBatis 자동 변환(`default-enum-type-handler`) | Accepted |

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.core.security.mapper.SessionMapper">
+
+  <!-- Session은 plain class(setter 있음)라 <id>/<result>로 충분하다 —
+       I18nMessage/CodeBase 같은 record와 달리 <constructor>가 필요 없다. -->
+  <resultMap id="sessionResultMap" type="kkdugi.core.security.models.Session">
+    <id property="id" column="sess_id"/>
+    <result property="userId" column="user_id"/>
+    <result property="details" column="user_dtl" typeHandler="kkdugi.core.mybatis.SessionUserTypeHandler"/>
+    <result property="createdAt" column="reg_dtm"/>
+    <result property="expiresAt" column="exp_dtm"/>
+    <result property="updatedAt" column="upd_dtm"/>
+  </resultMap>
+
+  <sql id="columns">
+<![CDATA[
+sess_id, user_id, user_dtl, reg_dtm, exp_dtm, upd_dtm
+]]>
+  </sql>
+
+  <!--
+    * QueryID=findById
+    * Description=Find one session by id
+    -->
+  <select id="findById" resultMap="sessionResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.findById */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_session
+WHERE sess_id = #{id}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByUserId
+    * Description=Find the most recent session for a user (may be expired)
+    -->
+  <select id="findByUserId" resultMap="sessionResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.findByUserId */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_session
+WHERE user_id = #{userId}
+ORDER BY reg_dtm DESC
+LIMIT 1
+]]>
+  </select>
+
+  <!--
+    * QueryID=save
+    * Description=Insert a new session or refresh an existing one (upsert by sess_id)
+    -->
+  <insert id="save" parameterType="kkdugi.core.security.models.Session">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.save */
+INSERT INTO kkdugi_session (sess_id, user_id, user_dtl, reg_dtm, exp_dtm, upd_dtm)
+VALUES (#{vo.id}, #{vo.userId},
+]]>
+    #{vo.details,typeHandler=kkdugi.core.mybatis.SessionUserTypeHandler}::jsonb,
+<![CDATA[
+        #{vo.createdAt}, #{vo.expiresAt}, #{vo.updatedAt})
+ON CONFLICT (sess_id) DO UPDATE
+SET user_dtl = EXCLUDED.user_dtl,
+    exp_dtm  = EXCLUDED.exp_dtm,
+    upd_dtm  = EXCLUDED.upd_dtm
+]]>
+  </insert>
+
+  <!--
+    * QueryID=deleteById
+    * Description=Delete one session by id
+    -->
+  <delete id="deleteById">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.deleteById */
+DELETE FROM kkdugi_session
+WHERE sess_id = #{id}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=deleteByUserId
+    * Description=Delete all sessions for a user
+    -->
+  <delete id="deleteByUserId">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.deleteByUserId */
+DELETE FROM kkdugi_session
+WHERE user_id = #{userId}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=deleteExpiredSessions
+    * Description=Delete all sessions past their expiry
+    -->
+  <delete id="deleteExpiredSessions">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.deleteExpiredSessions */
+DELETE FROM kkdugi_session
+WHERE exp_dtm < CURRENT_TIMESTAMP
+]]>
+  </delete>
+
+</mapper>

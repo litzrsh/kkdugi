@@ -11,9 +11,10 @@ spring:
     locations: classpath:db/migration
 
 mybatis:
-  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath:mapper/postgres/*Mapper.xml
   configuration:
     map-underscore-to-camel-case: true
+    default-enum-type-handler: kkdugi.core.mybatis.CodeEnumTypeHandler
 
 server:
   servlet:
@@ -21,3 +22,14 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+
+kkdugi:
+  security:
+    # 개발용 값. 운영 배포 시 환경변수/시크릿 매니저 등으로 반드시 교체한다.
+    jwt-secret: n5WYbKyYhfxuJhrhSRnOqjLFaC3CRxVBVfkNOs3EaAM=
+  i18n:
+    languages:
+      - code: ko_KR
+        label: 한국어
+      - code: en_US
+        label: English

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.core.security.mapper.SecurityUserDetailsMapper">
+
+  <!-- SessionUser/Authority는 plain class(setter 있음)라 <id>/<result>로 충분하다.
+       pwd_stat_cd/user_stat_cd/auth_tp_cd는 CodeEnums 구현 enum이라
+       mybatis.configuration.default-enum-type-handler(CodeEnumTypeHandler)가
+       typeHandler 지정 없이 자동으로 적용된다. -->
+  <resultMap id="sessionUserResultMap" type="kkdugi.core.security.models.SessionUser">
+    <id property="id" column="user_id"/>
+    <result property="username" column="user_login_id"/>
+    <result property="password" column="user_pwd"/>
+    <result property="name" column="user_nm"/>
+    <result property="remarks" column="user_dc"/>
+    <result property="image" column="user_img_src"/>
+    <result property="lastLoginAt" column="last_login_dtm"/>
+    <result property="lastChangePasswordAt" column="last_chg_pwd_dtm"/>
+    <result property="passwordStatus" column="pwd_stat_cd"/>
+    <result property="status" column="user_stat_cd"/>
+  </resultMap>
+
+  <resultMap id="authorityResultMap" type="kkdugi.core.security.models.Authority">
+    <id property="id" column="auth_id"/>
+    <result property="authority" column="authority"/>
+    <result property="type" column="auth_tp_cd"/>
+    <result property="name" column="auth_nm"/>
+  </resultMap>
+
+  <!--
+    * QueryID=findByUsername
+    * Description=Find a user's SessionUser snapshot by login id (username)
+    -->
+  <select id="findByUsername" resultMap="sessionUserResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findByUsername */
+SELECT
+    user_id, user_login_id, user_pwd, user_nm, user_dc, user_img_src,
+    last_login_dtm, last_chg_pwd_dtm, pwd_stat_cd, user_stat_cd
+FROM kkdugi_user_base
+WHERE user_login_id = #{username}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findAuthoritiesByUsername
+    * Description=Find the currently-effective authorities granted to a user by login id
+    -->
+  <select id="findAuthoritiesByUsername" resultMap="authorityResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findAuthoritiesByUsername */
+SELECT
+    ab.auth_id,
+    ab.auth_role_cd AS authority,
+    ab.auth_tp_cd,
+    ab.auth_nm
+FROM kkdugi_user_auth ua
+JOIN kkdugi_user_base ub ON ub.user_id = ua.user_id
+JOIN kkdugi_auth_base ab ON ab.auth_id = ua.auth_id
+WHERE ub.user_login_id = #{username}
+  AND ab.use_yn = 'Y'
+  AND CURRENT_DATE BETWEEN ua.apl_st_dtm AND ua.apl_ed_dtm
+]]>
+  </select>
+
+  <!--
+    * QueryID=updatePassword
+    * Description=Re-hash the current password in place (UserDetailsPasswordService upgrade path only)
+    -->
+  <update id="updatePassword">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.updatePassword */
+UPDATE kkdugi_user_base
+SET user_pwd = #{password},
+    upd_dtm  = CURRENT_TIMESTAMP
+WHERE user_id = #{userId}
+]]>
+  </update>
+
+  <!--
+    * QueryID=updateLastLoginAt
+    * Description=Record the timestamp of a successful login
+    -->
+  <update id="updateLastLoginAt">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.updateLastLoginAt */
+UPDATE kkdugi_user_base
+SET last_login_dtm = #{lastLoginAt}
+WHERE user_id = #{userId}
+]]>
+  </update>
+
+</mapper>

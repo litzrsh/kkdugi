@@ -1,0 +1,1 @@
+{"name":"kkdugi-admin-publishing","private":true,"type":"module","scripts":{"start":"node scripts/preview.mjs","test":"node --test tests/*.test.mjs"}}
