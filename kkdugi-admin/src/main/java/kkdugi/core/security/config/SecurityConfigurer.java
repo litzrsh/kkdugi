@@ -2,6 +2,7 @@ package kkdugi.core.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,11 +13,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import jakarta.servlet.http.HttpServletResponse;
 import kkdugi.core.security.authentication.RestfulAccessDeniedHandler;
 import kkdugi.core.security.authentication.RestfulAuthenticationEntryPoint;
 import kkdugi.core.security.authentication.SessionLogoutHandler;
+import kkdugi.core.security.authentication.WebAuthenticationEntryPoint;
 import kkdugi.core.security.authentication.filter.AuthenticationProcessingFilter;
 import kkdugi.core.security.authentication.filter.BearerTokenAuthenticationFilter;
 import kkdugi.core.security.service.JwtTokenService;
@@ -31,15 +34,18 @@ public class SecurityConfigurer {
 
     private final BearerTokenAuthenticationFilter bearerTokenAuthenticationFilter;
     private final RestfulAuthenticationEntryPoint authenticationEntryPoint;
+    private final WebAuthenticationEntryPoint webAuthenticationEntryPoint;
     private final RestfulAccessDeniedHandler accessDeniedHandler;
     private final SessionLogoutHandler sessionLogoutHandler;
 
     public SecurityConfigurer(BearerTokenAuthenticationFilter bearerTokenAuthenticationFilter,
             RestfulAuthenticationEntryPoint authenticationEntryPoint,
+            WebAuthenticationEntryPoint webAuthenticationEntryPoint,
             RestfulAccessDeniedHandler accessDeniedHandler,
             SessionLogoutHandler sessionLogoutHandler) {
         this.bearerTokenAuthenticationFilter = bearerTokenAuthenticationFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.webAuthenticationEntryPoint = webAuthenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
         this.sessionLogoutHandler = sessionLogoutHandler;
     }
@@ -58,6 +64,11 @@ public class SecurityConfigurer {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception
+                        // 브라우저 HTML 내비게이션(Accept: text/html)은 /login으로
+                        // 리다이렉트하고, 그 외(fetch/JSON API 호출)는 기존
+                        // JSON ExceptionMessage 응답을 그대로 쓴다.
+                        .defaultAuthenticationEntryPointFor(webAuthenticationEntryPoint,
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML))
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 // LogoutFilter는 UsernamePasswordAuthenticationFilter보다 앞선 순번이라,

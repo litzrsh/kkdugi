@@ -46,6 +46,17 @@ public class PragmaController {
         this.adminUiProperties = adminUiProperties;
     }
 
+    /**
+     * 루트에는 별도 화면이 없다 — {@code /admin}으로 보내면
+     * bootstrap.mjs가 토큰 유무를 보고 {@code /login}으로 다시 보낼지
+     * 판단한다(클라이언트 쪽 결정, 서버 인가를 대체하지 않음). 매핑이
+     * 없으면 Spring Boot의 기본 에러 핸들러가 그냥 JSON 404를 보여준다.
+     */
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/admin";
+    }
+
     @GetMapping("/admin")
     public String index(Model model, Locale locale) {
         model.addAttribute("adminUiConfig", buildConfig(locale));

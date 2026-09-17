@@ -37,7 +37,7 @@ public class I18nMessageSourceConfig {
                 new ReloadableResourceBundleMessageSource();
         // admin-ui: kkdugi-design이 제공하는 화면 UI 문구 번들(admin.ui.*) —
         // DB 메시지 관리 대상이 아니라 properties에만 있다.
-        messageSource.setBasenames("classpath:messages/messages", "classpath:messages/admin-ui");
+        messageSource.setBasenames("classpath:messages/messages", "classpath:messages/admin-ui", "classpath:messages/login-ui");
         messageSource.setUseCodeAsDefaultMessage(true);
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
