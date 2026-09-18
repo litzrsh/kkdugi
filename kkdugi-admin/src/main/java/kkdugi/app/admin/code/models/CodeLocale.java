@@ -1,7 +1,12 @@
 package kkdugi.app.admin.code.models;
 
-public record CodeLocale(
-        String name,
-        String remarks
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class CodeLocale {
+
+    private final String name;
+    private final String remarks;
 }

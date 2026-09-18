@@ -35,6 +35,7 @@ public class SessionUser implements UserDetails {
     private PasswordStatus passwordStatus;
     private UserStatus status;
     private List<Authority> authorities = new ArrayList<>();
+    private List<SessionMenu> menus = new ArrayList<>();
     private Map<String, Object> attributes = new HashMap<>();
 
     public boolean isNewPassword() {
@@ -147,6 +148,14 @@ public class SessionUser implements UserDetails {
 
     public void setAuthorities(List<Authority> authorities) {
         this.authorities = authorities;
+    }
+
+    public List<SessionMenu> getMenus() {
+        return menus;
+    }
+
+    public void setMenus(List<SessionMenu> menus) {
+        this.menus = menus;
     }
 
     public Map<String, Object> getAttributes() {

@@ -1,31 +1,31 @@
 package kkdugi.app.admin.code.models;
 
-public record CodeSearchParams(
-        String parentId,
-        String path,
-        String code,
-        String name,
-        String use,
-        Integer page,
-        Integer pageSize
-) {
+import kkdugi.core.models.BaseParams;
 
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_PAGE_SIZE = 200;
-    private static final int MAX_PAGE_SIZE = 200;
+import lombok.Getter;
+import lombok.Setter;
 
-    public int resolvedPage() {
-        return page == null || page < 1 ? DEFAULT_PAGE : page;
+@Getter
+@Setter
+public class CodeSearchParams extends BaseParams {
+
+    private String parentId;
+    private String path;
+    private String code;
+    private String name;
+    private String use;
+
+    public CodeSearchParams() {
     }
 
-    public int resolvedPageSize() {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
-
-    public int offset() {
-        return (resolvedPage() - 1) * resolvedPageSize();
+    public CodeSearchParams(String parentId, String path, String code, String name, String use,
+            int page, int pageSize) {
+        this.parentId = parentId;
+        this.path = path;
+        this.code = code;
+        this.name = name;
+        this.use = use;
+        setPage(page);
+        setPageSize(pageSize);
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import kkdugi.core.security.models.Authority;
+import kkdugi.core.security.models.SessionMenu;
 import kkdugi.core.security.models.SessionUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,5 +82,38 @@ class SessionUtilsTest {
     @Test
     void hasAuthorityByRole_anonymousUser_returnsFalse() {
         assertThat(SessionUtils.hasAuthorityByRole("ROLE_ADMIN")).isFalse();
+    }
+
+    private SessionMenu menu(String id, int authority) {
+        SessionMenu menu = new SessionMenu();
+        menu.setId(id);
+        menu.setAuthority(authority);
+        return menu;
+    }
+
+    @Test
+    void getMenu_returnsMatchingMenuFromSession() {
+        SessionUser user = new SessionUser();
+        user.setMenus(List.of(menu("M_1", 0x01), menu("M_2", 0x03)));
+        authenticateAs(user);
+
+        SessionMenu found = SessionUtils.getMenu("M_2");
+
+        assertThat(found).isNotNull();
+        assertThat(found.getAuthority()).isEqualTo(0x03);
+    }
+
+    @Test
+    void getMenu_noMatch_returnsNull() {
+        SessionUser user = new SessionUser();
+        user.setMenus(List.of(menu("M_1", 0x01)));
+        authenticateAs(user);
+
+        assertThat(SessionUtils.getMenu("M_UNKNOWN")).isNull();
+    }
+
+    @Test
+    void getMenu_anonymousUser_returnsNull() {
+        assertThat(SessionUtils.getMenu("M_1")).isNull();
     }
 }

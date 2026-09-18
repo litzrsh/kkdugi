@@ -26,6 +26,17 @@
     <result property="name" column="auth_nm"/>
   </resultMap>
 
+  <resultMap id="sessionMenuResultMap" type="kkdugi.core.security.models.SessionMenu">
+    <id property="id" column="id"/>
+    <result property="parentId" column="parent_id"/>
+    <result property="title" column="title"/>
+    <result property="remarks" column="remarks"/>
+    <result property="program" column="program"/>
+    <result property="icon" column="icon"/>
+    <result property="sort" column="sort"/>
+    <result property="authority" column="authority"/>
+  </resultMap>
+
   <!--
     * QueryID=findByUsername
     * Description=Find a user's SessionUser snapshot by login id (username)
@@ -59,6 +70,64 @@ JOIN kkdugi_auth_base ab ON ab.auth_id = ua.auth_id
 WHERE ub.user_login_id = #{username}
   AND ab.use_yn = 'Y'
   AND CURRENT_DATE BETWEEN ua.apl_st_dtm AND ua.apl_ed_dtm
+]]>
+  </select>
+
+  <!--
+    * QueryID=findMenusByUsername
+    * Description=Find menus visible to a user, with per-menu RBAC bitmask BIT_OR'd across their active authorities
+    -->
+  <select id="findMenusByUsername" resultMap="sessionMenuResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findMenusByUsername */
+SELECT
+    mb.menu_id        AS id,
+    mb.menu_parent_id AS parent_id,
+    ml.menu_nm        AS title,
+    ml.menu_dc        AS remarks,
+    mb.menu_pgm       AS program,
+    mb.menu_ico       AS icon,
+    mb.sort_seq       AS sort,
+    BIT_OR(am.auth_val) AS authority
+FROM kkdugi_menu_base mb
+JOIN kkdugi_menu_lang ml ON ml.menu_id = mb.menu_id AND ml.lang_cd = #{langCode}
+JOIN kkdugi_auth_menu am ON am.menu_id = mb.menu_id
+WHERE mb.use_yn = 'Y'
+  AND am.auth_id IN (
+      SELECT ua.auth_id
+      FROM kkdugi_user_auth ua
+      JOIN kkdugi_user_base ub ON ub.user_id = ua.user_id
+      JOIN kkdugi_auth_base ab ON ab.auth_id = ua.auth_id
+      WHERE ub.user_login_id = #{username}
+        AND ab.use_yn = 'Y'
+        AND CURRENT_DATE BETWEEN ua.apl_st_dtm AND ua.apl_ed_dtm
+  )
+GROUP BY mb.menu_id, mb.menu_parent_id, ml.menu_nm, ml.menu_dc, mb.menu_pgm, mb.menu_ico, mb.sort_seq
+HAVING BIT_OR(am.auth_val) > 0
+ORDER BY mb.sort_seq NULLS LAST
+]]>
+  </select>
+
+  <!--
+    * QueryID=findAllMenus
+    * Description=Find all enabled menus with the full RBAC bitmask (SYS_ADMIN bypass, no auth_menu filtering)
+    -->
+  <select id="findAllMenus" resultMap="sessionMenuResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findAllMenus */
+SELECT
+    mb.menu_id        AS id,
+    mb.menu_parent_id AS parent_id,
+    ml.menu_nm        AS title,
+    ml.menu_dc        AS remarks,
+    mb.menu_pgm       AS program,
+    mb.menu_ico       AS icon,
+    mb.sort_seq       AS sort,
+    65535             AS authority
+FROM kkdugi_menu_base mb
+JOIN kkdugi_menu_lang ml ON ml.menu_id = mb.menu_id AND ml.lang_cd = #{langCode}
+WHERE mb.use_yn = 'Y'
+ORDER BY mb.sort_seq NULLS LAST
 ]]>
   </select>
 

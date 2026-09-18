@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import kkdugi.core.security.models.Authority;
+import kkdugi.core.security.models.SessionMenu;
 import kkdugi.core.security.models.SessionUser;
 
 /**
@@ -49,6 +50,24 @@ public abstract class SessionUtils {
         return getUser().getAuthorities().stream()
                 .map(Authority::getAuthority)
                 .anyMatch(roles::contains);
+    }
+
+    /**
+     * 세션 메뉴 목록에서 주어진 ID의 {@link SessionMenu}를 찾아 그대로
+     * 돌려준다(없으면 {@code null}). {@code SYS_ADMIN}을 별도로 취급하지
+     * 않는다 — {@code KkdugiUserDetailsService}가 로그인 시점에 이미
+     * {@code SYS_ADMIN}의 세션 메뉴 목록을 전체 메뉴(+ 전체 비트마스크)로
+     * 채워두므로, 여기서는 그냥 목록에서 찾기만 하면 된다. RBAC 맵으로
+     * 바꾸는 것(구 {@code getRBAC})은 호출부가 필요할 때
+     * {@code Rbac.toMap(menu.getAuthority())}로 직접 한다 — Pragma처럼
+     * {@code program} 등 메뉴의 다른 필드도 함께 써야 하는 호출부가 있기
+     * 때문이다.
+     */
+    public static SessionMenu getMenu(String menuId) {
+        return getUser().getMenus().stream()
+                .filter(m -> m.getId().equals(menuId))
+                .findAny()
+                .orElse(null);
     }
 
     private static SessionUser anonymous() {

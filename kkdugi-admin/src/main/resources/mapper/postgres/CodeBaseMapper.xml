@@ -2,28 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kkdugi.core.code.mapper.CodeBaseMapper">
 
-  <!-- CodeBase는 record라 setter가 없다. <constructor>로 canonical
-       생성자를 통해 매핑한다(필드 순서: id, parentId, code, extra1..5,
-       level, path, sort, use, createdAt, createdId, updatedAt, updatedId). -->
-  <resultMap id="codeBaseResultMap" type="kkdugi.core.code.models.CodeBase">
-    <constructor>
-      <idArg column="code_id" javaType="java.lang.String"/>
-      <arg column="code_parent_id" javaType="java.lang.String"/>
-      <arg column="code_val" javaType="java.lang.String"/>
-      <arg column="etc_val1" javaType="java.lang.String"/>
-      <arg column="etc_val2" javaType="java.lang.String"/>
-      <arg column="etc_val3" javaType="java.lang.String"/>
-      <arg column="etc_val4" javaType="java.lang.String"/>
-      <arg column="etc_val5" javaType="java.lang.String"/>
-      <arg column="code_lvl" javaType="java.lang.Integer"/>
-      <arg column="code_path" javaType="java.lang.String"/>
-      <arg column="sort_seq" javaType="java.lang.Integer"/>
-      <arg column="use_yn" javaType="java.lang.String"/>
-      <arg column="reg_dtm" javaType="java.time.LocalDateTime"/>
-      <arg column="reg_id" javaType="java.lang.String"/>
-      <arg column="upd_dtm" javaType="java.time.LocalDateTime"/>
-      <arg column="upd_id" javaType="java.lang.String"/>
-    </constructor>
+  <resultMap id="codeBaseResultMap" type="kkdugi.core.code.models.CodeBase"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="id" column="code_id"/>
+    <result property="parentId" column="code_parent_id"/>
+    <result property="code" column="code_val"/>
+    <result property="extra1" column="etc_val1"/>
+    <result property="extra2" column="etc_val2"/>
+    <result property="extra3" column="etc_val3"/>
+    <result property="extra4" column="etc_val4"/>
+    <result property="extra5" column="etc_val5"/>
+    <result property="level" column="code_lvl"/>
+    <result property="path" column="code_path"/>
+    <result property="sort" column="sort_seq"/>
+    <result property="use" column="use_yn"/>
   </resultMap>
 
   <sql id="columns">
@@ -182,7 +174,7 @@ INSERT INTO kkdugi_code_base
      code_lvl, code_path, sort_seq, use_yn, reg_dtm, reg_id)
 VALUES
     (#{id}, #{parentId}, #{code}, #{extra1}, #{extra2}, #{extra3}, #{extra4}, #{extra5},
-     #{level}, #{path}, #{sort}, #{use}, #{createdAt}, #{createdId})
+     #{level}, #{path}, #{sort}, #{use}, #{createdAt}, #{creatorId})
 ]]>
   </insert>
 
@@ -202,7 +194,7 @@ SET etc_val1 = #{extra1},
     sort_seq = #{sort},
     use_yn   = #{use},
     upd_dtm  = #{updatedAt},
-    upd_id   = #{updatedId}
+    upd_id   = #{updaterId}
 WHERE code_id = #{id}
 ]]>
   </update>

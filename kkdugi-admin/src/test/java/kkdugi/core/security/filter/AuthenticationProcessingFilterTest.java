@@ -144,6 +144,6 @@ class AuthenticationProcessingFilterTest {
     private String readToken(MvcResult result) throws Exception {
         LoginResponse response = objectMapper.readValue(
                 result.getResponse().getContentAsString(), LoginResponse.class);
-        return response.token();
+        return response.getToken();
     }
 }

@@ -24,8 +24,8 @@ public class KkdugiMessageSource extends AbstractMessageSource {
         cache.clear();
         List<I18nMessage> messages = mapper.selectAll();
         for (I18nMessage message : messages) {
-            if (message.msgText() != null) {
-                cache.put(cacheKey(message.msgCode(), message.langCode()), message.msgText());
+            if (message.getMsgText() != null) {
+                cache.put(cacheKey(message.getMsgCode(), message.getLangCode()), message.getMsgText());
             }
         }
     }
@@ -33,10 +33,10 @@ public class KkdugiMessageSource extends AbstractMessageSource {
     public void refresh(String msgCode, String langCode) {
         I18nMessage message = mapper.findByCodeAndLang(msgCode, langCode);
         String key = cacheKey(msgCode, langCode);
-        if (message == null || message.msgText() == null) {
+        if (message == null || message.getMsgText() == null) {
             cache.remove(key);
         } else {
-            cache.put(key, message.msgText());
+            cache.put(key, message.getMsgText());
         }
     }
 

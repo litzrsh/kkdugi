@@ -1,6 +1,7 @@
 package kkdugi.core.security.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
@@ -8,7 +9,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import kkdugi.core.Constants;
 import kkdugi.core.security.mapper.SecurityUserDetailsMapper;
+import kkdugi.core.security.models.Authority;
 import kkdugi.core.security.models.SessionUser;
 
 /**
@@ -21,6 +24,13 @@ import kkdugi.core.security.models.SessionUser;
 public class KkdugiUserDetailsService implements UserDetailsService, UserDetailsPasswordService {
 
     public static final String ERR_NOT_FOUND = "user.err.not_found";
+
+    // 세션 스냅샷의 메뉴 제목은 로그인 시점에 한 언어로 고정된다 — 로그인
+    // 요청은 Security 필터 체인에서 DispatcherServlet의 LocaleResolver보다
+    // 먼저 처리되어 LocaleContextHolder를 쓸 수 없다(PragmaController의
+    // admin-ui 번들도 같은 이유로 ko_KR을 고정한다). 다국어 세션 스냅샷은
+    // 필요해지면 그때 다룬다.
+    private static final String SESSION_LANG = "ko_KR";
 
     private final SecurityUserDetailsMapper mapper;
 
@@ -37,7 +47,19 @@ public class KkdugiUserDetailsService implements UserDetailsService, UserDetails
         // 주의한다.
         SessionUser user = mapper.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(ERR_NOT_FOUND));
-        user.setAuthorities(mapper.findAuthoritiesByUsername(username));
+        List<Authority> authorities = mapper.findAuthoritiesByUsername(username);
+        user.setAuthorities(authorities);
+        // SYS_ADMIN은 SessionUtils.hasAuthorityByRole()로 하는 다른 권한
+        // 체크가 항상 전체 권한으로 우회되는 것과 동일하게, 메뉴 "목록"
+        // 자체도 kkdugi_auth_menu 매핑 없이 전체를 본다 — 그렇지 않으면
+        // 메뉴/권한 매핑이 아직 없는 상태에서는 SYS_ADMIN조차 빈 메뉴
+        // 목록을 받는다.
+        boolean isSysAdmin = authorities.stream()
+                .map(Authority::getAuthority)
+                .anyMatch(Constants.SYS_ADMIN::equals);
+        user.setMenus(isSysAdmin
+                ? mapper.findAllMenus(SESSION_LANG)
+                : mapper.findMenusByUsername(username, SESSION_LANG));
         return user;
     }
 

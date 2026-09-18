@@ -2,11 +2,16 @@ package kkdugi.app.admin.code.models;
 
 import java.util.List;
 
-public record CodePersistRequest(
-        List<CodeContent> insert,
-        List<CodeContent> update,
-        List<CodeContent> delete
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class CodePersistRequest {
+
+    private final List<CodeContent> insert;
+    private final List<CodeContent> update;
+    private final List<CodeContent> delete;
 
     public List<CodeContent> insertOrEmpty() {
         return insert != null ? insert : List.of();

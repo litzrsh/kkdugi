@@ -18,12 +18,8 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.util.StringUtils;
 
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import tools.jackson.databind.ObjectMapper;
-
 import kkdugi.core.exceptions.ExceptionMessage;
 import kkdugi.core.exceptions.RestfulAuthenticationException;
 import kkdugi.core.security.models.LoginRequest;
@@ -33,6 +29,7 @@ import kkdugi.core.security.models.SessionUser;
 import kkdugi.core.security.service.JwtTokenService;
 import kkdugi.core.security.service.KkdugiUserDetailsService;
 import kkdugi.core.security.service.SessionService;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * 로그인을 컨트롤러가 아니라 필터로 구현한다(명시적 요구사항) — JSON 바디를
@@ -78,13 +75,13 @@ public class AuthenticationProcessingFilter extends AbstractAuthenticationProces
         LoginRequest loginRequest = readLoginRequest(request);
 
         UsernamePasswordAuthenticationToken authRequest =
-                UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.username(), loginRequest.password());
+                UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.getUsername(), loginRequest.getPassword());
         authRequest.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
         Authentication result = getAuthenticationManager().authenticate(authRequest);
 
         SessionUser user = (SessionUser) result.getPrincipal();
-        Session session = sessionService.createSession(user, loginRequest.force());
+        Session session = sessionService.createSession(user, loginRequest.isForce());
         userDetailsService.recordSuccessfulLogin(user.getId());
         request.setAttribute(SESSION_ATTRIBUTE, session);
 
@@ -98,7 +95,7 @@ public class AuthenticationProcessingFilter extends AbstractAuthenticationProces
         } catch (IOException | RuntimeException e) {
             throw new RestfulAuthenticationException(ERR_MALFORMED_REQUEST);
         }
-        if (!StringUtils.hasText(loginRequest.username()) || !StringUtils.hasText(loginRequest.password())) {
+        if (!StringUtils.hasText(loginRequest.getUsername()) || !StringUtils.hasText(loginRequest.getPassword())) {
             throw new RestfulAuthenticationException(ERR_MALFORMED_REQUEST);
         }
         return loginRequest;

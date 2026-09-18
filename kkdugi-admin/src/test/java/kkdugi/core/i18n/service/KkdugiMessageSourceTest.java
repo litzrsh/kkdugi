@@ -33,8 +33,10 @@ class KkdugiMessageSourceTest {
 
     @Test
     void getMessage_returnsDbValueWhenPresent() {
-        mapper.insert(new I18nMessage(
-                "test.msg.temp", "ko_KR", "DB 메시지", LocalDateTime.now(), "SYSTEM", null, null));
+        I18nMessage message = new I18nMessage("test.msg.temp", "ko_KR", "DB 메시지");
+        message.setCreatedAt(LocalDateTime.now());
+        message.setCreatorId("SYSTEM");
+        mapper.insert(message);
         kkdugiMessageSource.refresh("test.msg.temp", "ko_KR");
 
         String result = kkdugiMessageSource.getMessage("test.msg.temp", null, Locale.KOREA);
@@ -58,8 +60,10 @@ class KkdugiMessageSourceTest {
 
     @Test
     void getMessage_formatsArgumentsForDbValue() {
-        mapper.insert(new I18nMessage(
-                "test.msg.args", "ko_KR", "{0}님 환영합니다", LocalDateTime.now(), "SYSTEM", null, null));
+        I18nMessage message = new I18nMessage("test.msg.args", "ko_KR", "{0}님 환영합니다");
+        message.setCreatedAt(LocalDateTime.now());
+        message.setCreatorId("SYSTEM");
+        mapper.insert(message);
         kkdugiMessageSource.refresh("test.msg.args", "ko_KR");
 
         String result = kkdugiMessageSource.getMessage(

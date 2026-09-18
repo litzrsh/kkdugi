@@ -42,9 +42,9 @@ class CodeAdminServiceTest {
         if (createdRootId != null) {
             List<CodeBase> targets = codeBaseMapper.findSelfAndDescendants(
                     codeBaseMapper.findById(createdRootId) != null
-                            ? codeBaseMapper.findById(createdRootId).path()
+                            ? codeBaseMapper.findById(createdRootId).getPath()
                             : "/__missing__");
-            List<String> ids = targets.stream().map(CodeBase::id).toList();
+            List<String> ids = targets.stream().map(CodeBase::getId).toList();
             if (!ids.isEmpty()) {
                 codeLangMapper.deleteByCodeIds(ids);
                 codeBaseMapper.deleteByIds(ids);
@@ -62,14 +62,14 @@ class CodeAdminServiceTest {
                 null, null));
 
         Page<CodeContent> page = service.search(new CodeSearchParams(null, null, "test_root", null, null, 1, 200));
-        assertThat(page.contents()).hasSize(1);
-        CodeContent found = page.contents().get(0);
-        assertThat(found.code()).isEqualTo("test_root");
-        assertThat(found.level()).isEqualTo(0);
-        assertThat(found.path()).isEqualTo("/test_root");
-        assertThat(found.locale().get("ko_KR").name()).isEqualTo("테스트 루트");
+        assertThat(page.getContents()).hasSize(1);
+        CodeContent found = page.getContents().get(0);
+        assertThat(found.getCode()).isEqualTo("test_root");
+        assertThat(found.getLevel()).isEqualTo(0);
+        assertThat(found.getPath()).isEqualTo("/test_root");
+        assertThat(found.getLocale().get("ko_KR").getName()).isEqualTo("테스트 루트");
 
-        createdRootId = found.id();
+        createdRootId = found.getId();
     }
 
     @Test
@@ -80,7 +80,7 @@ class CodeAdminServiceTest {
                         "Y", null, null, null, null, null, null, null, null)),
                 null, null));
         String parentId = service.search(new CodeSearchParams(null, null, "test_parent", null, null, 1, 200))
-                .contents().get(0).id();
+                .getContents().get(0).getId();
         createdRootId = parentId;
 
         service.persist(new CodePersistRequest(
@@ -91,9 +91,9 @@ class CodeAdminServiceTest {
 
         Page<CodeContent> children = service.search(
                 new CodeSearchParams(parentId, null, null, null, null, 1, 200));
-        assertThat(children.contents()).hasSize(1);
-        assertThat(children.contents().get(0).path()).isEqualTo("/test_parent/child");
-        assertThat(children.contents().get(0).level()).isEqualTo(1);
+        assertThat(children.getContents()).hasSize(1);
+        assertThat(children.getContents().get(0).getPath()).isEqualTo("/test_parent/child");
+        assertThat(children.getContents().get(0).getLevel()).isEqualTo(1);
     }
 
     @Test
@@ -104,7 +104,7 @@ class CodeAdminServiceTest {
                         "Y", null, null, null, null, null, null, null, null)),
                 null, null));
         String parentId = service.search(new CodeSearchParams(null, null, "test_cascade", null, null, 1, 200))
-                .contents().get(0).id();
+                .getContents().get(0).getId();
 
         service.persist(new CodePersistRequest(
                 List.of(new CodeContent(null, parentId, "child",

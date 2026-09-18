@@ -61,19 +61,19 @@ public class CodeAdminService {
         int pageSize = params.resolvedPageSize();
 
         List<CodeBase> rows = codeBaseMapper.findChildren(
-                params.parentId(), params.code(), params.path(), params.name(), params.use(),
-                params.offset(), pageSize);
+                params.getParentId(), params.getCode(), params.getPath(), params.getName(), params.getUse(),
+                params.getOffset(), pageSize);
         long totalItems = codeBaseMapper.countChildren(
-                params.parentId(), params.code(), params.path(), params.name(), params.use());
+                params.getParentId(), params.getCode(), params.getPath(), params.getName(), params.getUse());
 
         List<CodeContent> contents;
         if (rows.isEmpty()) {
             contents = List.of();
         } else {
-            List<String> ids = rows.stream().map(CodeBase::id).toList();
+            List<String> ids = rows.stream().map(CodeBase::getId).toList();
             Map<String, Map<String, CodeLocale>> grouped = groupLocale(codeLangMapper.findByCodeIds(ids));
             contents = rows.stream()
-                    .map(row -> toContent(row, grouped.getOrDefault(row.id(), Map.of())))
+                    .map(row -> toContent(row, grouped.getOrDefault(row.getId(), Map.of())))
                     .toList();
         }
 
@@ -98,90 +98,100 @@ public class CodeAdminService {
     }
 
     private void insertOne(CodeContent content, LocalDateTime now) {
-        String parentId = content.parentId();
+        String parentId = content.getParentId();
         CodeBase parent = null;
         if (parentId != null) {
             parent = codeBaseMapper.findById(parentId);
             if (parent == null) {
-                throw new CodeConflictException(null, content.code(), "상위 코드를 찾을 수 없습니다: " + parentId);
+                throw new CodeConflictException(null, content.getCode(), "상위 코드를 찾을 수 없습니다: " + parentId);
             }
         }
 
         String id = SerialUtils.next(SERIAL_CONFIG);
-        int level = parent == null ? 0 : parent.level() + 1;
-        String path = (parent == null ? "" : parent.path()) + "/" + content.code();
-        String use = content.use() != null ? content.use() : DEFAULT_USE;
+        int level = parent == null ? 0 : parent.getLevel() + 1;
+        String path = (parent == null ? "" : parent.getPath()) + "/" + content.getCode();
+        String use = content.getUse() != null ? content.getUse() : DEFAULT_USE;
 
-        CodeBase row = new CodeBase(id, parentId, content.code(),
-                content.extra1(), content.extra2(), content.extra3(), content.extra4(), content.extra5(),
-                level, path, content.sort(), use, now, SYSTEM_USER_ID, null, null);
+        CodeBase row = new CodeBase(id, parentId, content.getCode(),
+                content.getExtra1(), content.getExtra2(), content.getExtra3(), content.getExtra4(), content.getExtra5(),
+                level, path, content.getSort(), use);
+        row.setCreatedAt(now);
+        row.setCreatorId(SYSTEM_USER_ID);
         try {
             codeBaseMapper.insert(row);
         } catch (DuplicateKeyException e) {
-            throw new CodeConflictException(null, content.code(), "같은 경로에 이미 존재하는 코드입니다: " + content.code());
+            throw new CodeConflictException(null, content.getCode(), "같은 경로에 이미 존재하는 코드입니다: " + content.getCode());
         }
 
-        for (Map.Entry<String, CodeLocale> entry : content.locale().entrySet()) {
-            codeLangMapper.insert(new CodeLang(id, entry.getKey(),
-                    entry.getValue().name(), entry.getValue().remarks(), now, SYSTEM_USER_ID, null, null));
+        for (Map.Entry<String, CodeLocale> entry : content.getLocale().entrySet()) {
+            CodeLang lang = new CodeLang(id, entry.getKey(), entry.getValue().getName(), entry.getValue().getRemarks());
+            lang.setCreatedAt(now);
+            lang.setCreatorId(SYSTEM_USER_ID);
+            codeLangMapper.insert(lang);
         }
     }
 
     private void updateOne(CodeContent content, LocalDateTime now) {
-        CodeBase existing = codeBaseMapper.findById(content.id());
+        CodeBase existing = codeBaseMapper.findById(content.getId());
         if (existing == null) {
-            throw new CodeConflictException(content.id(), content.code(), "대상 코드를 찾을 수 없습니다: " + content.id());
+            throw new CodeConflictException(content.getId(), content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getId());
         }
         // code 값(경로 세그먼트)과 parentId는 이번 범위에서 수정 불가로 뒀다 —
         // 바꾸려면 이 노드와 모든 하위 노드의 code_path/code_lvl을 재계산해야
         // 하는데, 그 캐스케이드 재계산은 아직 구현하지 않았다. 바꾸고 싶으면
         // 삭제 후 재등록한다(삭제는 하위까지 캐스케이드된다).
-        if (content.code() != null && !content.code().equals(existing.code())) {
-            throw new CodeConflictException(content.id(), content.code(),
-                    "코드 값은 수정할 수 없습니다(삭제 후 재등록하세요): " + content.id());
+        if (content.getCode() != null && !content.getCode().equals(existing.getCode())) {
+            throw new CodeConflictException(content.getId(), content.getCode(),
+                    "코드 값은 수정할 수 없습니다(삭제 후 재등록하세요): " + content.getId());
         }
-        boolean parentChanged = content.parentId() != null
-                ? !content.parentId().equals(existing.parentId())
-                : existing.parentId() != null;
+        boolean parentChanged = content.getParentId() != null
+                ? !content.getParentId().equals(existing.getParentId())
+                : existing.getParentId() != null;
         if (parentChanged) {
-            throw new CodeConflictException(content.id(), content.code(),
-                    "상위 코드는 수정할 수 없습니다(삭제 후 재등록하세요): " + content.id());
+            throw new CodeConflictException(content.getId(), content.getCode(),
+                    "상위 코드는 수정할 수 없습니다(삭제 후 재등록하세요): " + content.getId());
         }
 
-        String use = content.use() != null ? content.use() : existing.use();
-        CodeBase row = new CodeBase(existing.id(), existing.parentId(), existing.code(),
-                content.extra1(), content.extra2(), content.extra3(), content.extra4(), content.extra5(),
-                existing.level(), existing.path(), content.sort(), use, null, null, now, SYSTEM_USER_ID);
+        String use = content.getUse() != null ? content.getUse() : existing.getUse();
+        CodeBase row = new CodeBase(existing.getId(), existing.getParentId(), existing.getCode(),
+                content.getExtra1(), content.getExtra2(), content.getExtra3(), content.getExtra4(), content.getExtra5(),
+                existing.getLevel(), existing.getPath(), content.getSort(), use);
+        row.setUpdatedAt(now);
+        row.setUpdaterId(SYSTEM_USER_ID);
         codeBaseMapper.update(row);
 
-        if (content.locale() != null) {
-            List<CodeLang> existingLangs = codeLangMapper.findByCodeId(existing.id());
+        if (content.getLocale() != null) {
+            List<CodeLang> existingLangs = codeLangMapper.findByCodeId(existing.getId());
             Set<String> existingLangCodes = existingLangs.stream()
-                    .map(CodeLang::langCode)
+                    .map(CodeLang::getLangCode)
                     .collect(Collectors.toSet());
-            for (Map.Entry<String, CodeLocale> entry : content.locale().entrySet()) {
+            for (Map.Entry<String, CodeLocale> entry : content.getLocale().entrySet()) {
                 String lang = entry.getKey();
                 CodeLocale value = entry.getValue();
                 if (existingLangCodes.contains(lang)) {
-                    codeLangMapper.update(new CodeLang(existing.id(), lang, value.name(), value.remarks(),
-                            null, null, now, SYSTEM_USER_ID));
+                    CodeLang updated = new CodeLang(existing.getId(), lang, value.getName(), value.getRemarks());
+                    updated.setUpdatedAt(now);
+                    updated.setUpdaterId(SYSTEM_USER_ID);
+                    codeLangMapper.update(updated);
                 } else {
-                    codeLangMapper.insert(new CodeLang(existing.id(), lang, value.name(), value.remarks(),
-                            now, SYSTEM_USER_ID, null, null));
+                    CodeLang inserted = new CodeLang(existing.getId(), lang, value.getName(), value.getRemarks());
+                    inserted.setCreatedAt(now);
+                    inserted.setCreatorId(SYSTEM_USER_ID);
+                    codeLangMapper.insert(inserted);
                 }
             }
         }
     }
 
     private void deleteOne(CodeContent content) {
-        CodeBase existing = codeBaseMapper.findById(content.id());
+        CodeBase existing = codeBaseMapper.findById(content.getId());
         if (existing == null) {
-            throw new CodeConflictException(content.id(), content.code(), "대상 코드를 찾을 수 없습니다: " + content.id());
+            throw new CodeConflictException(content.getId(), content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getId());
         }
         // 하위 코드도 모두 삭제 (api-define-admin.md 1.2절 "삭제 시, 하위
         // 코드도 모두 삭제"). code_path 접두어로 자신+모든 하위를 찾는다.
-        List<CodeBase> targets = codeBaseMapper.findSelfAndDescendants(existing.path());
-        List<String> ids = targets.stream().map(CodeBase::id).toList();
+        List<CodeBase> targets = codeBaseMapper.findSelfAndDescendants(existing.getPath());
+        List<String> ids = targets.stream().map(CodeBase::getId).toList();
         codeLangMapper.deleteByCodeIds(ids);
         codeBaseMapper.deleteByIds(ids);
     }
@@ -189,26 +199,26 @@ public class CodeAdminService {
     private void validate(CodePersistRequest request) {
         List<CodeError> errors = new ArrayList<>();
         for (CodeContent content : request.insertOrEmpty()) {
-            if (!isBlank(content.id())) {
-                errors.add(new CodeError(content.id(), content.code(),
+            if (!isBlank(content.getId())) {
+                errors.add(new CodeError(content.getId(), content.getCode(),
                         "insert 항목의 id는 비어 있어야 합니다(서버가 채번합니다)"));
             }
-            if (isBlank(content.code())) {
-                errors.add(new CodeError(content.id(), content.code(), "code는 필수입니다"));
+            if (isBlank(content.getCode())) {
+                errors.add(new CodeError(content.getId(), content.getCode(), "code는 필수입니다"));
             }
             validateLocale(content, errors);
         }
         for (CodeContent content : request.updateOrEmpty()) {
-            if (isBlank(content.id())) {
-                errors.add(new CodeError(content.id(), content.code(), "update 항목의 id는 필수입니다"));
+            if (isBlank(content.getId())) {
+                errors.add(new CodeError(content.getId(), content.getCode(), "update 항목의 id는 필수입니다"));
             }
-            if (content.locale() != null) {
+            if (content.getLocale() != null) {
                 validateLocale(content, errors);
             }
         }
         for (CodeContent content : request.deleteOrEmpty()) {
-            if (isBlank(content.id())) {
-                errors.add(new CodeError(content.id(), content.code(), "delete 항목의 id는 필수입니다"));
+            if (isBlank(content.getId())) {
+                errors.add(new CodeError(content.getId(), content.getCode(), "delete 항목의 id는 필수입니다"));
             }
         }
         if (!errors.isEmpty()) {
@@ -217,13 +227,13 @@ public class CodeAdminService {
     }
 
     private void validateLocale(CodeContent content, List<CodeError> errors) {
-        if (content.locale() == null || content.locale().isEmpty()) {
-            errors.add(new CodeError(content.id(), content.code(), "locale은 최소 1개 이상이어야 합니다"));
+        if (content.getLocale() == null || content.getLocale().isEmpty()) {
+            errors.add(new CodeError(content.getId(), content.getCode(), "locale은 최소 1개 이상이어야 합니다"));
             return;
         }
-        for (Map.Entry<String, CodeLocale> entry : content.locale().entrySet()) {
-            if (entry.getValue() == null || isBlank(entry.getValue().name())) {
-                errors.add(new CodeError(content.id(), content.code(),
+        for (Map.Entry<String, CodeLocale> entry : content.getLocale().entrySet()) {
+            if (entry.getValue() == null || isBlank(entry.getValue().getName())) {
+                errors.add(new CodeError(content.getId(), content.getCode(),
                         "locale." + entry.getKey() + ".name은 필수입니다"));
             }
         }
@@ -236,15 +246,15 @@ public class CodeAdminService {
     private static Map<String, Map<String, CodeLocale>> groupLocale(List<CodeLang> rows) {
         Map<String, Map<String, CodeLocale>> grouped = new LinkedHashMap<>();
         for (CodeLang row : rows) {
-            grouped.computeIfAbsent(row.codeId(), k -> new LinkedHashMap<>())
-                    .put(row.langCode(), new CodeLocale(row.name(), row.remarks()));
+            grouped.computeIfAbsent(row.getCodeId(), k -> new LinkedHashMap<>())
+                    .put(row.getLangCode(), new CodeLocale(row.getName(), row.getRemarks()));
         }
         return grouped;
     }
 
     private static CodeContent toContent(CodeBase row, Map<String, CodeLocale> locale) {
-        return new CodeContent(row.id(), row.parentId(), row.code(), locale, row.use(),
-                row.extra1(), row.extra2(), row.extra3(), row.extra4(), row.extra5(),
-                row.path(), row.level(), row.sort());
+        return new CodeContent(row.getId(), row.getParentId(), row.getCode(), locale, row.getUse(),
+                row.getExtra1(), row.getExtra2(), row.getExtra3(), row.getExtra4(), row.getExtra5(),
+                row.getPath(), row.getLevel(), row.getSort());
     }
 }

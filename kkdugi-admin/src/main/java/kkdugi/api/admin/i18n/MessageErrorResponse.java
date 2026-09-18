@@ -4,7 +4,12 @@ import java.util.List;
 
 import kkdugi.app.admin.i18n.models.MessageError;
 
-public record MessageErrorResponse(
-        List<MessageError> errors
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class MessageErrorResponse {
+
+    private final List<MessageError> errors;
 }

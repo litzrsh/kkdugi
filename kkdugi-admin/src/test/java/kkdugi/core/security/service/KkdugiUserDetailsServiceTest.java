@@ -2,6 +2,7 @@ package kkdugi.core.security.service;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import kkdugi.KkdugiAdminApplication;
+import kkdugi.core.security.models.SessionMenu;
 import kkdugi.core.security.models.SessionUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +24,9 @@ class KkdugiUserDetailsServiceTest {
 
     private static final String USER_ID = "U_TEST_UDS_1";
     private static final String AUTH_ID = "A_TEST_UDS_1";
+    private static final String AUTH_ID_2 = "A_TEST_UDS_2";
     private static final String LOGIN_ID = "test_uds_login";
+    private static final String MENU_ID = "M_TEST_UDS_1";
 
     @Autowired
     private KkdugiUserDetailsService service;
@@ -32,9 +36,27 @@ class KkdugiUserDetailsServiceTest {
 
     @AfterEach
     void cleanUp() {
+        jdbcTemplate.update("DELETE FROM kkdugi_auth_menu WHERE menu_id = ?", MENU_ID);
+        jdbcTemplate.update("DELETE FROM kkdugi_menu_lang WHERE menu_id = ?", MENU_ID);
+        jdbcTemplate.update("DELETE FROM kkdugi_menu_base WHERE menu_id = ?", MENU_ID);
         jdbcTemplate.update("DELETE FROM kkdugi_user_auth WHERE user_id = ?", USER_ID);
-        jdbcTemplate.update("DELETE FROM kkdugi_auth_base WHERE auth_id = ?", AUTH_ID);
+        jdbcTemplate.update("DELETE FROM kkdugi_auth_base WHERE auth_id IN (?, ?)", AUTH_ID, AUTH_ID_2);
         jdbcTemplate.update("DELETE FROM kkdugi_user_base WHERE user_id = ?", USER_ID);
+    }
+
+    private void insertMenu() {
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_menu_base (menu_id, menu_pgm, sort_seq, reg_id) VALUES (?, ?, ?, ?)",
+                MENU_ID, "test_pgm", 1, "SYSTEM");
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_menu_lang (menu_id, lang_cd, menu_nm, reg_id) VALUES (?, ?, ?, ?)",
+                MENU_ID, "ko_KR", "테스트 메뉴", "SYSTEM");
+    }
+
+    private void grantMenuAuthority(String authId, int authVal) {
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_auth_menu (auth_id, menu_id, auth_val, reg_id) VALUES (?, ?, ?, ?)",
+                authId, MENU_ID, authVal, "SYSTEM");
     }
 
     private void insertUser() {
@@ -45,14 +67,18 @@ class KkdugiUserDetailsServiceTest {
     }
 
     private void insertAuthority() {
+        grantRole(AUTH_ID, "ROLE_TEST");
+    }
+
+    private void grantRole(String authId, String roleCd) {
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_auth_base (auth_id, auth_role_cd, auth_tp_cd, auth_nm, reg_id) "
                         + "VALUES (?, ?, ?, ?, ?)",
-                AUTH_ID, "ROLE_TEST", "ROLE", "Test Role", "SYSTEM");
+                authId, roleCd, "ROLE", roleCd, "SYSTEM");
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_user_auth (user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_id) "
                         + "VALUES (?, ?, ?, ?, ?)",
-                USER_ID, AUTH_ID, Date.valueOf(LocalDate.now().minusDays(1)),
+                USER_ID, authId, Date.valueOf(LocalDate.now().minusDays(1)),
                 Date.valueOf(LocalDate.now().plusDays(1)), "SYSTEM");
     }
 
@@ -114,5 +140,60 @@ class KkdugiUserDetailsServiceTest {
         UserDetails found = service.loadUserByUsername(LOGIN_ID);
 
         assertThat(((SessionUser) found).getAuthorities()).isEmpty();
+    }
+
+    @Test
+    void loadUserByUsername_returnsMenuGrantedByAuthority() {
+        insertUser();
+        insertMenu();
+        insertAuthority();
+        grantMenuAuthority(AUTH_ID, 0x03); // READ|WRTE
+
+        List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
+
+        assertThat(menus).hasSize(1);
+        assertThat(menus.get(0).getId()).isEqualTo(MENU_ID);
+        assertThat(menus.get(0).getTitle()).isEqualTo("테스트 메뉴");
+        assertThat(menus.get(0).getAuthority()).isEqualTo(0x03);
+    }
+
+    @Test
+    void loadUserByUsername_aggregatesMenuAuthorityAcrossMultipleRoles() {
+        insertUser();
+        insertMenu();
+        grantRole(AUTH_ID, "ROLE_A");
+        grantRole(AUTH_ID_2, "ROLE_B");
+        grantMenuAuthority(AUTH_ID, 0x01);   // READ
+        grantMenuAuthority(AUTH_ID_2, 0x02); // WRTE
+
+        List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
+
+        assertThat(menus).hasSize(1);
+        assertThat(menus.get(0).getAuthority()).isEqualTo(0x03);
+    }
+
+    @Test
+    void loadUserByUsername_excludesMenuWithZeroAuthority() {
+        insertUser();
+        insertMenu();
+        insertAuthority();
+        grantMenuAuthority(AUTH_ID, 0);
+
+        List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
+
+        assertThat(menus).isEmpty();
+    }
+
+    @Test
+    void loadUserByUsername_sysAdminSeesAllMenusRegardlessOfAuthMenu() {
+        insertUser();
+        insertMenu();
+        grantRole(AUTH_ID, kkdugi.core.Constants.SYS_ADMIN);
+
+        List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
+
+        assertThat(menus).hasSize(1);
+        assertThat(menus.get(0).getId()).isEqualTo(MENU_ID);
+        assertThat(menus.get(0).getAuthority()).isEqualTo(0xffff);
     }
 }

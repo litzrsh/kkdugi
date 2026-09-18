@@ -45,8 +45,8 @@ public class MessageAdminService {
         int page = params.resolvedPage();
         int pageSize = params.resolvedPageSize();
 
-        List<String> codes = mapper.searchDistinctCodes(params.code(), params.message(), params.offset(), pageSize);
-        long totalItems = mapper.countDistinctCodes(params.code(), params.message());
+        List<String> codes = mapper.searchDistinctCodes(params.getCode(), params.getMessage(), params.getOffset(), pageSize);
+        long totalItems = mapper.countDistinctCodes(params.getCode(), params.getMessage());
 
         List<MessageContent> contents;
         if (codes.isEmpty()) {
@@ -58,7 +58,7 @@ public class MessageAdminService {
                 grouped.put(code, new LinkedHashMap<>());
             }
             for (I18nMessage row : rows) {
-                grouped.get(row.msgCode()).put(row.langCode(), row.msgText());
+                grouped.get(row.getMsgCode()).put(row.getLangCode(), row.getMsgText());
             }
             contents = codes.stream()
                     .map(code -> new MessageContent(code, grouped.get(code)))
@@ -76,21 +76,21 @@ public class MessageAdminService {
         LocalDateTime now = LocalDateTime.now();
 
         for (MessageContent content : request.insertOrEmpty()) {
-            for (Map.Entry<String, String> entry : content.locale().entrySet()) {
-                insertRow(content.code(), entry.getKey(), entry.getValue(), now);
-                affectedKeys.add(new AffectedKey(content.code(), entry.getKey()));
+            for (Map.Entry<String, String> entry : content.getLocale().entrySet()) {
+                insertRow(content.getCode(), entry.getKey(), entry.getValue(), now);
+                affectedKeys.add(new AffectedKey(content.getCode(), entry.getKey()));
             }
         }
 
         for (MessageContent content : request.updateOrEmpty()) {
-            List<I18nMessage> existingForCode = mapper.findByCode(content.code());
+            List<I18nMessage> existingForCode = mapper.findByCode(content.getCode());
             if (existingForCode.isEmpty()) {
-                throw new MessageConflictException(content.code(), "대상 코드를 찾을 수 없습니다: " + content.code());
+                throw new MessageConflictException(content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getCode());
             }
             Set<String> existingLangs = existingForCode.stream()
-                    .map(I18nMessage::langCode)
+                    .map(I18nMessage::getLangCode)
                     .collect(Collectors.toSet());
-            for (Map.Entry<String, String> entry : content.locale().entrySet()) {
+            for (Map.Entry<String, String> entry : content.getLocale().entrySet()) {
                 String lang = entry.getKey();
                 String text = entry.getValue();
                 // "update" 버킷은 기존 코드에 한정된다. 그 코드에 아직 없는
@@ -99,32 +99,34 @@ public class MessageAdminService {
                 // 위에서 이미 거부했으므로 여기서는 "새 코드를 update로
                 // 만드는" 경우를 허용하지 않는다.
                 if (existingLangs.contains(lang)) {
-                    updateRow(content.code(), lang, text, now);
+                    updateRow(content.getCode(), lang, text, now);
                 } else {
-                    insertRow(content.code(), lang, text, now);
+                    insertRow(content.getCode(), lang, text, now);
                 }
-                affectedKeys.add(new AffectedKey(content.code(), lang));
+                affectedKeys.add(new AffectedKey(content.getCode(), lang));
             }
         }
 
         for (MessageContent content : request.deleteOrEmpty()) {
-            List<I18nMessage> existing = mapper.findByCode(content.code());
+            List<I18nMessage> existing = mapper.findByCode(content.getCode());
             if (existing.isEmpty()) {
-                throw new MessageConflictException(content.code(), "대상 코드를 찾을 수 없습니다: " + content.code());
+                throw new MessageConflictException(content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getCode());
             }
             // 코드 단위 삭제: 요청의 locale 값과 무관하게, 그 코드에 등록된
             // 모든 언어를 함께 삭제한다 (kkdugi-design ADR-0003 결정 #6).
             for (I18nMessage row : existing) {
-                affectedKeys.add(new AffectedKey(row.msgCode(), row.langCode()));
+                affectedKeys.add(new AffectedKey(row.getMsgCode(), row.getLangCode()));
             }
-            mapper.deleteByCode(content.code());
+            mapper.deleteByCode(content.getCode());
         }
 
         registerCacheRefreshAfterCommit(affectedKeys);
     }
 
     private void insertRow(String code, String lang, String text, LocalDateTime now) {
-        I18nMessage message = new I18nMessage(code, lang, text, now, SYSTEM_USER_ID, null, null);
+        I18nMessage message = new I18nMessage(code, lang, text);
+        message.setCreatedAt(now);
+        message.setCreatorId(SYSTEM_USER_ID);
         try {
             mapper.insert(message);
         } catch (DuplicateKeyException e) {
@@ -133,7 +135,9 @@ public class MessageAdminService {
     }
 
     private void updateRow(String code, String lang, String text, LocalDateTime now) {
-        I18nMessage message = new I18nMessage(code, lang, text, null, null, now, SYSTEM_USER_ID);
+        I18nMessage message = new I18nMessage(code, lang, text);
+        message.setUpdatedAt(now);
+        message.setUpdaterId(SYSTEM_USER_ID);
         int affected = mapper.update(message);
         if (affected == 0) {
             throw new MessageConflictException(code, "대상 언어를 찾을 수 없습니다: " + code + " (" + lang + ")");
@@ -163,20 +167,20 @@ public class MessageAdminService {
 
     private void validateBucket(List<MessageContent> contents, boolean requireLocaleValues, List<MessageError> errors) {
         for (MessageContent content : contents) {
-            if (isBlank(content.code())) {
-                errors.add(new MessageError(content.code(), "code는 필수입니다"));
+            if (isBlank(content.getCode())) {
+                errors.add(new MessageError(content.getCode(), "code는 필수입니다"));
                 continue;
             }
-            if (!MessageCode.matches(content.code())) {
-                errors.add(new MessageError(content.code(), "code 형식이 올바르지 않습니다"));
+            if (!MessageCode.matches(content.getCode())) {
+                errors.add(new MessageError(content.getCode(), "code 형식이 올바르지 않습니다"));
             }
             if (requireLocaleValues) {
-                if (content.locale() == null || content.locale().isEmpty()) {
-                    errors.add(new MessageError(content.code(), "locale은 최소 1개 이상이어야 합니다"));
+                if (content.getLocale() == null || content.getLocale().isEmpty()) {
+                    errors.add(new MessageError(content.getCode(), "locale은 최소 1개 이상이어야 합니다"));
                 } else {
-                    for (Map.Entry<String, String> entry : content.locale().entrySet()) {
+                    for (Map.Entry<String, String> entry : content.getLocale().entrySet()) {
                         if (isBlank(entry.getValue())) {
-                            errors.add(new MessageError(content.code(), "locale." + entry.getKey() + "은 필수입니다"));
+                            errors.add(new MessageError(content.getCode(), "locale." + entry.getKey() + "은 필수입니다"));
                         }
                     }
                 }

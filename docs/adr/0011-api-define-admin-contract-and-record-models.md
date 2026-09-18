@@ -1,6 +1,9 @@
 # ADR-0011: i18n API를 api-define-admin.md 계약으로 재구현, record 기반 모델과 계층별 패키지 규약 도입
 
-- 상태: Accepted
+- 상태: Accepted, 단 "2. `BaseModel`/`BaseParams` 상속을 record 기반
+  모델로 전환" 절은 [ADR-0014](0014-revert-to-base-model-inheritance.md)로
+  Superseded — API 계약/패키지 배치/DTO 통합/persist 의미 결정 등
+  나머지 절은 그대로 유효하다.
 - 날짜: 2026-09-16
 - 대체: [ADR-0007](0007-admin-crud-single-endpoint-batch-save.md)의 엔드포인트/Row 모델 결정 전체를 대체.
   [ADR-0010](0010-common-base-model-adoption.md)의 `BaseModel`/`BaseParams`/

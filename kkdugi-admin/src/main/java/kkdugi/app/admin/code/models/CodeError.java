@@ -1,8 +1,13 @@
 package kkdugi.app.admin.code.models;
 
-public record CodeError(
-        String id,
-        String code,
-        String reason
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class CodeError {
+
+    private final String id;
+    private final String code;
+    private final String reason;
 }

@@ -1,12 +1,13 @@
 # 공통 규약: 도메인 모델/페이징/패키지 배치
 
-- 상태: Accepted — 새 도메인(공통코드, 메뉴, 권한, 사용자, 세션 등)을
-  계획/구현할 때 반드시 참조한다.
+- 상태: Accepted — 새 도메인(메뉴, 권한, 사용자, 세션 등)을 계획/구현할
+  때 반드시 참조한다.
 - 결정 배경/근거: [ADR-0010](../adr/0010-common-base-model-adoption.md)
-  (최초 도입, `BaseModel`/`BaseParams` 상속 방식 — 이후 대체됨),
+  (최초 도입, `BaseModel`/`BaseParams` 상속 방식),
   [ADR-0011](../adr/0011-api-define-admin-contract-and-record-models.md)
-  (record 기반으로 전환, 계층별 패키지 배치 규칙 추가 및 이후 addendum으로
-  `exceptions`/`events` 세분화 추가)
+  (record 기반으로 전환 — 이후 대체됨, 계층별 패키지 배치 규칙과
+  `exceptions`/`events` 세분화는 계속 유효), [ADR-0014](../adr/0014-revert-to-base-model-inheritance.md)
+  (`BaseModel`/`BaseParams` 상속 기반으로 재전환 — 현재 규칙)
 - 최초 적용 사례: `kkdugi.core.i18n`/`kkdugi.app.admin.i18n`
 
 이 문서는 "왜 이렇게 결정했는가"가 아니라 **"새 도메인을 만들 때 무엇을
@@ -15,7 +16,8 @@
 간결하게 유지한다 — 규칙이 바뀌면 이 문서를 갱신하고, 왜 바뀌었는지는
 새 ADR에 남긴다. (2026-09-16에 ADR-0011 기준으로 전면 개정 —
 `BaseModel`/`BaseParams` 상속 규칙 삭제. 같은 날, 예외/이벤트 패키지
-세분화 규칙 추가.)
+세분화 규칙 추가. 2026-09-17에 ADR-0014 기준으로 3번 섹션을 다시
+개정 — `BaseModel`/`BaseParams` 상속 규칙 복원.)
 
 ## 적용 대상
 
@@ -76,22 +78,48 @@ kkdugi.app.admin.i18n
 - 점검 방법: 필드명에 `Cd`/`Dtm`/`Val`/`Nm` 등 DB 컬럼 축약 표기가 그대로
   남아 있으면 위반이다.
 
-## 3. 도메인 모델과 앱 계층 데이터 객체는 record로 작성한다
+## 3. 도메인 모델은 `BaseModel`을, 검색 파라미터는 `BaseParams`를 상속한다 — record는 쓰지 않는다
 
-- **Java record는 클래스를 상속할 수 없다.** `BaseModel`처럼 감사 필드를
-  상속으로 재사용하는 방식은 record와 근본적으로 맞지 않는다 — 이전
-  버전의 이 규약은 `BaseModel extends`를 요구했으나, i18n을 record로
-  옮기는 과정에서 이 제약이 드러나 폐기했다([ADR-0011](../adr/0011-api-define-admin-contract-and-record-models.md)).
-- DB 행과 1:1 대응하는 도메인 모델은 record로 선언하고, 감사 필드
-  (`createdAt`/`createdId`/`updatedAt`/`updatedId` 등)가 필요하면 그
-  record에 직접 필드로 넣는다. 상속으로 공유하지 않는다 — 반복이 생기더라도
-  record의 불변성/단순함이 주는 이점이 더 크다고 판단했다.
-- 검색 파라미터, 커맨드, 결과, 저장 요청/응답 같은 순수 데이터 객체도
-  전부 record로 작성한다. 클래스로 만들어야 할 이유(가변 상태가 꼭
-  필요한 경우 등)가 없으면 record가 기본값이다.
+**record는 어디에도 쓰지 않는다.** DB 행과 1:1 대응하는 도메인 모델과
+목록 검색 파라미터는 아래처럼 상속 기반 클래스로 작성하고, 그 외
+데이터 객체(커맨드/결과/에러/옵션 등)도 record 대신 플레인 클래스로
+작성한다([ADR-0014](../adr/0014-revert-to-base-model-inheritance.md) —
+[ADR-0011](../adr/0011-api-define-admin-contract-and-record-models.md)이
+"record는 클래스를 상속할 수 없다"는 이유로 폐기했던 `BaseModel`/
+`BaseParams` 상속 규칙을 다시 도입).
+
+- **DB 행과 1:1 대응하는 도메인 모델**(`I18nMessage`, `CodeBase`,
+  `CodeLang` 등)은 `kkdugi.core.models.BaseModel`을 상속하는 클래스로
+  작성한다. 감사 필드(`createdAt`/`creatorId`/`updatedAt`/`updaterId`)는
+  `BaseModel`이 제공하므로 직접 선언하지 않는다. 생성자는 **자기 필드만
+  받고**, 감사 필드는 상속받은 setter(`setCreatedAt`/`setCreatorId`/
+  `setUpdatedAt`/`setUpdaterId`)로 채운다:
+
+  ```java
+  I18nMessage message = new I18nMessage(msgCode, langCode, msgText);
+  message.setCreatedAt(now);
+  message.setCreatorId("SYSTEM");
+  ```
+
+- **목록 조회 검색 파라미터**(`MessageSearchParams`, `CodeSearchParams`
+  등)는 `kkdugi.core.models.BaseParams`를 상속하는 클래스로 작성한다.
+  `page`/`pageSize`와 그 파생값(`resolvedPage()`/`resolvedPageSize()`/
+  `getOffset()`/`getLimit()`)은 `BaseParams`가 제공하므로 화면마다
+  반복 선언하지 않는다.
+- **그 외 커맨드/결과/에러/옵션 같은 순수 데이터 객체**(`MessageContent`,
+  `MessagePersistRequest`, `LoginResponse`, `StatusOption` 등)는
+  `BaseModel`/`BaseParams`를 상속하지 않는다 — 감사 필드나 페이징
+  개념이 없는 객체에 억지로 붙이지 않는다. 대신 플레인 클래스로,
+  불변성을 유지하기 위해 필드를 `final`로 두고 전체 필드 생성자만
+  제공한다(setter 없음) — record가 주던 불변성/단순함을 최대한
+  보존한다. Lombok `@Getter`/`@AllArgsConstructor`를 쓴다.
 - **예외(`{package}.exceptions`)와 이벤트(`{package}.events`)는 이 규칙
   대상이 아니다.** 예외는 `RuntimeException` 등을 상속해야 하므로 항상
-  클래스다. 이벤트는 필요해지면 그때 record/클래스 여부를 정한다.
+  클래스다(원래도 record가 아니었다). 이벤트는 필요해지면 그때 형태를
+  정한다.
+- `BaseModel`/`BaseParams`는 Lombok `@Getter`/`@Setter`를 클래스
+  레벨에 붙여 보일러플레이트를 없앤다(`core.enums.UserStatus`가 이미
+  쓰는 패턴과 일관).
 
 ## 4. app/api 계층 DTO를 굳이 분리하지 않아도 된다
 
@@ -99,7 +127,7 @@ kkdugi.app.admin.i18n
 app 계층 커맨드/결과와 api 계층 JSON DTO를 항상 분리했다(Jackson 관심사
 분리, 다른 진입점에서 서비스 재사용 목적). 이 분리가 실제로 가치 있는
 경우(둘의 모양이 다르거나, Jackson 전용 애너테이션이 app 계층에 새면 안
-되는 경우)에는 계속 분리한다. 하지만 **요청/응답이 단순한 plain record이고
+되는 경우)에는 계속 분리한다. 하지만 **요청/응답이 단순한 plain 클래스이고
 둘의 모양이 완전히 같다면**, `app.admin.<feature>.models`의 타입을
 컨트롤러가 그대로 재사용해 중복을 없앤다([ADR-0011](../adr/0011-api-define-admin-contract-and-record-models.md)의
 i18n 재구현이 이 예).
@@ -107,13 +135,13 @@ i18n 재구현이 이 예).
 ## 5. 목록 조회 응답 — `kkdugi.core.models.Page<T>`를 재사용한다
 
 ```java
-public record Page<T>(
-        int page,
-        int pageSize,
-        long totalItems,
-        long totalPages,
-        List<T> contents
-) {
+public class Page<T> {
+    private final int page;
+    private final int pageSize;
+    private final long totalItems;
+    private final long totalPages;
+    private final List<T> contents;
+
     public static <T> Page<T> of(List<T> contents, int page, int pageSize, long totalItems) {
         long totalPages = Math.max(1, (long) Math.ceil((double) totalItems / pageSize));
         return new Page<>(page, pageSize, totalItems, totalPages, contents);
@@ -125,16 +153,21 @@ public record Page<T>(
   `docs/api-define-admin.md`의 모든 목록 응답 형태와 정확히 일치하므로,
   화면마다 새 응답 DTO를 정의하지 말고 컨트롤러가 `Page<T>`를 그대로
   반환한다.
-- `T`에는 어떤 제약도 없다 — 이전 버전(`T extends BaseModel`)의 제약은
-  BaseModel 폐기와 함께 없앴다.
-- 목록 조회 요청 파라미터는 공용 베이스 클래스 없이, 화면마다
-  `{package}.models`에 `code`/`page`/`pageSize` 같은 필드를 직접 선언한
-  record로 만든다(예: `MessageSearchParams`). `page`는 1-base, 기본값
-  1이고 `pageSize` 기본값/상한은 200으로 통일한다(`docs/api-define-admin.md`의
-  모든 예시가 `"page": 1, "pageSize": 200`을 쓴다). 페이징 계산은
-  표준 SQL `OFFSET (page-1)*pageSize LIMIT pageSize`를 쓴다 — 예전
-  `BaseParams.getOffset()`/`getLimit()`이 갖고 있던 ROWNUM `BETWEEN` 스타일
-  의미의 모호함은 이 방식으로 해소되었다.
+- **`T`에는 상속 제약을 걸지 않는다**(`T extends BaseModel`을 걸지
+  않는다). `Page<CodeContent>`/`Page<MessageContent>`처럼 `T`가
+  `BaseModel`을 상속하지 않는 플레인 클래스(3번의 "그 외 순수 데이터
+  객체")인 경우가 실제로 있기 때문이다.
+- 목록 조회 요청 파라미터는 [3번](#3-도메인-모델은-basemodel을-검색-파라미터는-baseparams를-상속한다--record는-쓰지-않는다)에서 정한 대로
+  `kkdugi.core.models.BaseParams`를 상속하는 클래스로 만든다(예:
+  `MessageSearchParams`). `page`는 1-base, 기본값 1이고 `pageSize`
+  기본값/상한은 200 — `BaseParams`가 이 기본값과
+  `resolvedPage()`/`resolvedPageSize()`를 제공한다
+  (`docs/api-define-admin.md`의 모든 예시가 `"page": 1, "pageSize": 200`을
+  쓴다). 페이징 계산은 표준 SQL `OFFSET (page-1)*pageSize LIMIT pageSize`를
+  쓰며, `BaseParams.getOffset()`/`getLimit()`이 정확히 이 값을 반환하도록
+  구현돼 있다(`getLimit()`은 `pageSize` 그대로 — ADR-0010 원안의
+  `page*pageSize`이 갖고 있던 ROWNUM `BETWEEN` 스타일 모호함을
+  [ADR-0014](../adr/0014-revert-to-base-model-inheritance.md)가 해소했다).
 
 ## 6. 공통 유틸(`kkdugi.core.util`)은 필요할 때만 만든다
 
@@ -179,8 +212,11 @@ public record Page<T>(
   안에 `#{key}`/`#{size}`/`#{id}`가 그대로 남아 있어서 바인딩 개수가
   안 맞는 실제 버그가 났었다(수정 경위는 ADR-0012 addendum 참고).
 - `<sql id="...">` 재사용 조각도 CDATA로 감싼다.
-- `resultMap`은 이 규칙(CDATA/QueryID) 대상이 아니다 — 필요하면 일반
-  XML 주석으로 설명만 남긴다(예: record라 `<constructor>`를 쓴다는 설명).
+- `resultMap`은 이 규칙(CDATA/QueryID) 대상이 아니다. 도메인 모델
+  `resultMap`은 setter 기반 `<id>`/`<result>`로 작성하고, 감사 필드
+  매핑은 직접 반복하지 않고 `mapper/postgres/CommonMapper.xml`의
+  `kkdugi.core.models.CommonMapper.baseResultMap`을 `extends`해
+  재사용한다([ADR-0014](../adr/0014-revert-to-base-model-inheritance.md)).
 
 전체 예시는 `I18nMessageMapper.xml`/`CodeBaseMapper.xml`/`CodeLangMapper.xml`/
 `SerialMapper.xml`을 참고한다 — 넷 다 이 서식으로 맞춰져 있다.
@@ -252,9 +288,11 @@ public enum UserStatus implements CodeEnums {
 - [ ] 예외는 `{package}.exceptions`에, 이벤트는 `{package}.events`에 있는가
       (`models`에 섞여 있지 않은가)
 - [ ] 필드명에서 DB 컬럼명(축약형 포함)이 그대로 유추되지 않는가 (2번)
-- [ ] 도메인 모델/데이터 객체가 record인가(예외·이벤트 제외)
-- [ ] record를 매핑하는 resultMap이 `<constructor>`를 쓰는가(setter가
-      없으므로 `<id>`/`<result>`만으로는 매핑이 실패한다)
+- [ ] record를 쓰지 않았는가 — 도메인 모델은 `BaseModel`을, 검색
+      파라미터는 `BaseParams`를 상속하는가(예외·이벤트는 원래도 클래스라
+      해당 없음), 그 외 데이터 객체는 상속 없는 플레인 클래스인가
+- [ ] 도메인 모델 resultMap이 setter 기반 `<id>`/`<result>`이고,
+      감사 필드는 `CommonMapper.baseResultMap`을 `extends`하는가
 - [ ] 목록 응답이 `core.models.Page<T>`로 감싸지는가, 매퍼가
       1-base `page`/`pageSize`로부터 표준 `OFFSET`/`LIMIT`을 계산하는가
 - [ ] app 계층과 api 계층 DTO를 분리해야 할 실질적 이유가 있는지 확인했는가

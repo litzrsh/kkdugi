@@ -1,28 +1,24 @@
 package kkdugi.app.admin.i18n.models;
 
-public record MessageSearchParams(
-        String code,
-        String message,
-        Integer page,
-        Integer pageSize
-) {
+import kkdugi.core.models.BaseParams;
 
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_PAGE_SIZE = 200;
-    private static final int MAX_PAGE_SIZE = 200;
+import lombok.Getter;
+import lombok.Setter;
 
-    public int resolvedPage() {
-        return page == null || page < 1 ? DEFAULT_PAGE : page;
+@Getter
+@Setter
+public class MessageSearchParams extends BaseParams {
+
+    private String code;
+    private String message;
+
+    public MessageSearchParams() {
     }
 
-    public int resolvedPageSize() {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
-
-    public int offset() {
-        return (resolvedPage() - 1) * resolvedPageSize();
+    public MessageSearchParams(String code, String message, int page, int pageSize) {
+        this.code = code;
+        this.message = message;
+        setPage(page);
+        setPageSize(pageSize);
     }
 }

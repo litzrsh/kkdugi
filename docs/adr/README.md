@@ -16,6 +16,7 @@ kkdugi-admin 프로젝트의 아키텍처 결정을 기록한다. 각 ADR은 번
 | [0008](0008-backend-stack-revision-java17-springboot4.md) | 백엔드 스택 버전 확정: Java 17 + Spring Boot 4.0.4 | Accepted |
 | [0009](0009-frontend-direction-thymeleaf-dependency-only.md) | 프론트엔드 방향: Thymeleaf 의존성만 지금 추가, 나머지 TODO | Accepted |
 | [0010](0010-common-base-model-adoption.md) | 공통 베이스 모델 도입 (`core.models`/`core.util`) 및 i18n 필드 리네이밍 | Superseded by 0011 (BaseModel/BaseParams 상속 메커니즘에 한함) |
-| [0011](0011-api-define-admin-contract-and-record-models.md) | i18n API를 api-define-admin.md 계약으로 재구현, record 기반 모델과 계층별 패키지 규약 도입 | Accepted |
+| [0011](0011-api-define-admin-contract-and-record-models.md) | i18n API를 api-define-admin.md 계약으로 재구현, record 기반 모델과 계층별 패키지 규약 도입 | Superseded by 0014 (BaseModel/BaseParams 상속 전환 절에 한함) |
 | [0012](0012-common-code-system.md) | 공통코드 시스템: 채번 방식(core.serial), 계층 저장/삭제, 검색 범위 확정 | Accepted |
 | [0013](0013-code-enums-mybatis-integration.md) | 코드성 enum(`CodeEnums`)과 MyBatis 자동 변환(`default-enum-type-handler`) | Accepted |
+| [0014](0014-revert-to-base-model-inheritance.md) | BaseModel/BaseParams 상속 기반으로 재전환 (ADR-0011 되돌림) | Accepted |

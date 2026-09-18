@@ -1,5 +1,8 @@
 package kkdugi.core.security.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * 로그인 요청 바디. {@code force=true}는 이미 활성 세션이 있어도(=
  * {@link kkdugi.core.security.service.SessionService}가
@@ -8,5 +11,11 @@ package kkdugi.core.security.models;
  * "기존 세션을 종료할까요?"를 물어보고, 동의하면 이 값만 true로 바꿔 같은
  * 요청을 재전송한다.
  */
-public record LoginRequest(String username, String password, boolean force) {
+@Getter
+@AllArgsConstructor
+public class LoginRequest {
+
+    private final String username;
+    private final String password;
+    private final boolean force;
 }

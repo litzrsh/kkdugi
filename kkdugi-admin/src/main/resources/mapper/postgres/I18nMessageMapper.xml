@@ -2,18 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kkdugi.core.i18n.mapper.I18nMessageMapper">
 
-  <!-- I18nMessage는 record라 setter가 없다. MyBatis가 canonical 생성자를
-       쓰도록 <constructor>로 매핑한다. -->
-  <resultMap id="i18nMessageResultMap" type="kkdugi.core.i18n.models.I18nMessage">
-    <constructor>
-      <idArg column="msg_cd" javaType="java.lang.String"/>
-      <idArg column="lang_cd" javaType="java.lang.String"/>
-      <arg column="msg_val" javaType="java.lang.String"/>
-      <arg column="reg_dtm" javaType="java.time.LocalDateTime"/>
-      <arg column="reg_id" javaType="java.lang.String"/>
-      <arg column="upd_dtm" javaType="java.time.LocalDateTime"/>
-      <arg column="upd_id" javaType="java.lang.String"/>
-    </constructor>
+  <resultMap id="i18nMessageResultMap" type="kkdugi.core.i18n.models.I18nMessage"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="msgCode" column="msg_cd"/>
+    <id property="langCode" column="lang_cd"/>
+    <result property="msgText" column="msg_val"/>
   </resultMap>
 
   <sql id="columns">
@@ -152,7 +145,7 @@ AND msg_val LIKE '%' || #{msgText} || '%'
 <![CDATA[
 /* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.insert */
 INSERT INTO kkdugi_i18n_msg (msg_cd, lang_cd, msg_val, reg_dtm, reg_id)
-VALUES (#{msgCode}, #{langCode}, #{msgText}, #{createdAt}, #{createdId})
+VALUES (#{msgCode}, #{langCode}, #{msgText}, #{createdAt}, #{creatorId})
 ]]>
   </insert>
 
@@ -166,7 +159,7 @@ VALUES (#{msgCode}, #{langCode}, #{msgText}, #{createdAt}, #{createdId})
 UPDATE kkdugi_i18n_msg
 SET msg_val = #{msgText},
     upd_dtm = #{updatedAt},
-    upd_id  = #{updatedId}
+    upd_id  = #{updaterId}
 WHERE msg_cd = #{msgCode}
   AND lang_cd = #{langCode}
 ]]>
