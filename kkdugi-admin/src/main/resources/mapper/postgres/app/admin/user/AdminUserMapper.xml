@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.app.admin.user.mapper.AdminUserMapper">
+
+  <resultMap id="userBaseResultMap" type="kkdugi.app.admin.user.models.UserBase"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="id" column="user_id"/>
+    <result property="username" column="user_login_id"/>
+    <result property="name" column="user_nm"/>
+    <result property="remarks" column="user_dc"/>
+    <result property="image" column="user_img_src"/>
+    <result property="email" column="user_email"/>
+    <result property="status" column="user_stat_cd"/>
+    <result property="lastLoginAt" column="last_login_dtm"/>
+    <result property="lastChangePasswordAt" column="last_chg_pwd_dtm"/>
+    <result property="passwordStatus" column="pwd_stat_cd"/>
+    <result property="totalSize" column="total_size"/>
+  </resultMap>
+
+  <resultMap id="userAuthorityResultMap" type="kkdugi.app.admin.user.models.UserAuthority"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="userId" column="user_id"/>
+    <id property="authorityId" column="auth_id"/>
+    <result property="applyStartDate" column="apl_st_dtm"/>
+    <result property="applyEndDate" column="apl_ed_dtm"/>
+    <result property="role" column="auth_role_cd"/>
+    <result property="type" column="auth_tp_cd"/>
+    <result property="name" column="auth_nm"/>
+    <result property="remarks" column="auth_dc"/>
+    <result property="use" column="use_yn"/>
+  </resultMap>
+
+  <!-- user_pwd는 일부러 뺐다: 조회 경로에서 인코딩된 비밀번호가 메모리에 올라오지 않게 한다. -->
+  <sql id="baseColumns">
+<![CDATA[
+user_id, user_login_id, user_nm, user_dc, user_img_src, user_email, user_stat_cd,
+last_login_dtm, last_chg_pwd_dtm, pwd_stat_cd, reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <!--
+    * QueryID=search
+    * Description=Search users with optional login id / name (case-insensitive contains) and status filters (query-level paging, newest first)
+    -->
+  <select id="search" resultMap="userBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.search */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+, COUNT(*) OVER() AS total_size
+FROM kkdugi_user_base
+]]>
+    <where>
+      <if test="username != null and username != ''">
+<![CDATA[
+AND LOWER(user_login_id) LIKE '%' || LOWER(#{username}) || '%'
+]]>
+      </if>
+      <if test="name != null and name != ''">
+<![CDATA[
+AND LOWER(user_nm) LIKE '%' || LOWER(#{name}) || '%'
+]]>
+      </if>
+      <if test="status != null">
+<![CDATA[
+AND user_stat_cd = #{status}
+]]>
+      </if>
+    </where>
+<![CDATA[
+ORDER BY reg_dtm DESC, user_id
+OFFSET #{offset} LIMIT #{pageSize}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findById
+    * Description=Find one user by id
+    -->
+  <select id="findById" resultMap="userBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.findById */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_user_base
+WHERE user_id = #{id}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByUsername
+    * Description=Find one user by its unique login id
+    -->
+  <select id="findByUsername" resultMap="userBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.findByUsername */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_user_base
+WHERE user_login_id = #{username}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByEmail
+    * Description=Find one user by its unique email address
+    -->
+  <select id="findByEmail" resultMap="userBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.findByEmail */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_user_base
+WHERE user_email = #{email}
+]]>
+  </select>
+
+  <!--
+    * QueryID=insert
+    * Description=Insert one user row (password is already encoded)
+    -->
+  <insert id="insert" parameterType="kkdugi.app.admin.user.models.UserBase">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.insert */
+INSERT INTO kkdugi_user_base
+    (user_id, user_login_id, user_pwd, user_nm, user_dc, user_img_src, user_email,
+     pwd_stat_cd, user_stat_cd, reg_dtm, reg_id)
+VALUES
+    (#{id}, #{username}, #{password}, #{name}, #{remarks}, #{image}, #{email},
+     #{passwordStatus}, #{status}, #{createdAt}, #{creatorId})
+]]>
+  </insert>
+
+  <!--
+    * QueryID=update
+    * Description=Update the editable columns of one user (login id and password are never touched)
+    -->
+  <update id="update" parameterType="kkdugi.app.admin.user.models.UserBase">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.update */
+UPDATE kkdugi_user_base
+SET user_nm      = #{name},
+    user_dc      = #{remarks},
+    user_img_src = #{image},
+    user_email   = #{email},
+    user_stat_cd = #{status},
+    upd_dtm      = #{updatedAt},
+    upd_id       = #{updaterId}
+WHERE user_id = #{id}
+]]>
+  </update>
+
+  <!--
+    * QueryID=findExistingIds
+    * Description=Return the subset of the given (non-empty) user ids that exist
+    -->
+  <select id="findExistingIds" resultType="string">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.findExistingIds */
+SELECT user_id
+FROM kkdugi_user_base
+WHERE user_id IN
+]]>
+    <foreach item="id" collection="ids" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </select>
+
+  <!--
+    * QueryID=updatePassword
+    * Description=Replace one user's (already encoded) password and mark it as new (change required)
+    -->
+  <update id="updatePassword">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.updatePassword */
+UPDATE kkdugi_user_base
+SET user_pwd         = #{password},
+    pwd_stat_cd      = #{passwordStatus},
+    last_chg_pwd_dtm = #{changedAt},
+    upd_dtm          = #{changedAt},
+    upd_id           = #{updaterId}
+WHERE user_id = #{id}
+]]>
+  </update>
+
+  <!--
+    * QueryID=updateStatus
+    * Description=Set the status of every given (non-empty) user id
+    -->
+  <update id="updateStatus">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.updateStatus */
+UPDATE kkdugi_user_base
+SET user_stat_cd = #{status},
+    upd_dtm      = #{updatedAt},
+    upd_id       = #{updaterId}
+WHERE user_id IN
+]]>
+    <foreach item="id" collection="ids" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </update>
+
+  <!--
+    * QueryID=deleteSessionsByUserId
+    * Description=Delete every session of one user (kkdugi_session.user_id is a FK)
+    -->
+  <delete id="deleteSessionsByUserId">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.deleteSessionsByUserId */
+DELETE FROM kkdugi_session
+WHERE user_id = #{userId}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=deleteUserAuthsByUserId
+    * Description=Delete every authority mapping of one user (kkdugi_user_auth.user_id is a FK)
+    -->
+  <delete id="deleteUserAuthsByUserId">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.deleteUserAuthsByUserId */
+DELETE FROM kkdugi_user_auth
+WHERE user_id = #{userId}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=deleteById
+    * Description=Delete one user row (callers delete its sessions/authority mappings first)
+    -->
+  <delete id="deleteById">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.deleteById */
+DELETE FROM kkdugi_user_base
+WHERE user_id = #{id}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=findAuthoritiesByUserId
+    * Description=Every authority mapping of one user together with the authority's role/type/name/remarks/use
+    -->
+  <select id="findAuthoritiesByUserId" resultMap="userAuthorityResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.findAuthoritiesByUserId */
+SELECT ua.user_id, ua.auth_id, ua.apl_st_dtm, ua.apl_ed_dtm, ua.reg_dtm, ua.reg_id, ua.upd_dtm, ua.upd_id,
+       ab.auth_role_cd, ab.auth_tp_cd, ab.auth_nm, ab.auth_dc, ab.use_yn
+FROM kkdugi_user_auth ua
+JOIN kkdugi_auth_base ab ON ab.auth_id = ua.auth_id
+WHERE ua.user_id = #{userId}
+ORDER BY ua.auth_id
+]]>
+  </select>
+
+  <!--
+    * QueryID=findExistingAuthorityIds
+    * Description=Return the subset of the given (non-empty) authority ids that exist
+    -->
+  <select id="findExistingAuthorityIds" resultType="string">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.findExistingAuthorityIds */
+SELECT auth_id
+FROM kkdugi_auth_base
+WHERE auth_id IN
+]]>
+    <foreach item="authorityId" collection="authorityIds" open="(" separator="," close=")">
+      #{authorityId}
+    </foreach>
+  </select>
+
+  <!--
+    * QueryID=upsertAuthority
+    * Description=Insert a user-authority mapping, or update its apply period when it already exists
+    -->
+  <insert id="upsertAuthority" parameterType="kkdugi.app.admin.user.models.UserAuthority">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.upsertAuthority */
+INSERT INTO kkdugi_user_auth
+    (user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_dtm, reg_id)
+VALUES
+    (#{userId}, #{authorityId}, #{applyStartDate}, #{applyEndDate}, #{createdAt}, #{creatorId})
+ON CONFLICT (user_id, auth_id) DO UPDATE
+SET apl_st_dtm = EXCLUDED.apl_st_dtm,
+    apl_ed_dtm = EXCLUDED.apl_ed_dtm,
+    upd_dtm    = EXCLUDED.reg_dtm,
+    upd_id     = EXCLUDED.reg_id
+]]>
+  </insert>
+
+  <!--
+    * QueryID=deleteAuthorities
+    * Description=Delete the given (non-empty) authority mappings of one user
+    -->
+  <delete id="deleteAuthorities">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.user.mapper.AdminUserMapper.deleteAuthorities */
+DELETE FROM kkdugi_user_auth
+WHERE user_id = #{userId}
+  AND auth_id IN
+]]>
+    <foreach item="authorityId" collection="authorityIds" open="(" separator="," close=")">
+      #{authorityId}
+    </foreach>
+  </delete>
+
+</mapper>

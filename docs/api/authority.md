@@ -132,6 +132,6 @@ Response
 
 ## 알려진 한계
 
-- 사용자 관리(원본 스펙 5.5/5.6)가 구현되면 `kkdugi_user_auth`를 쓰는 경로가 두 곳(권한 저장, 사용자의 권한 목록 저장)이 된다 — 그때 쓰기 경로를 정리한다.
+- `kkdugi_user_auth`를 쓰는 경로가 두 곳이다 — 권한 저장(이 문서)과 사용자별 권한 저장([user.md](user.md) 6번). `app.admin.<기능>`끼리 import하지 않는 규칙(ADR-0016) 때문에 SQL은 각자 갖고, 두 경로가 같은 검증 규칙(적용기간 기본값·역전, 대상 존재)을 쓰도록 유지한다.
 - 깨진 JSON 본문/해석 불가한 적용기간 문자열은 400이 아니라 500이다(위 "공통"의 노트).
 - 기존 공통코드/메시지 목록 API(`AdminCodeParams`, `AdminMessageParams`)는 `page`/`pageSize`를 생략하면 500이 난다(Jackson 3가 다중 인자 편의 생성자를 속성 생성자로 자동 감지해 `int`에 `null`을 넣으려 하기 때문). 권한 목록(`AdminAuthorityParams`)은 기본 생성자에 `@JsonCreator`를 붙여 이 문제가 없다 — 나머지 둘은 이 작업 범위 밖이라 그대로 둔 후속 과제다. 자세한 내용은 [ADR-0018](../adr/0018-authority-management-system.md#결과).
