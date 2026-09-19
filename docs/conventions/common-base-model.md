@@ -64,9 +64,11 @@ kkdugi.core.i18n                     ← Spring MessageSource 인프라만
 └─ config   — I18nMessageSourceConfig
 ```
 
-컨트롤러 계층(`kkdugi.api.admin.<feature>`)은 이 규칙 대상이 아니다 —
-패키지 루트에 그대로 둔다. 요청/응답 형태가 app 계층 모델과 동일하면(아래
-4번) 컨트롤러가 `app.admin.<feature>.models`의 타입을 직접 재사용해도 된다.
+컨트롤러 계층은 이 규칙 대상이 아니다 — 기능별 하위 패키지를 만들지 않고
+평평하게 둔다(관리자용 `kkdugi.api.admin.Admin<Feature>Controller`, 사용자용
+`kkdugi.api.<Feature>Controller`). 요청/응답 형태가 app 계층 모델과 동일하면(아래
+4번) 컨트롤러가 `app.admin.<feature>.models`(관리자용) 또는
+`app.<feature>.models`(사용자용)의 타입을 직접 재사용해도 된다.
 
 ## 2. 필드 네이밍 원칙 — DB 컬럼명을 모델/DTO 필드명으로 쓰지 않는다
 

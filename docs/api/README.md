@@ -68,7 +68,7 @@
   [공통 규약 5번](../conventions/common-base-model.md#5-목록-조회-응답--kkdugicoremodelspaget를-재사용한다) 참고).
 - **감사 필드는 응답에 노출하지 않음**: DB 행 모델(`BaseModel` 상속)의
   `createdAt`/`creatorId`/`updatedAt`/`updaterId`는 지금까지 구현된 어떤 API
-  응답에도 포함되지 않는다. `MessageContent`/`CodeContent` 등 API 전용
+  응답에도 포함되지 않는다. `AdminMessage`/`AdminCode` 등 API 전용
   모델은 `Page<T>`의 `T extends BaseModel` 제약 때문에 이제 `BaseModel`을
   상속하지만, `@JsonIgnoreProperties`로 이 감사 필드들과 `rownum`을
   명시적으로 숨긴다(`totalSize`는 `BaseModel` 자체에 `@JsonIgnore`가 있다).
