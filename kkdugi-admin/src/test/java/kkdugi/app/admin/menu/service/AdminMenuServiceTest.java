@@ -66,6 +66,55 @@ class AdminMenuServiceTest {
     }
 
     @Test
+    void persist_rejectsInvalidProgramAndFlags() {
+        for (String program : List.of("../escape", "/admin/menu", "admin//menu", "admin/menu.vue")) {
+            AdminMenu menu = new AdminMenu(null, null, Map.of("en_US", new AdminMenuLocale("Invalid", null)),
+                    null, program, "Y", "Y", null, null, 1);
+            assertThatThrownBy(() -> service.persist(new AdminMenuPersistRequest(List.of(menu), null, null)))
+                    .isInstanceOf(AdminMenuValidationException.class);
+        }
+        AdminMenu invalid = new AdminMenu(null, null, Map.of("en_US", new AdminMenuLocale("Invalid", null)),
+                null, "admin/menu", "INVALID", "Y", null, null, -1);
+        assertThatThrownBy(() -> service.persist(new AdminMenuPersistRequest(List.of(invalid), null, null)))
+                .isInstanceOf(AdminMenuValidationException.class);
+    }
+
+    @Test
+    void persist_protectsSystemMenuAndAncestorAgainstDeletionAndStructuralChanges() {
+        MenuBase system = adminMenuMapper.findAll().stream().filter(m -> "admin/menu".equals(m.getProgram())).findFirst().orElseThrow();
+        for (String id : List.of(system.getId(), system.getParentId())) {
+            assertThatThrownBy(() -> service.persist(new AdminMenuPersistRequest(null, null,
+                    List.of(new AdminMenu(id, null, null, null, null, null, null, null, null, null)))))
+                    .isInstanceOf(AdminMenuConflictException.class);
+            assertThat(adminMenuMapper.findById(id)).isPresent();
+        }
+        AdminMenu update = new AdminMenu(system.getId(), system.getParentId(), null, system.getIcon(),
+                "custom/changed", system.getUse(), system.getClose(), system.getPath(), system.getLevel(), system.getSort());
+        assertThatThrownBy(() -> service.persist(new AdminMenuPersistRequest(null, List.of(update), null)))
+                .isInstanceOf(AdminMenuConflictException.class);
+    }
+
+    @Test
+    void persist_updatesLocalesAndFlagsThenDeletesSubtree() {
+        service.persist(new AdminMenuPersistRequest(List.of(newMenu(null, null, "MENU_COMPLETION_ROOT")), null, null));
+        createdRootId = service.search().stream().filter(m -> m.getLocale().values().stream()
+                .anyMatch(l -> "MENU_COMPLETION_ROOT".equals(l.getLabel()))).findFirst().orElseThrow().getId();
+        service.persist(new AdminMenuPersistRequest(List.of(newMenu(null, createdRootId, "Child")), null, null));
+        AdminMenu child = findById(service.search(), createdRootId).getChildren().get(0);
+        AdminMenu update = new AdminMenu(child.getId(), createdRootId,
+                Map.of("ko_KR", new AdminMenuLocale("수정", "설명"), "en_US", new AdminMenuLocale("Updated", "Description")),
+                "las la-folder", "custom/child", "N", "N", child.getPath(), child.getLevel(), 3);
+        service.persist(new AdminMenuPersistRequest(null, List.of(update), null));
+        AdminMenu actual = findById(service.search(), child.getId());
+        assertThat(actual.getLocale().get("en_US").getLabel()).isEqualTo("Updated");
+        assertThat(actual.getUse()).isEqualTo("N");assertThat(actual.getClose()).isEqualTo("N");
+        service.persist(new AdminMenuPersistRequest(null, null, List.of(newMenu(createdRootId, null, "Root"))));
+        assertThat(adminMenuMapper.findById(child.getId())).isEmpty();
+        assertThat(adminMenuMapper.findLangsByMenuId(child.getId())).isEmpty();
+        createdRootId = null;
+    }
+
+    @Test
     void persist_insertsRootMenu_thenSearchReturnsItInTree() {
         service.persist(new AdminMenuPersistRequest(
                 List.of(newMenu(null, null, "테스트 루트 메뉴")), null, null));

@@ -34,6 +34,9 @@ public class AdminMenuService {
     public static final String ERR_NOT_FOUND = "menu.err.not_found";
     public static final String ERR_IMMUTABLE = "menu.err.immutable";
 
+    private static final Set<String> SYSTEM_PROGRAMS = Set.of("admin/code", "admin/message", "admin/menu", "admin/authority", "admin/user");
+    private static final java.util.regex.Pattern PROGRAM_PATTERN = java.util.regex.Pattern.compile("[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*");
+
     private static final String SYSTEM_USER_ID = "SYSTEM";
     private static final String DEFAULT_USE = "Y";
     private static final String DEFAULT_CLOSE = "Y";
@@ -135,6 +138,13 @@ public class AdminMenuService {
             throw new AdminMenuConflictException(ERR_IMMUTABLE);
         }
 
+        if (isProtected(existing) && (!java.util.Objects.equals(content.getProgram(), existing.getProgram())
+                || !java.util.Objects.equals(content.getIcon(), existing.getIcon())
+                || content.getSort() != (existing.getSort() == null ? 0 : existing.getSort())
+                || (content.getUse() != null && !content.getUse().equals(existing.getUse()))
+                || (content.getClose() != null && !content.getClose().equals(existing.getClose())))) {
+            throw new AdminMenuConflictException(ERR_IMMUTABLE);
+        }
         String use = content.getUse() != null ? content.getUse() : existing.getUse();
         String close = content.getClose() != null ? content.getClose() : existing.getClose();
         MenuBase row = new MenuBase(existing.getId(), existing.getParentId(), content.getIcon(), content.getProgram(),
@@ -172,6 +182,9 @@ public class AdminMenuService {
                     log.warn("메뉴 삭제 실패 - 대상 메뉴를 찾을 수 없음: id={}", content.getId());
                     return new AdminMenuConflictException(ERR_NOT_FOUND);
                 });
+        if (isProtected(existing)) {
+            throw new AdminMenuConflictException(ERR_IMMUTABLE);
+        }
         // 메뉴가 삭제되면 하위 메뉴도 모두 삭제한다(archive/api-define-admin.md
         // 3.2절). menu_path 접두어로 자신+모든 하위를 찾는다.
         List<MenuBase> targets = adminMenuMapper.findSelfAndDescendants(existing.getPath());
@@ -180,8 +193,22 @@ public class AdminMenuService {
         adminMenuMapper.deleteByIds(ids);
     }
 
+    private boolean isProtected(MenuBase menu) {
+        return adminMenuMapper.findSelfAndDescendants(menu.getPath()).stream()
+                .anyMatch(row -> row.getProgram() != null && SYSTEM_PROGRAMS.contains(row.getProgram()));
+    }
+
+    private void validateFields(AdminMenu content) {
+        if ((content.getProgram() != null && !content.getProgram().isEmpty() && !PROGRAM_PATTERN.matcher(content.getProgram()).matches())
+                || (content.getUse() != null && !Set.of("Y", "N").contains(content.getUse()))
+                || (content.getClose() != null && !Set.of("Y", "N").contains(content.getClose())) || content.getSort() < 0) {
+            throw new AdminMenuValidationException(ERR_MALFORMED_REQUEST);
+        }
+    }
+
     private void validate(AdminMenuPersistRequest request) {
         for (AdminMenu content : request.insertOrEmpty()) {
+            validateFields(content);
             if (!isBlank(content.getId())) {
                 log.warn("메뉴 등록 검증 실패 - insert 항목에 id가 지정됨");
                 throw new AdminMenuValidationException(ERR_MALFORMED_REQUEST);
@@ -189,6 +216,7 @@ public class AdminMenuService {
             validateLocale(content);
         }
         for (AdminMenu content : request.updateOrEmpty()) {
+            validateFields(content);
             if (isBlank(content.getId())) {
                 log.warn("메뉴 수정 검증 실패 - update 항목에 id가 없음");
                 throw new AdminMenuValidationException(ERR_MALFORMED_REQUEST);

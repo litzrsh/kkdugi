@@ -18,6 +18,7 @@ export function isProtected(row,rows=[]){return systemPrograms.includes(row.prog
 export function validate(resource,row,languages){if(resource==='i18n'){if(!/^[a-z0-9]+(_[a-z0-9]+)*(\.[a-z0-9]+(_[a-z0-9]+)*){2}$/.test(row.code||'')||/[\r\n]/.test(row.code||''))return 'invalid_code';if(!Object.values(row.locale||{}).some(v=>typeof v==='string'&&v.trim()))return 'required';}
  if(resource==='code'&&(!row.code?.trim()||!Object.values(row.locale||{}).some(v=>v.name?.trim())))return 'required';
  if(resource==='code'&&!row.id&&(!/^[A-Z0-9]+(_[A-Z0-9]+)*$/.test(row.code)||/[\r\n]/.test(row.code)))return 'invalid_common_code';
+ if(resource==='menu'&&row.program&&(!/^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(row.program)||/[\r\n]/.test(row.program)))return 'invalid_program';
  if(resource==='menu'&&!Object.values(row.locale||{}).some(v=>v.label?.trim()))return 'required';
  if(resource==='authority'&&(!row.role?.trim()||!row.name?.trim()||!row.type?.trim()))return 'required';
  if(resource==='user'&&(!row.username?.trim()||!row.name?.trim()||!row.status))return 'required';
@@ -59,3 +60,12 @@ export function prepareBatch(resource,changes,baseline){
  }
  return result;
 }
+
+export function markMenuDeleted(rows,targets,group){
+ for(const row of menuDescendants(rows,targets)){row._deleted=true;row._deleteGroup=group;}
+}
+export function restoreMenuRows(rows,row){
+ const group=row._deleteGroup;
+ for(const item of rows)if(rowKey(item)===rowKey(row)||(group&&item._deleteGroup===group)){delete item._deleted;delete item._deleteGroup;}
+}
+export function menuLabel(row,locale){return localeValue(row,locale,'label')||Object.values(row?.locale||{}).find(v=>v?.label)?.label||row?.program||row?.id||'';}

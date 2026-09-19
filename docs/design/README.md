@@ -4,6 +4,8 @@
 
 ## 현재 기준
 
+- [메뉴관리 완료·검증](plan/16-menu-management-completion.md)
+
 - [메뉴·코드 리팩토링과 관리 화면 연결](plan/15-menu-code-refactor-integration.md)
 
 - [인증·세션 연동과 중복 로그인 확인 팝업](plan/14-session-auth-confirm-and-docs.md)

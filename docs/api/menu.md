@@ -24,7 +24,7 @@ Response
     "parentId": null,
     "locale": { "ko_KR": { "label": "..", "remarks": ".." }, "en_US": { "label": "..", "remarks": ".." } },
     "icon": "...",
-    "program": "adcode",
+    "program": "admin/code",
     "use": "Y",
     "close": "Y",
     "path": "/M2026091517460001",
@@ -98,7 +98,13 @@ Request
 
 |code|상황|상태|
 |---|---|---|
-|`menu.err.malformed_request`|insert에 id가 채워져 있거나 update/delete에 id가 없음|400|
+|`menu.err.malformed_request`|insert에 id가 채워져 있거나 update/delete에 id가 없음, 잘못된 프로그램 경로·use/close·음수 sort|400|
 |`menu.err.locale_required`|`locale`이 비어 있거나 어떤 언어의 `label`이 비어 있음|400|
 |`menu.err.not_found`|상위 메뉴(insert) 또는 대상 메뉴(update/delete)를 찾을 수 없음|409|
-|`menu.err.immutable`|update에서 `parentId`를 바꾸려 함|409|
+|`menu.err.immutable`|parentId 변경, 기본 메뉴/상위 메뉴의 구조 변경 또는 삭제|409|
+
+## 프로그램 경로와 기본 메뉴 보호
+
+프로그램은 빈 값(그룹)이거나 영문·숫자·밑줄·하이픈으로 구성한 세그먼트를 /로 연결한 상대 경로다. 예: admin/menu. 절대 경로·점·빈 세그먼트·공백은 허용하지 않는다. use/close는 생략 또는 Y/N, sort는 0 이상이다.
+
+admin/code, admin/message, admin/menu, admin/authority, admin/user 프로그램 메뉴와 그 상위 메뉴는 삭제할 수 없다. 해당 메뉴의 program/icon/sort/use/close 구조 변경도 차단한다. 라벨·설명 등 다국어 정보는 수정할 수 있다. 이 보호는 일반 API 권한 정책과 별개인 시스템 기본 메뉴 불변 규칙이다.
