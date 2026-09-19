@@ -1,4 +1,4 @@
-package kkdugi.api.admin.code;
+package kkdugi.api.admin;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,13 +19,13 @@ import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
 import kkdugi.KkdugiAdminApplication;
-import kkdugi.app.admin.code.models.CodeContent;
-import kkdugi.app.admin.code.models.CodeLocale;
-import kkdugi.app.admin.code.models.CodePersistRequest;
-import kkdugi.app.admin.code.models.CodeSearchParams;
+import kkdugi.app.admin.code.models.AdminCode;
+import kkdugi.app.admin.code.models.AdminCodeLocale;
+import kkdugi.app.admin.code.models.AdminCodePersistRequest;
+import kkdugi.app.admin.code.models.AdminCodeParams;
 
 @SpringBootTest(classes = KkdugiAdminApplication.class)
-class CodeAdminControllerTest {
+class AdminCodeControllerTest {
 
     @Autowired
         private WebApplicationContext webApplicationContext;
@@ -42,8 +42,8 @@ class CodeAdminControllerTest {
 
     @Test
     void persist_returns400_whenLocaleMissing() throws Exception {
-        String body = objectMapper.writeValueAsString(new CodePersistRequest(
-                List.of(new CodeContent(null, null, "TEST_API_CODE", null, "Y",
+        String body = objectMapper.writeValueAsString(new AdminCodePersistRequest(
+                List.of(new AdminCode(null, null, "TEST_API_CODE", null, "Y",
                         null, null, null, null, null, null, null, null)),
                 null, null));
 
@@ -55,9 +55,9 @@ class CodeAdminControllerTest {
 
     @Test
     void persist_returns409_whenUpdatingMissingId() throws Exception {
-        String body = objectMapper.writeValueAsString(new CodePersistRequest(null,
-                List.of(new CodeContent("C_MISSING", null, null,
-                        Map.of("ko_KR", new CodeLocale("값", null)),
+        String body = objectMapper.writeValueAsString(new AdminCodePersistRequest(null,
+                List.of(new AdminCode("C_MISSING", null, null,
+                        Map.of("ko_KR", new AdminCodeLocale("값", null)),
                         null, null, null, null, null, null, null, null, null)),
                 null));
 
@@ -70,7 +70,7 @@ class CodeAdminControllerTest {
     @Test
     void search_returnsPagedContents() throws Exception {
         String body = objectMapper.writeValueAsString(
-                new CodeSearchParams(null, null, null, null, null, 1, 10));
+                new AdminCodeParams(null, null, null, null, null, 1, 10));
 
         mockMvc.perform(post("/api/v1.0/admin/code")
                         .contentType(APPLICATION_JSON)

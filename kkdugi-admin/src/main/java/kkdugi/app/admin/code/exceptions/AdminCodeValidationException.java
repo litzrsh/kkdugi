@@ -1,10 +1,10 @@
 package kkdugi.app.admin.code.exceptions;
 
-public class CodeConflictException extends RuntimeException {
+public class AdminCodeValidationException extends RuntimeException {
 
     private final String code;
 
-    public CodeConflictException(String code) {
+    public AdminCodeValidationException(String code) {
         super(code);
         this.code = code;
     }

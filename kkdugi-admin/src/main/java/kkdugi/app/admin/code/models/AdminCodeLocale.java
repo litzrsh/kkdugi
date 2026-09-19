@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CodeLocale {
+public class AdminCodeLocale {
 
     private final String name;
     private final String remarks;

@@ -7,21 +7,21 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CodePersistRequest {
+public class AdminCodePersistRequest {
 
-    private final List<CodeContent> insert;
-    private final List<CodeContent> update;
-    private final List<CodeContent> delete;
+    private final List<AdminCode> insert;
+    private final List<AdminCode> update;
+    private final List<AdminCode> delete;
 
-    public List<CodeContent> insertOrEmpty() {
+    public List<AdminCode> insertOrEmpty() {
         return insert != null ? insert : List.of();
     }
 
-    public List<CodeContent> updateOrEmpty() {
+    public List<AdminCode> updateOrEmpty() {
         return update != null ? update : List.of();
     }
 
-    public List<CodeContent> deleteOrEmpty() {
+    public List<AdminCode> deleteOrEmpty() {
         return delete != null ? delete : List.of();
     }
 }

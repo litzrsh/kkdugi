@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="kkdugi.core.code.mapper.CodeBaseMapper">
+<mapper namespace="kkdugi.app.admin.code.mapper.AdminCodeMapper">
 
-  <resultMap id="codeBaseResultMap" type="kkdugi.core.code.models.CodeBase"
+  <resultMap id="codeBaseResultMap" type="kkdugi.app.admin.code.models.CodeBase"
              extends="kkdugi.core.models.CommonMapper.baseResultMap">
     <id property="id" column="code_id"/>
     <result property="parentId" column="code_parent_id"/>
@@ -19,10 +19,24 @@
     <result property="totalSize" column="total_size"/>
   </resultMap>
 
-  <sql id="columns">
+  <resultMap id="codeLangResultMap" type="kkdugi.app.admin.code.models.CodeLang"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="codeId" column="code_id"/>
+    <id property="langCode" column="lang_cd"/>
+    <result property="name" column="code_nm"/>
+    <result property="remarks" column="code_dc"/>
+  </resultMap>
+
+  <sql id="baseColumns">
 <![CDATA[
 code_id, code_parent_id, code_val, etc_val1, etc_val2, etc_val3, etc_val4, etc_val5,
 code_lvl, code_path, sort_seq, use_yn, reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <sql id="langColumns">
+<![CDATA[
+code_id, lang_cd, code_nm, code_dc, reg_dtm, reg_id, upd_dtm, upd_id
 ]]>
   </sql>
 
@@ -32,10 +46,10 @@ code_lvl, code_path, sort_seq, use_yn, reg_dtm, reg_id, upd_dtm, upd_id
     -->
   <select id="findById" resultMap="codeBaseResultMap">
 <![CDATA[
-/* QueryID=kkdugi.core.code.mapper.CodeBaseMapper.findById */
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.findById */
 SELECT
 ]]>
-    <include refid="columns"/>
+    <include refid="baseColumns"/>
 <![CDATA[
 FROM kkdugi_code_base
 WHERE code_id = #{id}
@@ -43,15 +57,15 @@ WHERE code_id = #{id}
   </select>
 
   <!--
-    * QueryID=findChildren
-    * Description=Find direct children of a parent code with paging
+    * QueryID=search
+    * Description=Find direct children of a parent code with paging (all use_yn values)
     -->
-  <select id="findChildren" resultMap="codeBaseResultMap">
+  <select id="search" resultMap="codeBaseResultMap">
 <![CDATA[
-/* QueryID=kkdugi.core.code.mapper.CodeBaseMapper.findChildren */
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.search */
 SELECT
 ]]>
-    <include refid="columns"/>
+    <include refid="baseColumns"/>
 <![CDATA[
 , COUNT(*) OVER() AS total_size
 FROM kkdugi_code_base cb
@@ -105,10 +119,10 @@ OFFSET #{offset} LIMIT #{pageSize}
     -->
   <select id="findSelfAndDescendants" resultMap="codeBaseResultMap">
 <![CDATA[
-/* QueryID=kkdugi.core.code.mapper.CodeBaseMapper.findSelfAndDescendants */
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.findSelfAndDescendants */
 SELECT
 ]]>
-    <include refid="columns"/>
+    <include refid="baseColumns"/>
 <![CDATA[
 FROM kkdugi_code_base
 WHERE code_path = #{path} OR code_path LIKE #{path} || '/%'
@@ -119,9 +133,9 @@ WHERE code_path = #{path} OR code_path LIKE #{path} || '/%'
     * QueryID=insert
     * Description=Insert one code row
     -->
-  <insert id="insert" parameterType="kkdugi.core.code.models.CodeBase">
+  <insert id="insert" parameterType="kkdugi.app.admin.code.models.CodeBase">
 <![CDATA[
-/* QueryID=kkdugi.core.code.mapper.CodeBaseMapper.insert */
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.insert */
 INSERT INTO kkdugi_code_base
     (code_id, code_parent_id, code_val, etc_val1, etc_val2, etc_val3, etc_val4, etc_val5,
      code_lvl, code_path, sort_seq, use_yn, reg_dtm, reg_id)
@@ -135,9 +149,9 @@ VALUES
     * QueryID=update
     * Description=Update one code row
     -->
-  <update id="update" parameterType="kkdugi.core.code.models.CodeBase">
+  <update id="update" parameterType="kkdugi.app.admin.code.models.CodeBase">
 <![CDATA[
-/* QueryID=kkdugi.core.code.mapper.CodeBaseMapper.update */
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.update */
 UPDATE kkdugi_code_base
 SET etc_val1 = #{extra1},
     etc_val2 = #{extra2},
@@ -158,11 +172,92 @@ WHERE code_id = #{id}
     -->
   <delete id="deleteByIds">
 <![CDATA[
-/* QueryID=kkdugi.core.code.mapper.CodeBaseMapper.deleteByIds */
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.deleteByIds */
 DELETE FROM kkdugi_code_base
 WHERE code_id IN
 ]]>
     <foreach item="id" collection="ids" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </delete>
+
+  <!--
+    * QueryID=findLangsByCodeId
+    * Description=Find all language rows for one code
+    -->
+  <select id="findLangsByCodeId" resultMap="codeLangResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.findLangsByCodeId */
+SELECT
+]]>
+    <include refid="langColumns"/>
+<![CDATA[
+FROM kkdugi_code_lang
+WHERE code_id = #{codeId}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findLangsByCodeIds
+    * Description=Find all language rows for a set of codes
+    -->
+  <select id="findLangsByCodeIds" resultMap="codeLangResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.findLangsByCodeIds */
+SELECT
+]]>
+    <include refid="langColumns"/>
+<![CDATA[
+FROM kkdugi_code_lang
+WHERE code_id IN
+]]>
+    <foreach item="id" collection="codeIds" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+<![CDATA[
+ORDER BY code_id, lang_cd
+]]>
+  </select>
+
+  <!--
+    * QueryID=insertLang
+    * Description=Insert one code-language row
+    -->
+  <insert id="insertLang" parameterType="kkdugi.app.admin.code.models.CodeLang">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.insertLang */
+INSERT INTO kkdugi_code_lang (code_id, lang_cd, code_nm, code_dc, reg_dtm, reg_id)
+VALUES (#{codeId}, #{langCode}, #{name}, #{remarks}, #{createdAt}, #{creatorId})
+]]>
+  </insert>
+
+  <!--
+    * QueryID=updateLang
+    * Description=Update one code-language row
+    -->
+  <update id="updateLang" parameterType="kkdugi.app.admin.code.models.CodeLang">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.updateLang */
+UPDATE kkdugi_code_lang
+SET code_nm = #{name},
+    code_dc = #{remarks},
+    upd_dtm = #{updatedAt},
+    upd_id  = #{updaterId}
+WHERE code_id = #{codeId} AND lang_cd = #{langCode}
+]]>
+  </update>
+
+  <!--
+    * QueryID=deleteLangByCodeIds
+    * Description=Delete language rows for a set of codes
+    -->
+  <delete id="deleteLangByCodeIds">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.code.mapper.AdminCodeMapper.deleteLangByCodeIds */
+DELETE FROM kkdugi_code_lang
+WHERE code_id IN
+]]>
+    <foreach item="id" collection="codeIds" open="(" separator="," close=")">
       #{id}
     </foreach>
   </delete>

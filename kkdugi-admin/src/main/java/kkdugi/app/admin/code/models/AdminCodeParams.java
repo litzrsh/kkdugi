@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CodeSearchParams extends BaseParams {
+public class AdminCodeParams extends BaseParams {
 
     private String parentId;
     private String path;
@@ -15,10 +15,10 @@ public class CodeSearchParams extends BaseParams {
     private String name;
     private String use;
 
-    public CodeSearchParams() {
+    public AdminCodeParams() {
     }
 
-    public CodeSearchParams(String parentId, String path, String code, String name, String use,
+    public AdminCodeParams(String parentId, String path, String code, String name, String use,
             int page, int pageSize) {
         this.parentId = parentId;
         this.path = path;

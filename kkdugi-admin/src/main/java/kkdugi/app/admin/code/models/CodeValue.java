@@ -1,4 +1,4 @@
-package kkdugi.core.code.models;
+package kkdugi.app.admin.code.models;
 
 import java.util.regex.Pattern;
 

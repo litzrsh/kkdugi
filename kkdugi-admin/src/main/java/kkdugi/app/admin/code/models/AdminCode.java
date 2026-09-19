@@ -20,12 +20,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @JsonIgnoreProperties({ "rownum", "createdAt", "creatorId", "updatedAt", "updaterId" })
-public class CodeContent extends BaseModel {
+public class AdminCode extends BaseModel {
 
     private final String id;
     private final String parentId;
     private final String code;
-    private final Map<String, CodeLocale> locale;
+    private final Map<String, AdminCodeLocale> locale;
     private final String use;
     private final String extra1;
     private final String extra2;
