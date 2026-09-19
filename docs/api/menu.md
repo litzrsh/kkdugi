@@ -57,7 +57,7 @@ Response
 
 ## 2. 메뉴 저장 - POST /api/v1.0/admin/menu/persist
 
-**삭제 시 하위 메뉴도 모두 삭제**된다 (스펙과 동일).
+**삭제 시 하위 메뉴도 모두 삭제**된다 (스펙과 동일). 삭제되는 메뉴들에 부여된 권한-메뉴 매핑(`kkdugi_auth_menu`, [권한 관리](authority.md))도 함께 삭제되며, 권한 자체는 남는다.
 
 ```javascript
 Request

@@ -95,11 +95,7 @@ class KkdugiUserDetailsServiceTest {
         String authId = jdbcTemplate.queryForObject(
                 "SELECT auth_id FROM kkdugi_auth_base WHERE auth_tp_cd = 'ROLE' AND auth_role_cd = ?",
                 String.class, kkdugi.core.Constants.SYS_ADMIN);
-        jdbcTemplate.update(
-                "INSERT INTO kkdugi_user_auth (user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_id) "
-                        + "VALUES (?, ?, ?, ?, ?)",
-                USER_ID, authId, Date.valueOf(LocalDate.now().minusDays(1)),
-                Date.valueOf(LocalDate.now().plusDays(1)), "SYSTEM");
+        mapUserTo(authId);
     }
 
     private void grantRole(String authId, String roleCd) {
@@ -107,6 +103,10 @@ class KkdugiUserDetailsServiceTest {
                 "INSERT INTO kkdugi_auth_base (auth_id, auth_role_cd, auth_tp_cd, auth_nm, reg_id) "
                         + "VALUES (?, ?, ?, ?, ?)",
                 authId, roleCd, "ROLE", roleCd, "SYSTEM");
+        mapUserTo(authId);
+    }
+
+    private void mapUserTo(String authId) {
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_user_auth (user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_id) "
                         + "VALUES (?, ?, ?, ?, ?)",

@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.app.admin.authority.mapper.AdminAuthorityMapper">
+
+  <resultMap id="authorityBaseResultMap" type="kkdugi.app.admin.authority.models.AuthorityBase"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="id" column="auth_id"/>
+    <result property="role" column="auth_role_cd"/>
+    <result property="type" column="auth_tp_cd"/>
+    <result property="name" column="auth_nm"/>
+    <result property="remarks" column="auth_dc"/>
+    <result property="use" column="use_yn"/>
+    <result property="totalSize" column="total_size"/>
+  </resultMap>
+
+  <resultMap id="authorityUserResultMap" type="kkdugi.app.admin.authority.models.AuthorityUser"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="userId" column="user_id"/>
+    <id property="authorityId" column="auth_id"/>
+    <result property="applyStartDate" column="apl_st_dtm"/>
+    <result property="applyEndDate" column="apl_ed_dtm"/>
+  </resultMap>
+
+  <resultMap id="candidateUserResultMap" type="kkdugi.app.admin.authority.models.CandidateUser">
+    <id property="id" column="user_id"/>
+    <result property="username" column="user_login_id"/>
+    <result property="name" column="user_nm"/>
+    <result property="image" column="user_img_src"/>
+  </resultMap>
+
+  <resultMap id="authorityMenuRowResultMap" type="kkdugi.app.admin.authority.models.AuthorityMenuRow">
+    <id property="id" column="menu_id"/>
+    <result property="parentId" column="menu_parent_id"/>
+    <result property="icon" column="menu_ico"/>
+    <result property="program" column="menu_pgm"/>
+    <result property="level" column="menu_lvl"/>
+    <result property="path" column="menu_path"/>
+    <result property="sort" column="sort_seq"/>
+    <result property="use" column="use_yn"/>
+    <result property="rbac" column="auth_val"/>
+  </resultMap>
+
+  <resultMap id="authorityMenuLangResultMap" type="kkdugi.app.admin.authority.models.AuthorityMenuLang">
+    <id property="menuId" column="menu_id"/>
+    <id property="langCode" column="lang_cd"/>
+    <result property="label" column="menu_nm"/>
+    <result property="remarks" column="menu_dc"/>
+  </resultMap>
+
+  <sql id="baseColumns">
+<![CDATA[
+auth_id, auth_role_cd, auth_tp_cd, auth_nm, auth_dc, use_yn, reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <!--
+    * QueryID=search
+    * Description=Search authorities with optional role/type/name filters (query-level paging)
+    -->
+  <select id="search" resultMap="authorityBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.search */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+, COUNT(*) OVER() AS total_size
+FROM kkdugi_auth_base
+]]>
+    <where>
+      <if test="role != null and role != ''">
+<![CDATA[
+AND auth_role_cd LIKE '%' || #{role} || '%'
+]]>
+      </if>
+      <if test="type != null and type != ''">
+<![CDATA[
+AND auth_tp_cd = #{type}
+]]>
+      </if>
+      <if test="name != null and name != ''">
+<![CDATA[
+AND auth_nm LIKE '%' || #{name} || '%'
+]]>
+      </if>
+    </where>
+<![CDATA[
+ORDER BY auth_role_cd, auth_id
+OFFSET #{offset} LIMIT #{pageSize}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findById
+    * Description=Find one authority by id
+    -->
+  <select id="findById" resultMap="authorityBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findById */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_auth_base
+WHERE auth_id = #{id}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByTypeAndRole
+    * Description=Find one authority by its unique (type, role) pair
+    -->
+  <select id="findByTypeAndRole" resultMap="authorityBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findByTypeAndRole */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_auth_base
+WHERE auth_tp_cd = #{type} AND auth_role_cd = #{role}
+]]>
+  </select>
+
+  <!--
+    * QueryID=insert
+    * Description=Insert one authority row
+    -->
+  <insert id="insert" parameterType="kkdugi.app.admin.authority.models.AuthorityBase">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.insert */
+INSERT INTO kkdugi_auth_base
+    (auth_id, auth_role_cd, auth_tp_cd, auth_nm, auth_dc, use_yn, reg_dtm, reg_id)
+VALUES
+    (#{id}, #{role}, #{type}, #{name}, #{remarks}, #{use}, #{createdAt}, #{creatorId})
+]]>
+  </insert>
+
+  <!--
+    * QueryID=update
+    * Description=Update one authority row
+    -->
+  <update id="update" parameterType="kkdugi.app.admin.authority.models.AuthorityBase">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.update */
+UPDATE kkdugi_auth_base
+SET auth_role_cd = #{role},
+    auth_tp_cd   = #{type},
+    auth_nm      = #{name},
+    auth_dc      = #{remarks},
+    use_yn       = #{use},
+    upd_dtm      = #{updatedAt},
+    upd_id       = #{updaterId}
+WHERE auth_id = #{id}
+]]>
+  </update>
+
+  <!--
+    * QueryID=deleteById
+    * Description=Delete one authority row (callers delete its user/menu mappings first)
+    -->
+  <delete id="deleteById">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.deleteById */
+DELETE FROM kkdugi_auth_base
+WHERE auth_id = #{id}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=findUsersByAuthorityId
+    * Description=Find every user mapping of one authority
+    -->
+  <select id="findUsersByAuthorityId" resultMap="authorityUserResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findUsersByAuthorityId */
+SELECT user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_dtm, reg_id, upd_dtm, upd_id
+FROM kkdugi_user_auth
+WHERE auth_id = #{authorityId}
+ORDER BY user_id
+]]>
+  </select>
+
+  <!--
+    * QueryID=findExistingUserIds
+    * Description=Return the subset of the given user ids that exist
+    -->
+  <select id="findExistingUserIds" resultType="string">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findExistingUserIds */
+SELECT user_id
+FROM kkdugi_user_base
+WHERE user_id IN
+]]>
+    <foreach item="userId" collection="userIds" open="(" separator="," close=")">
+      #{userId}
+    </foreach>
+  </select>
+
+  <!--
+    * QueryID=upsertUser
+    * Description=Insert a user mapping, or update its apply period when it already exists
+    -->
+  <insert id="upsertUser" parameterType="kkdugi.app.admin.authority.models.AuthorityUser">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.upsertUser */
+INSERT INTO kkdugi_user_auth
+    (user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_dtm, reg_id)
+VALUES
+    (#{userId}, #{authorityId}, #{applyStartDate}, #{applyEndDate}, #{createdAt}, #{creatorId})
+ON CONFLICT (user_id, auth_id) DO UPDATE
+SET apl_st_dtm = EXCLUDED.apl_st_dtm,
+    apl_ed_dtm = EXCLUDED.apl_ed_dtm,
+    upd_dtm    = EXCLUDED.reg_dtm,
+    upd_id     = EXCLUDED.reg_id
+]]>
+  </insert>
+
+  <!--
+    * QueryID=deleteUsersNotIn
+    * Description=Delete the authority's user mappings that are not in the given (non-empty) id list
+    -->
+  <delete id="deleteUsersNotIn">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.deleteUsersNotIn */
+DELETE FROM kkdugi_user_auth
+WHERE auth_id = #{authorityId}
+  AND user_id NOT IN
+]]>
+    <foreach item="userId" collection="userIds" open="(" separator="," close=")">
+      #{userId}
+    </foreach>
+  </delete>
+
+  <!--
+    * QueryID=deleteUsersByAuthorityId
+    * Description=Delete every user mapping of one authority
+    -->
+  <delete id="deleteUsersByAuthorityId">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.deleteUsersByAuthorityId */
+DELETE FROM kkdugi_user_auth
+WHERE auth_id = #{authorityId}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=searchCandidates
+    * Description=Users with the given status who are not yet mapped to the authority, optionally filtered by login id / name / email (case-insensitive)
+    -->
+  <select id="searchCandidates" resultMap="candidateUserResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.searchCandidates */
+SELECT ub.user_id, ub.user_login_id, ub.user_nm, ub.user_img_src
+FROM kkdugi_user_base ub
+WHERE ub.user_stat_cd = #{status}
+  AND NOT EXISTS (
+      SELECT 1
+      FROM kkdugi_user_auth ua
+      WHERE ua.user_id = ub.user_id AND ua.auth_id = #{authorityId}
+  )
+]]>
+    <if test="query != null and query != ''">
+<![CDATA[
+  AND (LOWER(ub.user_login_id) LIKE '%' || LOWER(#{query}) || '%'
+       OR LOWER(ub.user_nm) LIKE '%' || LOWER(#{query}) || '%'
+       OR LOWER(ub.user_email) LIKE '%' || LOWER(#{query}) || '%')
+]]>
+    </if>
+<![CDATA[
+ORDER BY ub.user_nm, ub.user_id
+LIMIT #{limit}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findMenusWithGrant
+    * Description=Every menu with the authority's RBAC value (0 when the authority has no grant on it)
+    -->
+  <select id="findMenusWithGrant" resultMap="authorityMenuRowResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findMenusWithGrant */
+SELECT mb.menu_id, mb.menu_parent_id, mb.menu_ico, mb.menu_pgm, mb.menu_lvl, mb.menu_path,
+       mb.sort_seq, mb.use_yn, COALESCE(am.auth_val, 0) AS auth_val
+FROM kkdugi_menu_base mb
+LEFT JOIN kkdugi_auth_menu am ON am.menu_id = mb.menu_id AND am.auth_id = #{authorityId}
+ORDER BY mb.menu_lvl NULLS LAST, mb.sort_seq NULLS LAST, mb.menu_id
+]]>
+  </select>
+
+  <!--
+    * QueryID=findAllMenuLangs
+    * Description=Every menu-language row (labels for the authority menu tree)
+    -->
+  <select id="findAllMenuLangs" resultMap="authorityMenuLangResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findAllMenuLangs */
+SELECT menu_id, lang_cd, menu_nm, menu_dc
+FROM kkdugi_menu_lang
+ORDER BY menu_id, lang_cd
+]]>
+  </select>
+
+  <!--
+    * QueryID=findExistingMenuIds
+    * Description=Return the subset of the given menu ids that exist
+    -->
+  <select id="findExistingMenuIds" resultType="string">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findExistingMenuIds */
+SELECT menu_id
+FROM kkdugi_menu_base
+WHERE menu_id IN
+]]>
+    <foreach item="menuId" collection="menuIds" open="(" separator="," close=")">
+      #{menuId}
+    </foreach>
+  </select>
+
+  <!--
+    * QueryID=upsertMenu
+    * Description=Insert an authority-menu grant, or update its RBAC value when it already exists
+    -->
+  <insert id="upsertMenu" parameterType="kkdugi.app.admin.authority.models.AuthorityMenu">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.upsertMenu */
+INSERT INTO kkdugi_auth_menu
+    (auth_id, menu_id, auth_val, reg_dtm, reg_id)
+VALUES
+    (#{authorityId}, #{menuId}, #{rbac}, #{createdAt}, #{creatorId})
+ON CONFLICT (auth_id, menu_id) DO UPDATE
+SET auth_val = EXCLUDED.auth_val,
+    upd_dtm  = EXCLUDED.reg_dtm,
+    upd_id   = EXCLUDED.reg_id
+]]>
+  </insert>
+
+  <!--
+    * QueryID=deleteMenusNotIn
+    * Description=Delete the authority's menu grants that are not in the given (non-empty) menu id list
+    -->
+  <delete id="deleteMenusNotIn">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.deleteMenusNotIn */
+DELETE FROM kkdugi_auth_menu
+WHERE auth_id = #{authorityId}
+  AND menu_id NOT IN
+]]>
+    <foreach item="menuId" collection="menuIds" open="(" separator="," close=")">
+      #{menuId}
+    </foreach>
+  </delete>
+
+  <!--
+    * QueryID=deleteMenusByAuthorityId
+    * Description=Delete every menu grant of one authority
+    -->
+  <delete id="deleteMenusByAuthorityId">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.deleteMenusByAuthorityId */
+DELETE FROM kkdugi_auth_menu
+WHERE auth_id = #{authorityId}
+]]>
+  </delete>
+
+</mapper>

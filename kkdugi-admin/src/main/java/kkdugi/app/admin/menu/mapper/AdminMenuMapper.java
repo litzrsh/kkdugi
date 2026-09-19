@@ -33,4 +33,10 @@ public interface AdminMenuMapper {
     int updateLang(MenuLang menuLang);
 
     int deleteLangByMenuIds(@Param("menuIds") List<String> menuIds);
+
+    /**
+     * 메뉴 삭제 전에 해당 메뉴들에 걸린 권한-메뉴 부여(kkdugi_auth_menu)를 지운다. 권한(kkdugi_auth_base) 자체는 건드리지 않는다.
+     * {@code menuIds}는 비어 있으면 안 된다(빈 목록은 {@code IN ()} 구문 오류).
+     */
+    int deleteAuthMenusByMenuIds(@Param("menuIds") List<String> menuIds);
 }

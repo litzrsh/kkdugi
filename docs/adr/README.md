@@ -23,3 +23,4 @@ kkdugi-admin 프로젝트의 아키텍처 결정을 기록한다. 각 ADR은 번
 | [0015](0015-menu-management-system.md) | 메뉴 관리 시스템: 전체 트리 응답(Page<T> 미사용), parentId 불변, 409 중복 없음 | Accepted |
 | [0016](0016-app-and-admin-feature-split.md) | 사용자용(app.<기능>)과 관리자용(app.admin.<기능>) 기능 분리, 세션 메뉴 /api/v1.0/menu 이전 | Accepted |
 | [0017](0017-menu-context-security-aspect.md) | 요청 메뉴 기반 Aspect 인가: 역할·RBAC·프로그램·배치 작업 검증 | Accepted |
+| [0018](0018-authority-management-system.md) | 권한 관리 시스템: 단일 기능 패키지, 전체 교체 저장, SYS_ADMIN 예약 role 코드, RBAC 숫자 코드 키 | Accepted |

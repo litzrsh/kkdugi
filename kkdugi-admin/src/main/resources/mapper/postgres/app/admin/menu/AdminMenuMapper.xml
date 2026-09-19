@@ -215,4 +215,19 @@ WHERE menu_id IN
     </foreach>
   </delete>
 
+  <!--
+    * QueryID=deleteAuthMenusByMenuIds
+    * Description=Delete authority-menu grants for a set of menus
+    -->
+  <delete id="deleteAuthMenusByMenuIds">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.deleteAuthMenusByMenuIds */
+DELETE FROM kkdugi_auth_menu
+WHERE menu_id IN
+]]>
+    <foreach item="id" collection="menuIds" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </delete>
+
 </mapper>

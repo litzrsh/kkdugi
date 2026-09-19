@@ -4,7 +4,7 @@
 `docs/archive/`로 이동)는 프로젝트 오너가 정의한 **전체 계약(목표 스펙)**이었다.
 이 폴더(`docs/api/`)는 그중 **실제로 구현되어 동작하는 API**만을 대상으로,
 실제 코드(컨트롤러/모델/매퍼)를 기준으로 작성한 문서이며, 이제 이 폴더가
-현재 API의 유일한 살아있는 근거다. 아직 구현되지 않은 권한/사용자 스펙은
+현재 API의 유일한 살아있는 근거다. 아직 구현되지 않은 사용자 스펙은
 위 아카이브 문서에만 남아 있고, 착수 시점에 오너에게 재확인이 필요하다
 (아카이브 문서 상단 참고).
 
@@ -21,11 +21,12 @@
 | [code.md](code.md) | 공통코드 조회(사용자용) — 정확한 경로 조회, 언어별 이름, 배열 응답 |
 | [i18n-message.md](i18n-message.md) | 다국어 메시지 조회/저장 |
 | [menu.md](menu.md) | 메뉴 관리 — 전체 트리 조회/저장(SYS_ADMIN 전용, 계층형) |
+| [authority.md](authority.md) | 권한 관리 — 권한 CRUD, 메뉴 RBAC 매핑, 사용자 매핑, 후보 사용자 조회 |
 | [session.md](session.md) | 로그인한 사용자의 메뉴 트리 조회, 메뉴 단위 화면(Pragma) 조각 서빙 |
 
 ## 공통 사항
 
-- **Base URL**: 관리자용 도메인 API(공통코드/메시지/메뉴 CRUD)는 `/api/v1.0/admin` 하위에 있고,
+- **Base URL**: 관리자용 도메인 API(공통코드/메시지/메뉴/권한 CRUD)는 `/api/v1.0/admin` 하위에 있고,
   사용자용 조회 API는 `/api/v1.0/menu`([session.md](session.md)의 내 메뉴 트리 조회),
   `/api/v1.0/code`([code.md](code.md))처럼 `/api/v1.0` 바로 아래에 있다. 예외 —
   [auth.md](auth.md)의 로그인/로그아웃(`/api/v1.0/auth/login`, `/api/v1.0/auth/logout`)과

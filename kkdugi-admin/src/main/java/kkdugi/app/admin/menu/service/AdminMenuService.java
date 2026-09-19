@@ -189,6 +189,9 @@ public class AdminMenuService {
         // 3.2절). menu_path 접두어로 자신+모든 하위를 찾는다.
         List<MenuBase> targets = adminMenuMapper.findSelfAndDescendants(existing.getPath());
         List<String> ids = targets.stream().map(MenuBase::getId).toList();
+        // kkdugi_auth_menu가 kkdugi_menu_base를 FK로 참조하므로(ON DELETE CASCADE 없음) 권한 부여 행을
+        // 먼저 지운다. 권한(kkdugi_auth_base) 자체는 남는다. 순서: auth_menu -> lang -> base.
+        adminMenuMapper.deleteAuthMenusByMenuIds(ids);
         adminMenuMapper.deleteLangByMenuIds(ids);
         adminMenuMapper.deleteByIds(ids);
     }

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,9 @@ class AdminMenuServiceTest {
 
     @Autowired
     private AdminMenuMapper adminMenuMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private String createdRootId;
 
@@ -160,6 +164,43 @@ class AdminMenuServiceTest {
                 List.of(new AdminMenu(parentId, null, null, null, null, null, null, null, null, null))));
 
         assertThat(adminMenuMapper.findById(parentId)).isEmpty();
+    }
+
+    @Test
+    void persist_deletingMenu_alsoRemovesItsAuthorityGrants_butKeepsTheAuthority() {
+        String authId = "A_TEST_MENU_DEL_1";
+        service.persist(new AdminMenuPersistRequest(List.of(newMenu(null, null, "권한부여 삭제 부모")), null, null));
+        String parentId = service.search().stream()
+                .filter(m -> "권한부여 삭제 부모".equals(m.getLocale().get("ko_KR").getLabel()))
+                .findFirst().orElseThrow().getId();
+        createdRootId = parentId;
+        service.persist(new AdminMenuPersistRequest(List.of(newMenu(null, parentId, "권한부여 삭제 자식")), null, null));
+        String childId = findById(service.search(), parentId).getChildren().get(0).getId();
+
+        try {
+            jdbcTemplate.update(
+                    "INSERT INTO kkdugi_auth_base (auth_id, auth_role_cd, auth_tp_cd, auth_nm, reg_id) VALUES (?, ?, ?, ?, ?)",
+                    authId, "TEST_MENU_DEL_ROLE", "ROLE", "Menu delete test", "SYSTEM");
+            for (String menuId : List.of(parentId, childId)) {
+                jdbcTemplate.update(
+                        "INSERT INTO kkdugi_auth_menu (auth_id, menu_id, auth_val, reg_id) VALUES (?, ?, ?, ?)",
+                        authId, menuId, 1, "SYSTEM");
+            }
+
+            service.persist(new AdminMenuPersistRequest(null, null,
+                    List.of(new AdminMenu(parentId, null, null, null, null, null, null, null, null, null))));
+
+            assertThat(adminMenuMapper.findById(parentId)).isEmpty();
+            assertThat(adminMenuMapper.findById(childId)).isEmpty();
+            assertThat(jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM kkdugi_auth_menu WHERE auth_id = ?", Integer.class, authId)).isZero();
+            assertThat(jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM kkdugi_auth_base WHERE auth_id = ?", Integer.class, authId)).isEqualTo(1);
+            createdRootId = null;
+        } finally {
+            jdbcTemplate.update("DELETE FROM kkdugi_auth_menu WHERE auth_id = ?", authId);
+            jdbcTemplate.update("DELETE FROM kkdugi_auth_base WHERE auth_id = ?", authId);
+        }
     }
 
     @Test
