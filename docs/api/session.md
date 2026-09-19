@@ -31,7 +31,7 @@ API다. 그 문서의 [3절 메뉴
 
 세션의 `SessionMenu`(flat list, `program`/`authority` 필드 포함)를 그대로
 내려주지 않고, 화면 내비게이션에 필요한 필드만 골라
-[`MenuTreeItem`](../../kkdugi-admin/src/main/java/kkdugi/api/session/MenuTreeItem.java)으로
+[`Menu`](../../kkdugi-admin/src/main/java/kkdugi/app/menu/models/Menu.java)으로
 옮겨 담은 뒤 트리 모양으로 변환해 응답한다 — **응답에는 `id`, `parentId`,
 `title`, `remarks`, `icon`, `sort`, `children` 외의 필드가 없다**
 (`program`/`authority`는 의도적으로 제외 — 화면 내비게이션에는 필요 없고,

@@ -1,5 +1,7 @@
 # ADR-0011: i18n API를 api-define-admin.md 계약으로 재구현, record 기반 모델과 계층별 패키지 규약 도입
 
+> **패키지 구조 갱신 (2026-09-19):** 이 문서가 서술하는 `core.<기능>`/`app.admin.<기능>` 배치는 [ADR-0016](0016-app-and-admin-feature-split.md)으로 사용자용(`app.<기능>`)과 관리자용(`app.admin.<기능>`)을 분리하는 구조로 바뀌었다. 아래 내용은 당시 결정의 기록이다.
+
 - 상태: Accepted, 단 "2. `BaseModel`/`BaseParams` 상속을 record 기반
   모델로 전환" 절은 [ADR-0014](0014-revert-to-base-model-inheritance.md)로
   Superseded — API 계약/패키지 배치/DTO 통합/persist 의미 결정 등

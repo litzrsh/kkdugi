@@ -5,8 +5,8 @@
 대응하는 실제 구현. 스펙과 다른 점만 아래에 표시했다 — 나머지는 스펙과
 동일하게 동작한다.
 
-구현: [`CodeAdminController`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/code/CodeAdminController.java) /
-[`CodeAdminService`](../../kkdugi-admin/src/main/java/kkdugi/app/admin/code/service/CodeAdminService.java)
+구현: [`AdminCodeController`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/AdminCodeController.java) /
+[`AdminCodeService`](../../kkdugi-admin/src/main/java/kkdugi/app/admin/code/service/AdminCodeService.java)
 
 ## 1. 코드 조회 - POST /api/v1.0/admin/code
 
@@ -61,9 +61,9 @@ Response
 ```javascript
 Request
 {
-  "insert": [ { /* CodeContent, id는 서버가 채번하므로 비워서 보낸다 */ } ],
-  "update": [ { /* CodeContent */ } ],
-  "delete": [ { /* CodeContent, id만 사용됨 */ } ]
+  "insert": [ { /* AdminCode, id는 서버가 채번하므로 비워서 보낸다 */ } ],
+  "update": [ { /* AdminCode */ } ],
+  "delete": [ { /* AdminCode, id만 사용됨 */ } ]
 }
 ```
 
@@ -76,7 +76,7 @@ Request
 |409|같은 부모 아래 `code` 값 중복 (insert 전용)|
 
 `insert`/`update`/`delete`는 각각 null이면 빈 목록으로 취급된다
-(`CodePersistRequest.insertOrEmpty()` 등).
+(`AdminCodePersistRequest.insertOrEmpty()` 등).
 
 ### 코드 값(`code`) 형식
 
@@ -86,7 +86,7 @@ Request
 
 ### 400 / 409 에러 응답 형식
 
-`CodeAdminController`가 `CodeValidationException`/`CodeConflictException`을
+`AdminCodeController`가 `AdminCodeValidationException`/`AdminCodeConflictException`을
 직접 잡아 아래 형태로 응답한다 — 세션/인증 쪽 `RestfulExceptionAdvice`가
 쓰는 것과 같은 바디 타입(`ExceptionMessage`)이지만, 전역 advice를 타지
 않고 컨트롤러가 로컬로 처리한다:

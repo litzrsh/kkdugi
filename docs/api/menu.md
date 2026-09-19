@@ -5,8 +5,8 @@
 대응하는 실제 구현. 스펙과 다른 점만 아래에 표시했다 — 나머지는 스펙과
 동일하게 동작한다.
 
-구현: [`MenuAdminController`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/menu/MenuAdminController.java) /
-[`MenuAdminService`](../../kkdugi-admin/src/main/java/kkdugi/app/admin/menu/service/MenuAdminService.java)
+구현: [`AdminMenuController`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/AdminMenuController.java) /
+[`AdminMenuService`](../../kkdugi-admin/src/main/java/kkdugi/app/admin/menu/service/AdminMenuService.java)
 
 ## 1. 메뉴 조회 - GET /api/v1.0/admin/menu
 
@@ -58,14 +58,14 @@ Response
 ```javascript
 Request
 {
-  "insert": [ { /* MenuContent, id는 서버가 채번하므로 비워서 보낸다 */ } ],
-  "update": [ { /* MenuContent */ } ],
-  "delete": [ { /* MenuContent, id만 사용됨 */ } ]
+  "insert": [ { /* AdminMenu, id는 서버가 채번하므로 비워서 보낸다 */ } ],
+  "update": [ { /* AdminMenu */ } ],
+  "delete": [ { /* AdminMenu, id만 사용됨 */ } ]
 }
 ```
 
 응답 바디 없음(`void`). `insert`/`update`/`delete`는 각각 null이면 빈
-목록으로 취급된다(`MenuPersistRequest.insertOrEmpty()` 등).
+목록으로 취급된다(`AdminMenuPersistRequest.insertOrEmpty()` 등).
 
 - `parentId`는 스펙의 요청 예시에는 없지만 공통코드처럼 계층 구조를 만드는
   데 필수라서 `insert` 항목에 포함해야 한다. 한 번 등록하면 `parentId`는

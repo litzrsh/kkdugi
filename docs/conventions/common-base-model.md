@@ -9,6 +9,7 @@
   `exceptions`/`events` 세분화는 계속 유효), [ADR-0014](../adr/0014-revert-to-base-model-inheritance.md)
   (`BaseModel`/`BaseParams` 상속 기반으로 재전환 — 현재 규칙)
 - 최초 적용 사례: `kkdugi.core.i18n`/`kkdugi.app.admin.i18n`
+- 사용자용/관리자용 분리(2026-09-19): [ADR-0016](../adr/0016-app-and-admin-feature-split.md)
 
 이 문서는 "왜 이렇게 결정했는가"가 아니라 **"새 도메인을 만들 때 무엇을
 어떻게 따라야 하는가"**를 정리한 표준 참조 문서다. ADR은 결정 당시의
@@ -42,19 +43,25 @@ DB 테이블과 매핑되는 모든 새 도메인, 그 목록을 조회하는 �
   만든다).
 - **`{package}.config`**: Spring 빈 설정(필요한 경우에만).
 
-예시 (`kkdugi.core.i18n`, `kkdugi.app.admin.i18n`):
+예시 (사용자용 `kkdugi.app.code`, 관리자용 `kkdugi.app.admin.i18n`, `MessageSource` 인프라인 `kkdugi.core.i18n`):
 
 ```
-kkdugi.core.i18n
-├─ models   — I18nMessage(record), MessageCode(코드 검증)
-├─ mapper   — I18nMessageMapper
+kkdugi.app.code                      ← 사용자용 (관리자용 app.admin.code와 모델·mapper 공유 안 함)
+├─ models   — Code, CodeParams
+├─ mapper   — CodeMapper
+└─ service  — CodeService
+
+kkdugi.app.admin.i18n                ← 관리자용
+├─ models      — AdminMessageParams, AdminMessage, AdminMessagePersistRequest, MessageCode(코드 검증), MessageCodeRow
+├─ exceptions  — AdminMessageValidationException, AdminMessageConflictException
+├─ mapper      — AdminMessageMapper
+└─ service     — AdminMessageService
+
+kkdugi.core.i18n                     ← Spring MessageSource 인프라만
+├─ models   — I18nMessage
+├─ mapper   — I18nMessageMapper (selectAll, findByCodeAndLang)
 ├─ service  — KkdugiMessageSource
 └─ config   — I18nMessageSourceConfig
-
-kkdugi.app.admin.i18n
-├─ models      — MessageSearchParams, MessageContent, MessagePersistRequest, MessageError
-├─ exceptions  — MessageValidationException, MessageConflictException
-└─ service     — MessageAdminService
 ```
 
 컨트롤러 계층(`kkdugi.api.admin.<feature>`)은 이 규칙 대상이 아니다 —
@@ -101,13 +108,13 @@ kkdugi.app.admin.i18n
   message.setCreatorId("SYSTEM");
   ```
 
-- **목록 조회 검색 파라미터**(`MessageSearchParams`, `CodeSearchParams`
+- **목록 조회 검색 파라미터**(`AdminMessageParams`, `AdminCodeParams`
   등)는 `kkdugi.core.models.BaseParams`를 상속하는 클래스로 작성한다.
   `page`/`pageSize`와 그 파생값(`resolvedPage()`/`resolvedPageSize()`/
   `getOffset()`/`getLimit()`)은 `BaseParams`가 제공하므로 화면마다
   반복 선언하지 않는다.
-- **그 외 커맨드/결과/에러/옵션 같은 순수 데이터 객체**(`MessageContent`,
-  `MessagePersistRequest`, `StatusOption` 등)는
+- **그 외 커맨드/결과/에러/옵션 같은 순수 데이터 객체**(`AdminMessage`,
+  `AdminMessagePersistRequest`, `StatusOption` 등)는
   `BaseModel`/`BaseParams`를 상속하지 않는다 — 감사 필드나 페이징
   개념이 없는 객체에 억지로 붙이지 않는다. 대신 플레인 클래스로,
   불변성을 유지하기 위해 필드를 `final`로 두고 전체 필드 생성자만
@@ -168,7 +175,7 @@ public class Page<T extends BaseModel> {
   함수 값 자체를 받을 수 없어 `totalItems`가 0으로 보고된다 — 이 패턴의
   알려진 한계로 받아들인다.
 - **`T`는 `BaseModel`을 상속해야 한다.** DB 행을 그대로 노출하는 목록은
-  자연히 만족하지만, `CodeContent`/`MessageContent`처럼 여러 DB 행을
+  자연히 만족하지만, `AdminCode`/`AdminMessage`처럼 여러 DB 행을
   하나로 묶어(예: 언어별 텍스트를 `locale` 맵으로 pivot) 만드는 API 전용
   콘텐츠 타입도 이제 `BaseModel`을 상속해야 `Page<T>`의 `T`로 쓸 수
   있다. 이때 `BaseModel`이 원래 노출하지 않던 `rownum`/`createdAt`/
@@ -177,7 +184,7 @@ public class Page<T extends BaseModel> {
   "updatedAt", "updaterId"})`를 붙인다(`totalSize`는 `BaseModel`
   자체에 이미 `@JsonIgnore`가 있어 따로 처리할 필요 없다). 서비스는 각
   콘텐츠 객체를 만들 때 원본 행의 `totalSize`를 `setTotalSize(...)`로
-  옮겨 담아야 한다 — `CodeAdminService`/`MessageAdminService`가 실례다.
+  옮겨 담아야 한다 — `AdminCodeService`/`AdminMessageService`가 실례다.
 - `Page`의 생성자는 `params.getPage()`/`params.getPageSize()`(raw 필드)를
   그대로 읽는다 — `resolvedPage()`/`resolvedPageSize()`가 아니다. 그래서
   서비스는 쿼리를 날리기 **전에** `params.setPage(params.resolvedPage());
@@ -186,7 +193,7 @@ public class Page<T extends BaseModel> {
   응답의 `page`/`pageSize`가 실제로 적용된 값이 아니라 `0`으로 나간다.
 - 목록 조회 요청 파라미터는 [3번](#3-도메인-모델은-basemodel을-검색-파라미터는-baseparams를-상속한다--record는-쓰지-않는다)에서 정한 대로
   `kkdugi.core.models.BaseParams`를 상속하는 클래스로 만든다(예:
-  `MessageSearchParams`). `page`는 1-base, 기본값 1이고 `pageSize`
+  `AdminMessageParams`). `page`는 1-base, 기본값 1이고 `pageSize`
   기본값/상한은 200 — `BaseParams`가 이 기본값과
   `resolvedPage()`/`resolvedPageSize()`를 제공한다. 페이징 계산은 표준 SQL
   `OFFSET (page-1)*pageSize LIMIT pageSize`를 쓰며,
@@ -218,8 +225,8 @@ public class Page<T extends BaseModel> {
   태그는 **CDATA 밖에** 실제 XML 요소로 둔다(CDATA는 XML 파싱 자체를
   끄므로 동적 태그를 CDATA 안에 넣으면 그냥 문자로 취급된다). 정적 SQL
   조각 하나하나를 CDATA로 감싸고, 그 사이사이에 동적 태그를 실제 XML로
-  끼워 넣는 식으로 작성한다(`CodeBaseMapper.findChildren`이 `<where>`/
-  `<choose>`/`<if>`를 이렇게 CDATA와 섞어 쓰는 예시).
+  끼워 넣는 식으로 작성한다(`CodeMapper.findChildren`이 `<choose>`를
+  이렇게 CDATA와 섞어 쓰는 예시).
 - 각 `<select>/<insert>/<update>/<delete>` 바로 위에 문서화용 XML 주석을
   둔다:
   ```xml
@@ -245,13 +252,12 @@ public class Page<T extends BaseModel> {
   `kkdugi.core.models.CommonMapper.baseResultMap`을 `extends`해
   재사용한다([ADR-0014](../adr/0014-revert-to-base-model-inheritance.md)).
 
-전체 예시는 `I18nMessageMapper.xml`/`CodeBaseMapper.xml`/`CodeLangMapper.xml`/
-`SerialMapper.xml`을 참고한다 — 넷 다 이 서식으로 맞춰져 있다.
+전체 예시는 `AdminCodeMapper.xml`/`AdminMenuMapper.xml`/`CodeMapper.xml`/`SerialMapper.xml`을 참고한다 — 이 서식으로 맞춰져 있다.
 
 **매퍼 XML 파일 위치(2026-09-18)**: `mapper/postgres/` 밑에 전부 몰아넣지
 않고, 매퍼 인터페이스의 Java 패키지를 그 아래에 그대로 반영한다 — 예:
-`kkdugi.core.code.mapper.CodeBaseMapper` →
-`mapper/postgres/core/code/CodeBaseMapper.xml`. `application.yml`의
+`kkdugi.app.code.mapper.CodeMapper` →
+`mapper/postgres/app/code/CodeMapper.xml`. `application.yml`의
 `mybatis.mapper-locations`(`classpath:mapper/postgres/**/*Mapper.xml`)가
 이미 재귀 glob이라 경로를 옮겨도 설정 변경은 필요 없다.
 
@@ -324,8 +330,8 @@ public enum UserStatus implements CodeEnums {
 시그니처만 바꾸면 된다. `null` 반환 + 호출부 `if (x == null)` 체크보다
 호출부가 `.orElseThrow(...)`/`.map(...)`/`.orElse(...)`로 더 간결해진다
 (`SessionMapper.findById`/`findByUserId`, `SecurityUserDetailsMapper.findByUsername`가
-원래부터 이 패턴이었고, 2026-09-18에 `CodeBaseMapper.findById`/
-`MenuBaseMapper.findById`/`I18nMessageMapper.findByCodeAndLang`도 여기에
+원래부터 이 패턴이었고, 2026-09-18에 `AdminCodeMapper.findById`/
+`AdminMenuMapper.findById`/`I18nMessageMapper.findByCodeAndLang`도 여기에
 맞췄다):
 
 ```java
@@ -336,7 +342,7 @@ Optional<CodeBase> findById(@Param("id") String id);
 CodeBase existing = codeBaseMapper.findById(content.getId())
         .orElseThrow(() -> {
             log.warn("...");
-            return new CodeConflictException(ERR_NOT_FOUND);
+            return new AdminCodeConflictException(ERR_NOT_FOUND);
         });
 ```
 
@@ -417,3 +423,15 @@ core.security.service
   재사용 포함)을 그대로 적용한다. 다만 메뉴처럼 전체를 한 번에 내려주는
   게 자연스러운 화면이라면 `Page<T>` 대신 `Tree<T>`를 쓸 수도 있다 —
   [ADR-0015](../adr/0015-menu-management-system.md) 1번 참고.
+
+## 사용자용(`app.<기능>`)과 관리자용(`app.admin.<기능>`) 분리 (2026-09-19)
+
+- 사용자에게 보이는 데이터와 관리자 기능이 필요로 하는 데이터는 다르므로 모델·mapper·서비스를 공유하지 않는다.
+  같은 테이블을 읽는 쿼리가 양쪽 mapper에 각각 있는 것은 의도된 중복이다.
+- 의존 방향은 `api → app → core`. `app.admin.<기능>`과 `app.<기능>`은 서로 import하지 않고 `core`만 의존한다.
+  `core`는 `app`을 import하지 않는다(그래서 `KkdugiMessageSourceTest` 같은 core 테스트도 `app.admin` mapper를 쓰지 않는다).
+- `app.admin` 쪽 mapper/서비스/컨트롤러/콘텐츠·파라미터·요청·예외 클래스에는 `Admin` 접두사를 붙인다. DB 행 모델
+  (`CodeBase`, `CodeLang`, `MenuBase`, `MenuLang`)과 검증기(`CodeValue`, `MessageCode`)는 이름을 유지한다.
+- 관리자 `Admin<기능>Mapper`는 read+write를 한 인터페이스/XML에 둔다. 사용자용 mapper는 read 전용이다.
+- 컨트롤러: 사용자용 `kkdugi.api.<Feature>Controller`(`/api/v1.0/<feature>`), 관리자용 `kkdugi.api.admin.Admin<Feature>Controller`
+  (`/api/v1.0/admin/<feature>`). 자세한 배경은 [ADR-0016](../adr/0016-app-and-admin-feature-split.md).

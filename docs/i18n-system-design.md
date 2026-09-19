@@ -1,5 +1,7 @@
 # kkdugi-admin 초기 프로젝트 + 다국어(i18n) 시스템 설계
 
+> **패키지 구조 갱신 (2026-09-19):** 이 문서가 서술하는 `core.<기능>`/`app.admin.<기능>` 배치는 [ADR-0016](adr/0016-app-and-admin-feature-split.md)으로 사용자용(`app.<기능>`)과 관리자용(`app.admin.<기능>`)을 분리하는 구조로 바뀌었다. 아래 내용은 당시 결정의 기록이다.
+
 - 작성일: 2026-09-15 (2026-09-16 api-define-admin.md 계약에 맞춰 전면 개정)
 - 작성자: litzrsh (with Claude)
 - 상태: 승인됨, 구현 완료
