@@ -34,3 +34,13 @@ test('navigation abort signal is forwarded',async()=>{
  const controller=new AbortController();controller.abort();
  await assert.rejects(requestLogin(action,[],{signal:controller.signal,transport:async(url,options)=>{assert.equal(options.signal,controller.signal);options.signal.throwIfAborted();}}),{name:'AbortError'});
 });
+
+test('login state challenges use known codes without reflecting arbitrary server messages',async()=>{
+ for(const reason of ['pending','dormant','resigned','suspended'])assert.deepEqual(await requestLogin(action,[],{transport:async()=>Response.json({code:'auth.err.'+reason,message:'<script>unsafe</script>'},{status:401})}),{status:'blocked',reason});
+ for(const status of ['password_required','password_expired','password_invalid'])assert.deepEqual(await requestLogin(action,[],{transport:async()=>Response.json({code:'auth.err.'+status},{status:401})}),{status});
+});
+test('password change and extension remain login form requests with secrets only in the body',async()=>{
+ for(const passwordAction of ['change','extend'])await requestLogin(action,new URLSearchParams({username:'user',password:'current-password',passwordAction,newPassword:passwordAction==='change'?'new&password':''}),{transport:async(url,init)=>{
+  assert.equal(url,action);assert.equal(init.body.get('passwordAction'),passwordAction);assert.equal(init.body.get('password'),'current-password');return result('https://example.test/kk/');
+ }});
+});

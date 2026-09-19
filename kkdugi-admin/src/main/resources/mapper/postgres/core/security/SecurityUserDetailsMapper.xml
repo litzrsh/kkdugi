@@ -16,6 +16,7 @@
     <result property="lastLoginAt" column="last_login_dtm"/>
     <result property="lastChangePasswordAt" column="last_chg_pwd_dtm"/>
     <result property="passwordStatus" column="pwd_stat_cd"/>
+    <result property="passwordExpiredAt" column="pwd_expr_dtm"/>
     <result property="status" column="user_stat_cd"/>
   </resultMap>
 
@@ -46,7 +47,7 @@
 /* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findByUsername */
 SELECT
     user_id, user_login_id, user_pwd, user_nm, user_dc, user_img_src,
-    last_login_dtm, last_chg_pwd_dtm, pwd_stat_cd, user_stat_cd
+    last_login_dtm, last_chg_pwd_dtm, pwd_stat_cd, pwd_expr_dtm, user_stat_cd
 FROM kkdugi_user_base
 WHERE user_login_id = #{username}
 ]]>
@@ -189,4 +190,21 @@ WHERE user_id = #{userId}
 ]]>
   </update>
 
+  <select id="findByIdForUpdate" resultMap="sessionUserResultMap">
+    SELECT user_id, user_login_id, user_pwd, user_stat_cd, pwd_stat_cd, pwd_expr_dtm
+    FROM kkdugi_user_base WHERE user_id = #{userId} FOR UPDATE
+  </select>
+
+  <update id="changeLoginPassword">
+    UPDATE kkdugi_user_base SET user_pwd = #{password}, pwd_stat_cd = '30',
+        last_chg_pwd_dtm = #{changedAt}, pwd_expr_dtm = #{expiresAt},
+        upd_dtm = CURRENT_TIMESTAMP, upd_id = #{userId}
+    WHERE user_id = #{userId}
+  </update>
+
+  <update id="extendLoginPassword">
+    UPDATE kkdugi_user_base SET pwd_stat_cd = '30', pwd_expr_dtm = #{expiresAt},
+        upd_dtm = CURRENT_TIMESTAMP, upd_id = #{userId}
+    WHERE user_id = #{userId}
+  </update>
 </mapper>

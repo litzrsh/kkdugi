@@ -26,7 +26,7 @@ import kkdugi.core.security.authentication.AuthTokenCookie;
 import kkdugi.core.security.models.Session;
 import kkdugi.core.security.models.SessionUser;
 import kkdugi.core.security.service.JwtTokenService;
-import kkdugi.core.security.service.KkdugiUserDetailsService;
+import kkdugi.core.security.service.LoginPolicyService;
 import kkdugi.core.security.service.SessionService;
 
 /**
@@ -60,18 +60,16 @@ public class AuthenticationProcessingFilter extends AbstractAuthenticationProces
     private static final String SUCCESS_PAGE = "/";
     private static final String SESSION_ATTRIBUTE = AuthenticationProcessingFilter.class.getName() + ".SESSION";
 
-    private final SessionService sessionService;
     private final JwtTokenService jwtTokenService;
-    private final KkdugiUserDetailsService userDetailsService;
+    private final LoginPolicyService loginPolicy;
     private final AuthTokenCookie tokenCookie;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AuthenticationProcessingFilter(AuthenticationManager authenticationManager, SessionService sessionService, JwtTokenService jwtTokenService, KkdugiUserDetailsService userDetailsService, AuthTokenCookie tokenCookie) {
+    public AuthenticationProcessingFilter(AuthenticationManager authenticationManager, JwtTokenService jwtTokenService, LoginPolicyService loginPolicy, AuthTokenCookie tokenCookie) {
         super(PathPatternRequestMatcher.pathPattern(HttpMethod.POST, LOGIN_URL), authenticationManager);
-        this.sessionService = sessionService;
         this.jwtTokenService = jwtTokenService;
-        this.userDetailsService = userDetailsService;
+        this.loginPolicy = loginPolicy;
         this.tokenCookie = tokenCookie;
     }
 
@@ -94,8 +92,8 @@ public class AuthenticationProcessingFilter extends AbstractAuthenticationProces
         Authentication result = getAuthenticationManager().authenticate(authRequest);
 
         SessionUser user = (SessionUser) result.getPrincipal();
-        Session session = sessionService.createSession(user, force);
-        userDetailsService.recordSuccessfulLogin(user.getId());
+        Session session = loginPolicy.complete(user, force, request.getParameter("passwordAction"),
+                request.getParameter("newPassword"));
         request.setAttribute(SESSION_ATTRIBUTE, session);
 
         return result;

@@ -39,4 +39,16 @@ ORDER BY cb.sort_seq NULLS LAST, cb.code_val
 ]]>
   </select>
 
+  <!-- 활성 부모의 활성 직계 하위 코드만 반환한다. 기존 정확한 경로 조회는 유지한다. -->
+  <select id="findChildren" resultMap="codeResultMap">
+    SELECT cb.code_id, cb.code_parent_id, cb.code_val,
+           COALESCE(cl.code_nm, cb.code_val) AS code_nm, cl.code_dc,
+           cb.etc_val1, cb.etc_val2, cb.etc_val3, cb.etc_val4, cb.etc_val5,
+           cb.code_path, cb.code_lvl, cb.sort_seq
+    FROM kkdugi_code_base cb
+    JOIN kkdugi_code_base parent ON parent.code_id = cb.code_parent_id
+    LEFT JOIN kkdugi_code_lang cl ON cl.code_id = cb.code_id AND cl.lang_cd = #{langCode}
+    WHERE parent.code_path = #{path} AND parent.use_yn = 'Y' AND cb.use_yn = 'Y'
+    ORDER BY cb.sort_seq NULLS LAST, cb.code_val, cb.code_id
+  </select>
 </mapper>

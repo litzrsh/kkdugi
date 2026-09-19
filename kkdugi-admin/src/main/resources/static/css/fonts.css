@@ -1,0 +1,22 @@
+/* Adobe Source Han Sans 2.005R, SIL OFL 1.1. Served locally; see vendor/source-han-sans. */
+@font-face {
+  font-family: 'Source Han Sans KR';
+  src: url('../vendor/source-han-sans/SourceHanSansKR-VF.otf.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 250 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Source Han Sans JP';
+  src: url('../vendor/source-han-sans/SourceHanSansJP-VF.otf.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 250 900;
+  font-display: swap;
+}
+:root {
+  --kk-font-family: 'Source Han Sans KR', 'Source Han Sans JP', system-ui, sans-serif;
+}
+/* jp is the project's existing jp_JA locale; ja is standard Japanese. */
+:lang(ja), :lang(jp) {
+  --kk-font-family: 'Source Han Sans JP', 'Source Han Sans KR', system-ui, sans-serif;
+}

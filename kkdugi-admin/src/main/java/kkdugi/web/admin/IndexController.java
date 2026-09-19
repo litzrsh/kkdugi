@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import kkdugi.core.enums.UserStatus;
 import kkdugi.core.security.config.SecurityConfigurationProperties;
-import kkdugi.web.admin.config.AdminUiProperties;
+import kkdugi.web.admin.service.AdminLanguageService;
 import kkdugi.web.admin.models.AdminUiConfig;
 import kkdugi.web.admin.models.StatusOption;
 
@@ -45,13 +45,13 @@ public class IndexController {
     private static final Set<String> MESSAGE_KEYS = loadMessageKeys();
 
     private final MessageSource messageSource;
-    private final AdminUiProperties adminUiProperties;
+    private final AdminLanguageService languageService;
     private final SecurityConfigurationProperties securityProperties;
 
-    public IndexController(MessageSource messageSource, AdminUiProperties adminUiProperties,
+    public IndexController(MessageSource messageSource, AdminLanguageService languageService,
             SecurityConfigurationProperties securityProperties) {
         this.messageSource = messageSource;
-        this.adminUiProperties = adminUiProperties;
+        this.languageService = languageService;
         this.securityProperties = securityProperties;
     }
 
@@ -64,7 +64,7 @@ public class IndexController {
     private AdminUiConfig buildConfig(Locale locale) {
         Map<String, String> messages = MESSAGE_KEYS.stream()
                 .collect(Collectors.toMap(key -> key, key -> messageSource.getMessage(key, null, locale)));
-        return new AdminUiConfig(adminUiProperties.getLanguages(), statusOptions(), messages,
+        return new AdminUiConfig(languageService.languages(locale), statusOptions(), messages,
                 securityProperties.getTokenCookieName());
     }
 

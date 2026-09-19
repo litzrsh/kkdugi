@@ -25,8 +25,7 @@ import kkdugi.core.security.authentication.WebAuthenticationEntryPoint;
 import kkdugi.core.security.authentication.filter.AuthenticationProcessingFilter;
 import kkdugi.core.security.authentication.filter.BearerTokenAuthenticationFilter;
 import kkdugi.core.security.service.JwtTokenService;
-import kkdugi.core.security.service.KkdugiUserDetailsService;
-import kkdugi.core.security.service.SessionService;
+import kkdugi.core.security.service.LoginPolicyService;
 
 @EnableAspectJAutoProxy
 @Configuration
@@ -88,10 +87,10 @@ public class SecurityConfigurer {
 
     @Bean
     AuthenticationProcessingFilter authenticationProcessingFilter(AuthenticationManager authenticationManager,
-            SessionService sessionService, JwtTokenService jwtTokenService,
-            KkdugiUserDetailsService userDetailsService, AuthTokenCookie tokenCookie) {
-        return new AuthenticationProcessingFilter(authenticationManager, sessionService, jwtTokenService,
-                userDetailsService, tokenCookie);
+            JwtTokenService jwtTokenService,
+            LoginPolicyService loginPolicy, AuthTokenCookie tokenCookie) {
+        return new AuthenticationProcessingFilter(authenticationManager, jwtTokenService,
+                loginPolicy, tokenCookie);
     }
 
     @Bean

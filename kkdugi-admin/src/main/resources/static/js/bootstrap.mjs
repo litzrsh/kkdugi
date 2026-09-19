@@ -9,7 +9,7 @@ const {reactive,createApp}=window.Vue;
 const state=reactive({locale:config.locale||'ko_KR',notice:'',dialogs:[],busy:false});
 config.onUnauthorized=()=>window.dispatchEvent(new Event('kkdugi:unauthorized'));
 const messages=config.messages?.[state.locale]||config.messages||{};
-const services={config,state,...domain,navigation,menuIcon:navigation.menuIcon,t:key=>messages[keyOf(key)]??keyOf(key),message:key=>messages[key]??key,languages:config.languages||[],statuses:config.statuses||[],api:createApi(config)};
+const services={config,state,...domain,navigation,menuIcon:navigation.menuIcon,t:key=>messages[keyOf(key)]??keyOf(key),message:key=>messages[key]??key,languages:reactive(config.languages||[]),statuses:config.statuses||[],api:createApi(config)};
 services.runtime=createSfcRuntime({basePath:config.basePath,vue:window.Vue,loader:window['vue3-sfc-loader'],api:services.api});
 services.logout=async()=>{await services.api.request('/api/v1.0/auth/logout','POST');clearToken();config.onUnauthorized();location.replace(loginUrl(config.basePath)+'?logout');};
 let noticeTimer;

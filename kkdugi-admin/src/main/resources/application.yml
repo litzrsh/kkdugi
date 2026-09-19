@@ -25,11 +25,6 @@ server:
 
 kkdugi:
   security:
+    password-validity: 30d
     # 개발용 값. 운영 배포 시 환경변수/시크릿 매니저 등으로 반드시 교체한다.
     jwt-secret: n5WYbKyYhfxuJhrhSRnOqjLFaC3CRxVBVfkNOs3EaAM=
-  i18n:
-    languages:
-      - code: ko_KR
-        label: 한국어
-      - code: en_US
-        label: English

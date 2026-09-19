@@ -34,7 +34,7 @@ export function createApi(config,transport=fetch){
    },
    forMenu:id=>{validateMenuId(id);if(id===SHELL_MENU_ID)throw new Error('Shell context is reserved');return scoped(id);},
    request:(path,method,body,options)=>http.json(path,method,body,context(options)),
-   codes:(path,{enum:enumCode=false,locale,...options}={})=>http.json('/api/v1.0/code?'+new URLSearchParams({path,...(enumCode?{enum:'true'}:{}),...(locale?{lang:locale}:{})}),'GET',undefined,context(options)),
+   codes:(path,{enum:enumCode=false,children=false,locale,...options}={})=>http.json('/api/v1.0/code?'+new URLSearchParams({path,...(enumCode?{enum:'true'}:{}),...(children?{children:'true'}:{}),...(locale?{lang:locale}:{})}),'GET',undefined,context(options)),
    menus:({locale,...options}={})=>http.json('/api/v1.0/menu'+(locale?'?'+new URLSearchParams({lang:locale}):''),'GET',undefined,context({menuId:SHELL_MENU_ID,...options})),
    pragma:(id,options)=>http.text('/pragma/'+encodeURIComponent(id),{...options,menuId:id}),
    list:(resource,params,options)=>http.json(resourcePath(resource),resource==='menu'?'GET':'POST',resource==='menu'?undefined:params,context(options)),

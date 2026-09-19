@@ -88,4 +88,26 @@ class DefaultMenuSeedTest {
             assertThat(languages).as(program).isEqualTo(2L);
         }
     }
+
+    @Test
+    void everySeededMenu_hasJapaneseName() {
+        Map<String, String> expected = Map.of(
+                "home", "ホーム",
+                "admin/code", "共通コード管理",
+                "admin/message", "メッセージ管理",
+                "admin/menu", "メニュー管理",
+                "admin/authority", "権限管理",
+                "admin/user", "ユーザー管理");
+        expected.forEach((program, name) -> {
+            List<String> names = jdbcTemplate.queryForList(
+                    "SELECT l.menu_nm FROM kkdugi_menu_lang l JOIN kkdugi_menu_base b ON b.menu_id = l.menu_id "
+                            + "WHERE b.menu_pgm = ? AND l.lang_cd = 'ja_JP'", String.class, program);
+            assertThat(names).as(program).containsExactly(name);
+        });
+
+        Map<String, Object> system = systemFolder();
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT menu_nm FROM kkdugi_menu_lang WHERE menu_id = ? AND lang_cd = 'ja_JP'",
+                String.class, system.get("menu_id"))).isEqualTo("システム管理");
+    }
 }

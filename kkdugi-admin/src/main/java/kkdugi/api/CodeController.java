@@ -42,7 +42,10 @@ public class CodeController {
     @RequireAuthority(kkdugi.core.enums.Rbac.READ)
     @GetMapping
     public List<Code> children(@RequestParam("path") String path,
-            @RequestParam(name = "enum", required = false, defaultValue = "false") boolean enumCode, Locale locale) {
+            @RequestParam(name = "enum", required = false, defaultValue = "false") boolean enumCode,
+            @RequestParam(name = "children", required = false, defaultValue = "false") boolean children, Locale locale) {
+        if (enumCode && children) throw new IllegalArgumentException("enum and children cannot be combined");
+        if (children) return service.findChildren(path, locale.toString());
         return enumCode ? CodeEnums.toCodes(path) : service.findCodes(path, locale.toString());
     }
 }

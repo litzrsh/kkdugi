@@ -33,6 +33,7 @@ public class SessionUser implements UserDetails {
     private Date lastLoginAt;
     private Date lastChangePasswordAt;
     private PasswordStatus passwordStatus;
+    private Date passwordExpiredAt;
     private UserStatus status;
     private List<Authority> authorities = new ArrayList<>();
     private List<SessionMenu> menus = new ArrayList<>();
@@ -43,7 +44,8 @@ public class SessionUser implements UserDetails {
     }
 
     public boolean isPasswordExpired() {
-        return passwordStatus == PasswordStatus.EXPR;
+        return passwordStatus == PasswordStatus.EXPR
+                || (passwordExpiredAt != null && !passwordExpiredAt.after(new Date()));
     }
 
     public boolean isPending() {
@@ -125,6 +127,10 @@ public class SessionUser implements UserDetails {
     public void setLastChangePasswordAt(Date lastChangePasswordAt) {
         this.lastChangePasswordAt = lastChangePasswordAt;
     }
+
+    public Date getPasswordExpiredAt() { return passwordExpiredAt; }
+
+    public void setPasswordExpiredAt(Date value) { this.passwordExpiredAt = value; }
 
     public PasswordStatus getPasswordStatus() {
         return passwordStatus;

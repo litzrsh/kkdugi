@@ -27,6 +27,8 @@
 |---|---|
 |`username`|로그인 ID|
 |`password`|비밀번호|
+|`passwordAction`|선택. 초기/만료 비밀번호 변경은 `change`, 만료 연장은 `extend`. 일반 로그인은 생략|
+|`newPassword`|`passwordAction=change`일 때 새 비밀번호. URL에 포함하지 않는다|
 |`force`|`true`면 이미 활성 세션이 있어도 기존 세션을 끊고 로그인(기본 `false`)|
 
 성공은 **쿠키 설정 + 리다이렉트**, 실패는 **401 + JSON 오류**다. 로그인 요청은 일반 API의 401 자동 로그인 이동 처리를 사용하지 않는다.
@@ -40,6 +42,47 @@
 성공 리다이렉트 대상에는 컨텍스트 경로가 붙는다. fetch가 리다이렉트를 따라 쿠키를 받은 뒤, 프런트는 성공 목적지가 같은 origin의 `<contextPath>/`인지 확인하고 그때만 화면을 이동한다. 비밀번호는 URL·localStorage·sessionStorage에 저장하지 않는다. 요청 실패와 강제 재시도 실패는 현재 화면에 표시하며 자동 반복하지 않는다.
 
 화면 구현과 접근성: [로그인 확인 팝업](../design/plan/14-session-auth-confirm-and-docs.md).
+
+### 사용자·비밀번호 상태 처리 (2026-09-20)
+
+아이디·비밀번호가 일치한 후 사용자 상태 → 비밀번호 상태 → 중복 세션 순서로 처리한다.
+자격 증명이 틀리면 상태를 알려주지 않는 기존 오류 응답을 유지한다. 아래 오류는 모두 401 JSON이며 토큰 쿠키를 새로 발급하지 않는다.
+
+| 사용자 상태 | 동작 / 오류 코드 |
+|---|---|
+| 10 가입 대기 | 로그인 차단, 관리자 승인 대기 안내. auth.err.pending |
+| 20 정상 | 비밀번호 상태 검사 진행 |
+| 30 휴면 | 로그인 차단, 이메일 링크를 통한 해제 필요 안내. auth.err.dormant |
+| 40 탈퇴(예약) | 로그인 차단. auth.err.resigned. 탈퇴 처리/일시 기록은 추후 구현 |
+| 50 제재(예약) | 로그인 차단. auth.err.suspended. 제재 이력/해제 절차는 추후 구현 |
+
+휴면 이메일 서비스 및 일회성·만료형 해제 링크의 발급/검증은 TODO(mail)이다.
+현재 응답은 메일 발송 완료를 의미하지 않으며 상태를 자동 해제하지 않는다. 관리자가 상태를 정상으로 변경할 수 있다.
+사용자 상태 변경은 이후 로그인을 차단하지만 이미 발급한 세션을 즉시 종료하지 않는다.
+
+| 비밀번호 상태 | 동작 |
+|---|---|
+| 10 초기화 | auth.err.password_required. 반드시 change가 필요하며 extend/force로 우회할 수 없다 |
+| 20 만료 | auth.err.password_expired. change 또는 extend를 선택 |
+| 30 정상 | 바로 로그인. 다만 passwordExpiredAt이 현재 시각 이하이면 만료로 처리 |
+| null (기존 데이터) | 만료일이 지나지 않았으면 기존 로그인 동작 유지 |
+
+passwordExpiredAt은 SessionUser의 속성이며 기존 DB의 pwd_expr_dtm에 매핑한다. 새 컬럼은 추가하지 않는다.
+초기 비밀번호 상태 10은 만료일보다 우선한다.
+
+- change: 기존 비밀번호와 달라야 하며, 8자 이상/UTF-8 72바이트 이하를 검사한다. 위반하면 auth.err.password_invalid.
+  인코딩해 저장하고 상태를 30으로 변경하며 lastChangePasswordAt과 passwordExpiredAt을 갱신한다.
+- extend: 비밀번호 및 lastChangePasswordAt을 유지하고 상태를 30으로 변경한다.
+  passwordExpiredAt은 **현재 시각 + 30일**이다. 기존 만료일에 30일을 더하지 않는다.
+- 변경/연장의 유효 기간은 kkdugi.security.password-validity로 관리한다(기본 30d). 0/음수 설정은 거부한다.
+- 일반 정상 비밀번호에 change/extend를 보내거나 알 수 없는 action을 보내면 auth.err.malformed_request.
+- 매 시도마다 username/password로 다시 인증하며 전용 로그인 우회 토큰이나 인증 세션을 먼저 발급하지 않는다.
+- LoginPolicyService가 사용자 행을 잠그고 최신 상태·인증된 비밀번호 해시를 재확인한다.
+  비밀번호 처리, 세션 생성, 최근 로그인 기록을 한 트랜잭션으로 수행한다.
+- 중복 세션으로 401을 반환하면 변경/연장도 롤백된다. 프런트는 기존 비밀번호와 동일한 action/newPassword를 유지해
+  확인 시 force=true로 재시도한다. 취소/Esc/페이지 이동 시 입력 비밀번호를 지운다. 자동 반복은 없다.
+
+로그인 UI는 Vue 없이 공통 로그인 HTML/CSS/vanilla JS의 모달에서 이 흐름을 처리한다.
 
 ### 토큰 쿠키
 

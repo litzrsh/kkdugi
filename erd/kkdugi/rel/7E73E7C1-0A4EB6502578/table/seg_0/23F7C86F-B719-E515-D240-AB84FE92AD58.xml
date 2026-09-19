@@ -141,7 +141,7 @@
 <Column name="PWD_STAT_CD" id="CACB3B14-A290-9072-5B06-6CF9602A4AB7">
 <createdBy>litzrsh</createdBy>
 <createdTime>2026-09-07 04:34:51 UTC</createdTime>
-<commentInRDBMS><![CDATA[비밀번호 상태 코드 (공통코드 /SYS/USER/PWD_STAT)]]></commentInRDBMS>
+<commentInRDBMS><![CDATA[비밀번호 상태 코드]]></commentInRDBMS>
 <ownerDesignName>kkdugi</ownerDesignName>
 <nullsAllowed>true</nullsAllowed>
 <use>0</use>
@@ -165,7 +165,7 @@
 <Column name="USER_STAT_CD" id="EFC08401-637B-AF84-A276-98018CCBBE1F">
 <createdBy>litzrsh</createdBy>
 <createdTime>2026-09-07 04:34:51 UTC</createdTime>
-<commentInRDBMS><![CDATA[사용자 상태 코드 (공통코드 /SYS/USER/STAT): 10 대기(로그인 불가), 20 정상(로그인 가능), 30 탈퇴(로그인 불가), 40 제한(로그인 불가)]]></commentInRDBMS>
+<commentInRDBMS><![CDATA[사용자 상태 코드]]></commentInRDBMS>
 <ownerDesignName>kkdugi</ownerDesignName>
 <use>0</use>
 <logicalDatatype>LOGDT024</logicalDatatype>
@@ -182,6 +182,42 @@
 <use>0</use>
 <logicalDatatype>LOGDT029</logicalDatatype>
 <domain>BEA43A08-1D3C-BC10-F0A0-F91B6EBA7E0D</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REGN_DTM" id="88859BE1-1EEB-2BAD-3994-8C965785F41A">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-19 17:03:03 UTC</createdTime>
+<commentInRDBMS><![CDATA[탈퇴일시]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT007</logicalDatatype>
+<domain>536B23E5-1B81-189C-3582-0B26CE62252F</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REGN_RSN_CD" id="8716C8D1-BB52-C108-29AA-5070761ADF12">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-19 17:03:03 UTC</createdTime>
+<commentInRDBMS><![CDATA[탈퇴사유 (코드)]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>C891F0B4-38C8-5DC0-175D-62284AE0AFA9</domain>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="REGN_RSN_CN" id="CBFC9ABE-D519-F218-4DAE-F7729745A064">
+<createdBy>litzrsh</createdBy>
+<createdTime>2026-09-19 17:03:03 UTC</createdTime>
+<commentInRDBMS><![CDATA[탈퇴 사유 (직접입력)]]></commentInRDBMS>
+<ownerDesignName>kkdugi</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<use>0</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<domain>9C5F9569-7417-9AF0-0059-814EEC4A0205</domain>
 <ownDataTypeParameters>,,</ownDataTypeParameters>
 <autoIncrementCycle>false</autoIncrementCycle>
 </Column>

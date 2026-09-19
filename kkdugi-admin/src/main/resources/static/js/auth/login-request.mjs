@@ -9,6 +9,10 @@ export async function requestLogin(action,fields,{transport=fetch,signal}={}){
   if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('Invalid login error');
   const body=await response.json();
   if(typeof body?.code!=='string')throw new Error('Invalid login error');
+  const reason={'auth.err.pending':'pending','auth.err.dormant':'dormant','auth.err.resigned':'resigned','auth.err.suspended':'suspended','auth.err.user_unavailable':'unavailable'}[body.code];
+  if(reason)return {status:'blocked',reason};
+  const status={'auth.err.password_required':'password_required','auth.err.password_expired':'password_expired','auth.err.password_invalid':'password_invalid'}[body.code];
+  if(status)return {status};
   return {status:body.code==='session.err.duplicate'?'duplicate':'error'};
  }
  const target=new URL(response.url);

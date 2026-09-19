@@ -9,6 +9,18 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "kkdugi.security")
 public class SecurityConfigurationProperties {
 
+    /** 비밀번호 변경/만료 연장 시 현재 시각부터의 유효 기간. 기본 30일. */
+    private Duration passwordValidity = Duration.ofDays(30);
+
+    public Duration getPasswordValidity() { return passwordValidity; }
+
+    public void setPasswordValidity(Duration value) {
+        if (value == null || value.isZero() || value.isNegative()) {
+            throw new IllegalArgumentException("password-validity must be positive");
+        }
+        passwordValidity = value;
+    }
+
     private boolean allowMultiple = false;
     private Duration sessionTimeout = Duration.ofHours(1);
 

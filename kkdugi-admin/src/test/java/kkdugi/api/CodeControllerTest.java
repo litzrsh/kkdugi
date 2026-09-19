@@ -136,6 +136,20 @@ class CodeControllerTest {
     }
 
 
+    @Test
+    void childrenOptionReturnsOnlyEnabledDirectChildrenIncludingLocaleExtra() throws Exception {
+        jdbcTemplate.update("UPDATE kkdugi_code_base SET etc_val1 = 'ko_KR' WHERE code_id = ?", CHILD_A);
+        jdbcTemplate.update("UPDATE kkdugi_code_base SET use_yn = 'N' WHERE code_id = ?", CHILD_C);
+        mockMvc.perform(get(URL).param("path", ROOT_PATH).param("children", "true").param("lang", "en_US"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(CHILD_A)).andExpect(jsonPath("$[0].name").value("Child A"))
+                .andExpect(jsonPath("$[0].extra1").value("ko_KR"));
+        mockMvc.perform(get(URL).param("path", ROOT_PATH))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(ROOT_ID));
+        mockMvc.perform(get(URL).param("path", "UserStatus").param("children", "true").param("enum", "true"))
+                .andExpect(status().isBadRequest());
+    }
+
     private void insertCode(String id, String parentId, String value, int level, String path, int sort, String use) {
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_code_base (code_id, code_parent_id, code_val, code_lvl, code_path, sort_seq, "

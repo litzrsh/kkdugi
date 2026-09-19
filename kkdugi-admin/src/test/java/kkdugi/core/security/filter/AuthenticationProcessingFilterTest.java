@@ -321,4 +321,122 @@ class AuthenticationProcessingFilterTest {
                 "SELECT exp_dtm FROM kkdugi_session WHERE user_id = ?", Timestamp.class, USER_ID);
         assertThat(expiresAt.getTime()).isLessThan(System.currentTimeMillis());
     }
+    private MockHttpServletResponse passwordAction(String action, String nextPassword, boolean force) throws Exception {
+        var request = post(LOGIN_URL).contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("username", LOGIN_ID).param("password", PASSWORD).param("force", Boolean.toString(force))
+                .param("passwordAction", action);
+        if (nextPassword != null) request.param("newPassword", nextPassword);
+        return mockMvc.perform(request).andReturn().getResponse();
+    }
+
+    private String passwordHash() {
+        return jdbcTemplate.queryForObject("SELECT user_pwd FROM kkdugi_user_base WHERE user_id = ?", String.class, USER_ID);
+    }
+
+    @Test
+    void nonNormalAccountsCannotLoginEvenWithForceOrPasswordAction() throws Exception {
+        String[][] states = {{"10", "pending"}, {"30", "dormant"}, {"40", "resigned"}, {"50", "suspended"}};
+        String original = passwordHash();
+        for (String[] state : states) {
+            jdbcTemplate.update("UPDATE kkdugi_user_base SET user_stat_cd = ?, pwd_stat_cd = '10' WHERE user_id = ?", state[0], USER_ID);
+            MockHttpServletResponse response = passwordAction("change", "a-new-password", true);
+            assertThat(response.getStatus()).isEqualTo(401);
+            assertThat(response.getContentAsString()).contains("auth.err." + state[1]);
+            assertThat(response.getCookie(COOKIE)).isNull();
+            assertThat(passwordHash()).isEqualTo(original);
+            assertThat(sessionCount()).isZero();
+            assertThat(jdbcTemplate.queryForObject("SELECT last_login_dtm FROM kkdugi_user_base WHERE user_id = ?", Timestamp.class, USER_ID)).isNull();
+        }
+    }
+
+    @Test
+    void wrongPasswordDoesNotRevealUserOrPasswordState() throws Exception {
+        for (String state : new String[]{"10", "20", "30", "40", "50"}) {
+            jdbcTemplate.update("UPDATE kkdugi_user_base SET user_stat_cd = ?, pwd_stat_cd = '10' WHERE user_id = ?", state, USER_ID);
+            MockHttpServletResponse response = login(LOGIN_ID, "incorrect-password", true);
+            assertThat(response.getStatus()).isEqualTo(401);
+            assertThat(response.getContentAsString()).doesNotContain("auth.err.pending", "auth.err.dormant", "auth.err.password_required", "auth.err.resigned", "auth.err.suspended");
+        }
+    }
+
+    @Test
+    void initialPasswordRequiresChangeAndCannotBeExtended() throws Exception {
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET pwd_stat_cd = '10' WHERE user_id = ?", USER_ID);
+        assertThat(login(LOGIN_ID, PASSWORD, true).getContentAsString()).contains("auth.err.password_required");
+        assertThat(passwordAction("extend", null, true).getContentAsString()).contains("auth.err.password_required");
+        assertThat(passwordAction("change", PASSWORD, false).getContentAsString()).contains("auth.err.password_invalid");
+        assertThat(passwordAction("change", "short", false).getContentAsString()).contains("auth.err.password_invalid");
+        assertThat(passwordAction("change", "가".repeat(25), false).getContentAsString()).contains("auth.err.password_invalid");
+        assertThat(sessionCount()).isZero();
+        long before = System.currentTimeMillis();
+        MockHttpServletResponse changed = passwordAction("change", "a-new-password", false);
+        assertThat(changed.getStatus()).isEqualTo(302);
+        assertThat(changed.getCookie(COOKIE)).isNotNull();
+        assertThat(passwordEncoder.matches("a-new-password", passwordHash())).isTrue();
+        assertThat(passwordEncoder.matches(PASSWORD, passwordHash())).isFalse();
+        assertThat(jdbcTemplate.queryForObject("SELECT pwd_stat_cd FROM kkdugi_user_base WHERE user_id = ?", String.class, USER_ID)).isEqualTo("30");
+        Timestamp expiry = jdbcTemplate.queryForObject("SELECT pwd_expr_dtm FROM kkdugi_user_base WHERE user_id = ?", Timestamp.class, USER_ID);
+        assertThat(expiry.getTime()).isBetween(before + java.time.Duration.ofDays(30).toMillis(), System.currentTimeMillis() + java.time.Duration.ofDays(30).toMillis());
+        assertThat(jdbcTemplate.queryForObject("SELECT last_chg_pwd_dtm FROM kkdugi_user_base WHERE user_id = ?", Timestamp.class, USER_ID)).isNotNull();
+    }
+
+    @Test
+    void expiredPasswordCanBeExtendedThirtyDaysWithoutChangingPasswordOrChangeDate() throws Exception {
+        Timestamp changed = Timestamp.valueOf("2020-01-01 01:02:03");
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET pwd_stat_cd = '20', last_chg_pwd_dtm = ?, pwd_expr_dtm = ? WHERE user_id = ?", changed, changed, USER_ID);
+        String original = passwordHash();
+        assertThat(login(LOGIN_ID, PASSWORD, false).getContentAsString()).contains("auth.err.password_expired");
+        long before = System.currentTimeMillis();
+        MockHttpServletResponse response = passwordAction("extend", null, false);
+        assertThat(response.getStatus()).isEqualTo(302);
+        assertThat(passwordHash()).isEqualTo(original);
+        assertThat(jdbcTemplate.queryForObject("SELECT last_chg_pwd_dtm FROM kkdugi_user_base WHERE user_id = ?", Timestamp.class, USER_ID)).isEqualTo(changed);
+        Timestamp expiry = jdbcTemplate.queryForObject("SELECT pwd_expr_dtm FROM kkdugi_user_base WHERE user_id = ?", Timestamp.class, USER_ID);
+        assertThat(expiry.getTime()).isBetween(before + java.time.Duration.ofDays(30).toMillis(), System.currentTimeMillis() + java.time.Duration.ofDays(30).toMillis());
+        assertThat(jdbcTemplate.queryForObject("SELECT pwd_stat_cd FROM kkdugi_user_base WHERE user_id = ?", String.class, USER_ID)).isEqualTo("30");
+    }
+
+    @Test
+    void normalPasswordPastExpiryRequiresActionAndCanBeChanged() throws Exception {
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET pwd_stat_cd = '30', pwd_expr_dtm = ? WHERE user_id = ?", Timestamp.valueOf("2020-01-01 00:00:00"), USER_ID);
+        assertThat(login(LOGIN_ID, PASSWORD, false).getContentAsString()).contains("auth.err.password_expired");
+        assertThat(passwordAction("change", "a-new-password", false).getStatus()).isEqualTo(302);
+    }
+
+    @Test
+    void duplicateConfirmationRollsBackPasswordChangeUntilForceRetry() throws Exception {
+        properties.setAllowMultiple(false);
+        assertThat(login(LOGIN_ID, PASSWORD, false).getStatus()).isEqualTo(302);
+        String original = passwordHash();
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET pwd_stat_cd = '10' WHERE user_id = ?", USER_ID);
+        assertThat(passwordAction("change", "a-new-password", false).getContentAsString()).contains("session.err.duplicate");
+        assertThat(passwordHash()).isEqualTo(original);
+        assertThat(jdbcTemplate.queryForObject("SELECT pwd_stat_cd FROM kkdugi_user_base WHERE user_id = ?", String.class, USER_ID)).isEqualTo("10");
+        assertThat(sessionCount()).isEqualTo(1);
+        assertThat(passwordAction("change", "a-new-password", true).getStatus()).isEqualTo(302);
+        assertThat(passwordEncoder.matches("a-new-password", passwordHash())).isTrue();
+        assertThat(sessionCount()).isEqualTo(1);
+    }
+
+    @Test
+    void duplicateConfirmationRollsBackExtensionAndBlockedForceKeepsOldSession() throws Exception {
+        properties.setAllowMultiple(false);
+        assertThat(login(LOGIN_ID, PASSWORD, false).getStatus()).isEqualTo(302);
+        Timestamp old = Timestamp.valueOf("2020-01-01 00:00:00");
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET pwd_stat_cd = '20', pwd_expr_dtm = ? WHERE user_id = ?", old, USER_ID);
+        assertThat(passwordAction("extend", null, false).getContentAsString()).contains("session.err.duplicate");
+        assertThat(jdbcTemplate.queryForObject("SELECT pwd_expr_dtm FROM kkdugi_user_base WHERE user_id = ?", Timestamp.class, USER_ID)).isEqualTo(old);
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET user_stat_cd = '50' WHERE user_id = ?", USER_ID);
+        assertThat(passwordAction("extend", null, true).getContentAsString()).contains("auth.err.suspended");
+        assertThat(sessionCount()).isEqualTo(1);
+    }
+
+    @Test
+    void normalPasswordCannotUseUnrequestedActions() throws Exception {
+        for (String action : new String[]{"change", "extend", "unknown"}) {
+            assertThat(passwordAction(action, "a-new-password", false).getContentAsString()).contains("auth.err.malformed_request");
+        }
+        assertThat(sessionCount()).isZero();
+    }
+
 }

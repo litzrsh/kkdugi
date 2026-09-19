@@ -42,9 +42,8 @@ class IndexControllerTest {
                 .andExpect(content().string(containsString("\\uC2E4\\uD589")))
                 // UserStatus 코드가 CodeEnums를 통해 statuses로 내려갔는지
                 .andExpect(content().string(containsString("\"20\"")))
-                // application.yml의 등록 언어 목록이 languages로 내려갔는지
-                .andExpect(content().string(containsString("ko_KR")))
-                .andExpect(content().string(containsString("en_US")));
+                // /SYS/LANG 기반 언어 목록 필드는 비어 있어도 제공한다.
+                .andExpect(content().string(containsString("\"languages\":")));
     }
 
     @Test

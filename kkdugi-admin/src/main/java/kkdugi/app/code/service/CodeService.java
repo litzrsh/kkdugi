@@ -20,6 +20,12 @@ public class CodeService {
         this.mapper = mapper;
     }
 
+    @Cacheable(cacheNames = CACHE_NAME, key = "'children@@' + #path + '@@' + #langCode")
+    @Transactional(readOnly = true)
+    public List<Code> findChildren(String path, String langCode) {
+        return mapper.findChildren(path, langCode);
+    }
+
     @Cacheable(cacheNames = CACHE_NAME, key = "#path + '@@' + #langCode")
     @Transactional(readOnly = true)
     public List<Code> findCodes(String path, String langCode) {

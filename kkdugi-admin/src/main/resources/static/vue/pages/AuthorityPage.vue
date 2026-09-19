@@ -1,5 +1,5 @@
 <template><div class="authority-page" :inert="loading||actionBusy||undefined">
- <div class="page-heading"><div><div class="eyebrow">SYSTEM MANAGEMENT <span class="eyebrow-line"></span> ADMAUTH</div><h1 tabindex="-1">{{title||t('admauth')}}</h1><p>{{remarks||t('auth_desc')}}</p></div><div class="heading-icon"><i aria-hidden="true" class="las la-user-shield"></i></div></div>
+ <div class="page-heading"><div><h1 tabindex="-1">{{title||t('admauth')}}</h1><p>{{remarks||t('auth_desc')}}</p></div><div class="heading-icon"><i aria-hidden="true" class="las la-user-shield"></i></div></div>
  <p class="authority-note"><i class="las la-info-circle" aria-hidden="true"></i>{{t('authority_session_hint')}}</p>
  <form class="search-panel" @submit.prevent="search"><div class="panel-heading"><span><i aria-hidden="true" class="las la-filter"></i> {{t('filters')}}</span><button type="button" class="text-button filter-toggle" @click="filtersOpen=!filtersOpen" :aria-expanded="filtersOpen" :aria-label="t('filters')"><i aria-hidden="true" :class="filtersOpen?'las la-angle-up':'las la-angle-down'"></i></button></div><div class="search-fields" v-show="filtersOpen">
   <div class="field"><label class="label" for="authority-role">{{t('role_code')}}</label><input id="authority-role" class="input" v-model="filters.role" maxlength="60" autocomplete="off"></div>

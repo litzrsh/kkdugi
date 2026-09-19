@@ -1,5 +1,5 @@
 <template><div class="batch-page" :inert="saving||loading||undefined">
-    <div class="page-heading"><div><div class="eyebrow">SYSTEM MANAGEMENT <span class="eyebrow-line"></span> {{screen.toUpperCase()}}</div><h1 tabindex="-1">{{title||t(screen)}}</h1><p>{{remarks||t(def.desc)}}</p></div><div class="heading-icon"><i :class="def.icon"></i></div></div>
+    <div class="page-heading"><div><h1 tabindex="-1">{{title||t(screen)}}</h1><p>{{remarks||t(def.desc)}}</p></div><div class="heading-icon"><i :class="def.icon"></i></div></div>
     <div v-if="canWrite||canDelete" class="batch-bar" :class="{'has-changes':dirty}"><div class="batch-status"><span class="save-indicator"><i :class="dirty?'las la-pen':'las la-check'"></i></span><div><strong>{{t(dirty?'pending':'clean')}}</strong><small v-if="dirty">{{t('new')}} {{changes.insert.length}} · {{t('changed')}} {{changes.update.length}} · {{t('removed')}} {{changes.delete.length}}</small><small v-else>{{t('batch_hint')}}</small></div></div><div class="batch-buttons"><button class="button" :disabled="!dirty||saving" @click="discard">{{t('discard')}}</button><button class="button is-primary" :disabled="!dirty||saving" @click="save()"><i class="las la-check"></i>{{saving?t('saving'):t('save')}}<span v-if="dirty" class="button-counter">{{changeCount}}</span></button></div></div>
     <form class="search-panel" @submit.prevent="search"><div class="panel-heading"><span><i class="las la-filter"></i> {{t('filters')}}</span><button type="button" class="text-button filter-toggle" @click="filtersOpen=!filtersOpen" :aria-expanded="filtersOpen"><i :class="filtersOpen?'las la-angle-up':'las la-angle-down'"></i></button></div><div class="search-fields" v-show="filtersOpen"><div class="field" v-for="key in def.filters" :key="key"><label class="label" :for="'search-'+key">{{t(key)}}</label><div v-if="key==='use'||key==='status'" class="select is-fullwidth"><select :id="'search-'+key" :value="filters[key] || ''" @input="filters[key]=$event.target.value"><option value="">{{t('all')}}</option><option v-for="option in key==='use'?['Y','N']:statuses" :key="option" :value="option">{{key==='use'?t(option==='Y'?'enabled':'disabled'):option}}</option></select></div><input v-else class="input" :id="'search-'+key" :value="filters[key] || ''" @input="filters[key]=$event.target.value" :placeholder="t(key)" autocomplete="off"></div><div class="search-actions"><button type="button" class="button" @click="resetFilters"><i class="las la-undo-alt"></i>{{t('reset')}}</button><button class="button is-primary" :disabled="loading"><i class="las la-search"></i>{{t('search')}}</button></div></div><div class="collapsed-search" v-if="!filtersOpen"><span>{{Object.values(filters).filter(Boolean).join(' · ')||t('all')}}</span><button class="button is-primary" :disabled="loading">{{t('search')}}</button></div></form>
     <div v-if="error" class="error-panel page-error" role="alert"><i class="las la-exclamation-circle"></i><span>{{error}}</span><button class="text-button" @click="dirty?save():runLoad()">{{t('retry')}}</button></div>
@@ -15,6 +15,7 @@
 <script setup>
 import {ref,computed,inject,onMounted,onBeforeUnmount,nextTick} from 'vue';
 import Grid from '../components/Grid.vue';
+import {languageOptions} from '@js/i18n/languages.mjs';
 import {MessageCellEditor} from '@js/grid/MessageCellEditor.mjs';
 import {CodeCellEditor} from '@js/grid/CodeCellEditor.mjs';
 const props=defineProps({screen:String,permissions:Object,menuId:String,title:String,remarks:String});
@@ -32,7 +33,8 @@ const dialog={open:options=>s.dialog.open({...options,ownerId:props.menuId}),con
 function errorText(e){if(e.validationKey)return t(e.validationKey);if(e.errors?.length)return e.errors.map(item=>[item.id||item.code,item.message||s.message(item.reason||item.code)].filter(Boolean).join(': ')).join(' · ');return e.status!==undefined?s.errorText(e):e.message;}
 async function load(){
  request?.abort();request=new AbortController();const id=++generation;loading.value=true;error.value='';selected.value=[];
- try{const result=await api.list(def.value.resource,{...applied.value,page:page.value,pageSize:pageSize.value,...(props.screen==='admcode'?{parentId:trail.value.at(-1)?.id||null}:{})},{signal:request.signal});if(id!==generation||disposed)return;
+ try{const [result,languageCodes]=await Promise.all([api.list(def.value.resource,{...applied.value,page:page.value,pageSize:pageSize.value,...(props.screen==='admcode'?{parentId:trail.value.at(-1)?.id||null}:{})},{signal:request.signal}),api.codes('/SYS/LANG',{children:true,locale:state.locale,signal:request.signal})]);if(id!==generation||disposed)return;
+ s.languages.splice(0,s.languages.length,...languageOptions(languageCodes));if(!langs.value.length)error.value=t('no_languages');
  rows.value=(props.screen==='admmenu'?flatten(result):result.contents).map(r=>({...r,_key:r.id||r.code}));baseline.value=clone(rows.value);total.value=props.screen==='admmenu'?rows.value.length:result.totalItems;pages.value=props.screen==='admmenu'?1:result.totalPages;
  if(page.value>Math.max(1,pages.value)){page.value=Math.max(1,pages.value);return await load();}
  }catch(e){if(e.name==='AbortError'||disposed)return;if(id===generation){error.value=errorText(e);throw e;}}finally{if(id===generation)loading.value=false;}
@@ -83,15 +85,14 @@ function cellEdited(event){
  if(props.screen==='admcode'&&!event.data.id&&event.colDef.field==='code')event.data.path=(trail.value.at(-1)?.path||'')+'/'+event.data.code;
  tick.value++;rows.value=rows.value.map(row=>row._key===event.data._key?{...row}:row);
 }
-function codeLanguages(row){const languages=[...langs.value];for(const code of Object.keys(row.locale||{}))if(!languages.some(l=>l.code===code))languages.push({code,label:code});return languages;}
 function applyCodeFields(key,fields){
  if(disposed||!canWrite.value)return;const index=rows.value.findIndex(r=>r._key===key&&!r._deleted);if(index<0)return;
  rows.value[index]={...rows.value[index],...fields};rows.value=[...rows.value];tick.value++;
 }
 async function editCodeDetails(row){
- if(saving.value||loading.value||row._deleted)return;grid.value?.stop();
+ if(saving.value||loading.value||row._deleted)return;if(!langs.value.length){await dialog.open({kind:'alert',title:t('notice'),message:t('no_languages')});return;}grid.value?.stop();
  const original=baseline.value.find(r=>r._key===row._key);
- await dialog.open({kind:'form',title:t('code_details'),subtitle:row.code||t('new'),batch:canWrite.value,readonly:!canWrite.value,initial:{locale:clone(row.locale||{})},translation:'name',languages:codeLanguages(row),validate:value=>{
+ await dialog.open({kind:'form',title:t('code_details'),subtitle:row.code||t('new'),batch:canWrite.value,readonly:!canWrite.value,initial:{locale:clone(row.locale||{})},translation:'name',languages:[...langs.value],validate:value=>{
   try{prepareLocalizedRow('code',{...row,locale:value.locale},original);return '';}catch(e){return errorText(e);}
  },onSubmit:value=>applyCodeFields(row._key,{locale:prepareLocalizedRow('code',{...row,locale:value.locale},original).locale})});
 }
@@ -108,6 +109,7 @@ function newRow(parent){
 }
 async function editRow(row=null,parent=null){
  if(!canWrite.value||saving.value||loading.value)return;
+ if(!langs.value.length){await dialog.open({kind:'alert',title:t('notice'),message:t('no_languages')});return;}
  if(['admcode','admmsge'].includes(props.screen)){grid.value?.stop();rows.value=[{...newRow(),_key:crypto.randomUUID()},...rows.value];tick.value++;await nextTick();grid.value?.edit(0,'code');return;}
  if(parent&&isProtected(parent,rows.value))return;
  if(parent&&!parent.id){s.notify('menu_parent_pending');return;}
@@ -121,7 +123,7 @@ async function editRow(row=null,parent=null){
  if(menu)add('close','closable','select',{readonly:fixed,options:[{value:'Y',label:t('enabled')},{value:'N',label:t('disabled')}]});
  add('sort','sort','number',{readonly:fixed});
  const original=row?baseline.value.find(r=>r._key===row._key):undefined;
- const languages=[...langs.value];for(const code of Object.keys(initial.locale||{}))if(!languages.some(l=>l.code===code))languages.push({code,label:code});
+ const languages=[...langs.value];
  await dialog.open({kind:'form',title:t(row?'edit':'add')+' · '+(props.title||t(props.screen)),subtitle:row?.code||row?.program,batch:true,wide:true,initial,fields,translation:'label',languages,validate:value=>{
   try{const e=validate(def.value.resource,prepareLocalizedRow(def.value.resource,value,original),langs.value);return e?t(e):'';}catch(e){return errorText(e);}
  },onSubmit:value=>{

@@ -4,6 +4,10 @@
 
 ## 현재 기준
 
+- [Source Han Sans 로컬 폰트 적용](plan/24-source-han-sans.md)
+
+- [상태별 로그인·비밀번호 변경/연장](plan/22-login-status-policy.md) · [설계 결정](adr/0015-login-status-policy.md)
+
 - [사용자관리 화면 구현](plan/21-user-management.md) · [설계 결정](adr/0014-user-management-ui.md)
 
 - [권한관리 화면 구현](plan/20-authority-management.md) · [설계 결정](adr/0013-authority-management-ui.md)
@@ -63,3 +67,8 @@
 - [11-pragma-integration-handoff](plan/11-pragma-integration-handoff.md)
 - [12-role-based-resource-layout](plan/12-role-based-resource-layout.md)
 - [13-current-api-sync](plan/13-current-api-sync.md)
+
+## 공통코드 기반 언어 목록 (2026-09-20)
+
+- [ADR-0016: 언어 목록 원천](adr/0016-common-code-language-source.md)
+- [동적 언어 적용 및 검증](plan/23-dynamic-languages.md)
