@@ -10,12 +10,12 @@ import java.util.Locale;
 import java.util.Map;
 
 import kkdugi.KkdugiAdminApplication;
-import kkdugi.app.admin.i18n.exceptions.MessageConflictException;
-import kkdugi.app.admin.i18n.exceptions.MessageValidationException;
-import kkdugi.app.admin.i18n.models.MessageContent;
-import kkdugi.app.admin.i18n.models.MessagePersistRequest;
-import kkdugi.app.admin.i18n.models.MessageSearchParams;
-import kkdugi.core.i18n.mapper.I18nMessageMapper;
+import kkdugi.app.admin.i18n.exceptions.AdminMessageConflictException;
+import kkdugi.app.admin.i18n.exceptions.AdminMessageValidationException;
+import kkdugi.app.admin.i18n.models.AdminMessage;
+import kkdugi.app.admin.i18n.models.AdminMessagePersistRequest;
+import kkdugi.app.admin.i18n.models.AdminMessageParams;
+import kkdugi.app.admin.i18n.mapper.AdminMessageMapper;
 import kkdugi.core.i18n.service.KkdugiMessageSource;
 import kkdugi.core.models.Page;
 
@@ -23,13 +23,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(classes = KkdugiAdminApplication.class)
-class MessageAdminServiceTest {
+class AdminMessageServiceTest {
 
     @Autowired
-    private MessageAdminService service;
+    private AdminMessageService service;
 
     @Autowired
-    private I18nMessageMapper mapper;
+    private AdminMessageMapper mapper;
 
     @Autowired
     private KkdugiMessageSource messageSource;
@@ -43,14 +43,14 @@ class MessageAdminServiceTest {
 
     @Test
     void persist_insertsThenUpdates_andRefreshesCache() {
-        service.persist(new MessagePersistRequest(
-                List.of(new MessageContent("test.admin.batch", Map.of("ko_KR", "첫 값"))),
+        service.persist(new AdminMessagePersistRequest(
+                List.of(new AdminMessage("test.admin.batch", Map.of("ko_KR", "첫 값"))),
                 null,
                 null));
 
-        service.persist(new MessagePersistRequest(
+        service.persist(new AdminMessagePersistRequest(
                 null,
-                List.of(new MessageContent("test.admin.batch", Map.of(
+                List.of(new AdminMessage("test.admin.batch", Map.of(
                         "ko_KR", "수정된 값",
                         "en_US", "english value"))),
                 null));
@@ -63,11 +63,11 @@ class MessageAdminServiceTest {
 
     @Test
     void search_returnsResolvedPagingAndTotalItemsFromQuery() {
-        service.persist(new MessagePersistRequest(
-                List.of(new MessageContent("test.admin.batch", Map.of("ko_KR", "값"))),
+        service.persist(new AdminMessagePersistRequest(
+                List.of(new AdminMessage("test.admin.batch", Map.of("ko_KR", "값"))),
                 null, null));
 
-        Page<MessageContent> page = service.search(new MessageSearchParams("test.admin.batch", null, 0, 0));
+        Page<AdminMessage> page = service.search(new AdminMessageParams("test.admin.batch", null, 0, 0));
 
         assertThat(page.getPage()).isEqualTo(1);
         assertThat(page.getPageSize()).isEqualTo(200);
@@ -79,13 +79,13 @@ class MessageAdminServiceTest {
 
     @Test
     void persist_deletesAllLanguagesForCode() {
-        service.persist(new MessagePersistRequest(
-                List.of(new MessageContent("test.admin.batch", Map.of(
+        service.persist(new AdminMessagePersistRequest(
+                List.of(new AdminMessage("test.admin.batch", Map.of(
                         "ko_KR", "값", "en_US", "value"))),
                 null, null));
 
-        service.persist(new MessagePersistRequest(null, null,
-                List.of(new MessageContent("test.admin.batch", Map.of()))));
+        service.persist(new AdminMessagePersistRequest(null, null,
+                List.of(new AdminMessage("test.admin.batch", Map.of()))));
 
         assertThat(mapper.findByCode("test.admin.batch")).isEmpty();
         assertThat(messageSource.getMessage("test.admin.batch", null, Locale.KOREA))
@@ -94,32 +94,32 @@ class MessageAdminServiceTest {
 
     @Test
     void persist_rejectsInvalidMessageCode_withoutTouchingDb() {
-        assertThatThrownBy(() -> service.persist(new MessagePersistRequest(
-                List.of(new MessageContent("Invalid.Code", Map.of("ko_KR", "값"))),
+        assertThatThrownBy(() -> service.persist(new AdminMessagePersistRequest(
+                List.of(new AdminMessage("Invalid.Code", Map.of("ko_KR", "값"))),
                 null, null)))
-                .isInstanceOf(MessageValidationException.class);
+                .isInstanceOf(AdminMessageValidationException.class);
 
         assertThat(mapper.findByCode("Invalid.Code")).isEmpty();
     }
 
     @Test
     void persist_conflictsOnDuplicateInsert() {
-        service.persist(new MessagePersistRequest(
-                List.of(new MessageContent("test.admin.batch", Map.of("ko_KR", "값"))),
+        service.persist(new AdminMessagePersistRequest(
+                List.of(new AdminMessage("test.admin.batch", Map.of("ko_KR", "값"))),
                 null, null));
 
-        assertThatThrownBy(() -> service.persist(new MessagePersistRequest(
-                List.of(new MessageContent("test.admin.batch", Map.of("ko_KR", "다시"))),
+        assertThatThrownBy(() -> service.persist(new AdminMessagePersistRequest(
+                List.of(new AdminMessage("test.admin.batch", Map.of("ko_KR", "다시"))),
                 null, null)))
-                .isInstanceOf(MessageConflictException.class);
+                .isInstanceOf(AdminMessageConflictException.class);
     }
 
     @Test
     void persist_conflictsOnUpdateOfMissingCode() {
-        assertThatThrownBy(() -> service.persist(new MessagePersistRequest(
+        assertThatThrownBy(() -> service.persist(new AdminMessagePersistRequest(
                 null,
-                List.of(new MessageContent("test.admin.missing", Map.of("ko_KR", "값"))),
+                List.of(new AdminMessage("test.admin.missing", Map.of("ko_KR", "값"))),
                 null)))
-                .isInstanceOf(MessageConflictException.class);
+                .isInstanceOf(AdminMessageConflictException.class);
     }
 }

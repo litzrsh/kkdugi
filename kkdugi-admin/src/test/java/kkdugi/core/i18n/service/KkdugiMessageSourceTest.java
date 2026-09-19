@@ -2,17 +2,15 @@ package kkdugi.core.i18n.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
 import java.util.Locale;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import kkdugi.KkdugiAdminApplication;
-import kkdugi.core.i18n.mapper.I18nMessageMapper;
-import kkdugi.core.i18n.models.I18nMessage;
 
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class KkdugiMessageSourceTest {
@@ -21,22 +19,19 @@ class KkdugiMessageSourceTest {
     private KkdugiMessageSource kkdugiMessageSource;
 
     @Autowired
-    private I18nMessageMapper mapper;
+    private JdbcTemplate jdbcTemplate;
 
     @AfterEach
     void cleanUp() {
-        mapper.delete("test.msg.temp", "ko_KR");
-        mapper.delete("test.msg.args", "ko_KR");
+        jdbcTemplate.update("DELETE FROM kkdugi_i18n_msg WHERE msg_cd IN (?, ?) AND lang_cd = ?",
+                "test.msg.temp", "test.msg.args", "ko_KR");
         kkdugiMessageSource.refresh("test.msg.temp", "ko_KR");
         kkdugiMessageSource.refresh("test.msg.args", "ko_KR");
     }
 
     @Test
     void getMessage_returnsDbValueWhenPresent() {
-        I18nMessage message = new I18nMessage("test.msg.temp", "ko_KR", "DB 메시지");
-        message.setCreatedAt(LocalDateTime.now());
-        message.setCreatorId("SYSTEM");
-        mapper.insert(message);
+        insertMessage("test.msg.temp", "DB 메시지");
         kkdugiMessageSource.refresh("test.msg.temp", "ko_KR");
 
         String result = kkdugiMessageSource.getMessage("test.msg.temp", null, Locale.KOREA);
@@ -60,15 +55,17 @@ class KkdugiMessageSourceTest {
 
     @Test
     void getMessage_formatsArgumentsForDbValue() {
-        I18nMessage message = new I18nMessage("test.msg.args", "ko_KR", "{0}님 환영합니다");
-        message.setCreatedAt(LocalDateTime.now());
-        message.setCreatorId("SYSTEM");
-        mapper.insert(message);
+        insertMessage("test.msg.args", "{0}님 환영합니다");
         kkdugiMessageSource.refresh("test.msg.args", "ko_KR");
 
         String result = kkdugiMessageSource.getMessage(
                 "test.msg.args", new Object[]{"철수"}, Locale.KOREA);
 
         assertThat(result).isEqualTo("철수님 환영합니다");
+    }
+
+    private void insertMessage(String code, String text) {
+        jdbcTemplate.update("INSERT INTO kkdugi_i18n_msg (msg_cd, lang_cd, msg_val, reg_id) VALUES (?, ?, ?, ?)",
+                code, "ko_KR", text, "SYSTEM");
     }
 }

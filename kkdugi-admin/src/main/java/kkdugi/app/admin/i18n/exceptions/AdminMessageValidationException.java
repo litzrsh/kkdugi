@@ -1,10 +1,10 @@
 package kkdugi.app.admin.i18n.exceptions;
 
-public class MessageValidationException extends RuntimeException {
+public class AdminMessageValidationException extends RuntimeException {
 
     private final String code;
 
-    public MessageValidationException(String code) {
+    public AdminMessageValidationException(String code) {
         super(code);
         this.code = code;
     }

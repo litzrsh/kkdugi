@@ -16,22 +16,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import kkdugi.app.admin.i18n.exceptions.MessageConflictException;
-import kkdugi.app.admin.i18n.exceptions.MessageValidationException;
-import kkdugi.app.admin.i18n.models.MessageContent;
-import kkdugi.app.admin.i18n.models.MessagePersistRequest;
-import kkdugi.app.admin.i18n.models.MessageSearchParams;
-import kkdugi.core.i18n.mapper.I18nMessageMapper;
+import kkdugi.app.admin.i18n.exceptions.AdminMessageConflictException;
+import kkdugi.app.admin.i18n.exceptions.AdminMessageValidationException;
+import kkdugi.app.admin.i18n.models.AdminMessage;
+import kkdugi.app.admin.i18n.models.AdminMessagePersistRequest;
+import kkdugi.app.admin.i18n.models.AdminMessageParams;
+import kkdugi.app.admin.i18n.mapper.AdminMessageMapper;
 import kkdugi.core.i18n.models.I18nMessage;
-import kkdugi.core.i18n.models.MessageCode;
-import kkdugi.core.i18n.models.MessageCodeRow;
+import kkdugi.app.admin.i18n.models.MessageCode;
+import kkdugi.app.admin.i18n.models.MessageCodeRow;
 import kkdugi.core.i18n.service.KkdugiMessageSource;
 import kkdugi.core.models.Page;
 
 @Service
-public class MessageAdminService {
+public class AdminMessageService {
 
-    private static final Logger log = LoggerFactory.getLogger(MessageAdminService.class);
+    private static final Logger log = LoggerFactory.getLogger(AdminMessageService.class);
 
     public static final String ERR_INVALID_FORMAT = "message.err.invalid_format";
     public static final String ERR_LOCALE_REQUIRED = "message.err.locale_required";
@@ -40,16 +40,16 @@ public class MessageAdminService {
 
     private static final String SYSTEM_USER_ID = "SYSTEM";
 
-    private final I18nMessageMapper mapper;
+    private final AdminMessageMapper mapper;
     private final KkdugiMessageSource messageSource;
 
-    public MessageAdminService(I18nMessageMapper mapper, KkdugiMessageSource messageSource) {
+    public AdminMessageService(AdminMessageMapper mapper, KkdugiMessageSource messageSource) {
         this.mapper = mapper;
         this.messageSource = messageSource;
     }
 
     @Transactional(readOnly = true)
-    public Page<MessageContent> search(MessageSearchParams params) {
+    public Page<AdminMessage> search(AdminMessageParams params) {
         params.setPage(params.resolvedPage());
         params.setPageSize(params.resolvedPageSize());
 
@@ -57,7 +57,7 @@ public class MessageAdminService {
                 params.getCode(), params.getMessage(), params.getOffset(), params.getLimit());
         List<String> codes = codeRows.stream().map(MessageCodeRow::getCode).toList();
 
-        List<MessageContent> contents;
+        List<AdminMessage> contents;
         if (codes.isEmpty()) {
             contents = List.of();
         } else {
@@ -71,7 +71,7 @@ public class MessageAdminService {
             }
             contents = codeRows.stream()
                     .map(row -> {
-                        MessageContent content = new MessageContent(row.getCode(), grouped.get(row.getCode()));
+                        AdminMessage content = new AdminMessage(row.getCode(), grouped.get(row.getCode()));
                         content.setTotalSize(row.getTotalSize());
                         return content;
                     })
@@ -82,24 +82,24 @@ public class MessageAdminService {
     }
 
     @Transactional
-    public void persist(MessagePersistRequest request) {
+    public void persist(AdminMessagePersistRequest request) {
         validate(request);
 
         Set<AffectedKey> affectedKeys = new LinkedHashSet<>();
         LocalDateTime now = LocalDateTime.now();
 
-        for (MessageContent content : request.insertOrEmpty()) {
+        for (AdminMessage content : request.insertOrEmpty()) {
             for (Map.Entry<String, String> entry : content.getLocale().entrySet()) {
                 insertRow(content.getCode(), entry.getKey(), entry.getValue(), now);
                 affectedKeys.add(new AffectedKey(content.getCode(), entry.getKey()));
             }
         }
 
-        for (MessageContent content : request.updateOrEmpty()) {
+        for (AdminMessage content : request.updateOrEmpty()) {
             List<I18nMessage> existingForCode = mapper.findByCode(content.getCode());
             if (existingForCode.isEmpty()) {
                 log.warn("메시지 수정 실패 - 대상 코드를 찾을 수 없음: code={}", content.getCode());
-                throw new MessageConflictException(ERR_NOT_FOUND);
+                throw new AdminMessageConflictException(ERR_NOT_FOUND);
             }
             Set<String> existingLangs = existingForCode.stream()
                     .map(I18nMessage::getLangCode)
@@ -121,11 +121,11 @@ public class MessageAdminService {
             }
         }
 
-        for (MessageContent content : request.deleteOrEmpty()) {
+        for (AdminMessage content : request.deleteOrEmpty()) {
             List<I18nMessage> existing = mapper.findByCode(content.getCode());
             if (existing.isEmpty()) {
                 log.warn("메시지 삭제 실패 - 대상 코드를 찾을 수 없음: code={}", content.getCode());
-                throw new MessageConflictException(ERR_NOT_FOUND);
+                throw new AdminMessageConflictException(ERR_NOT_FOUND);
             }
             // 코드 단위 삭제: 요청의 locale 값과 무관하게, 그 코드에 등록된
             // 모든 언어를 함께 삭제한다 (kkdugi-design ADR-0003 결정 #6).
@@ -146,7 +146,7 @@ public class MessageAdminService {
             mapper.insert(message);
         } catch (DuplicateKeyException e) {
             log.warn("메시지 등록 실패 - 이미 존재하는 메시지: code={}, lang={}", code, lang);
-            throw new MessageConflictException(ERR_DUPLICATE);
+            throw new AdminMessageConflictException(ERR_DUPLICATE);
         }
     }
 
@@ -157,7 +157,7 @@ public class MessageAdminService {
         int affected = mapper.update(message);
         if (affected == 0) {
             log.warn("메시지 수정 실패 - 대상 언어를 찾을 수 없음: code={}, lang={}", code, lang);
-            throw new MessageConflictException(ERR_NOT_FOUND);
+            throw new AdminMessageConflictException(ERR_NOT_FOUND);
         }
     }
 
@@ -172,28 +172,28 @@ public class MessageAdminService {
         });
     }
 
-    private void validate(MessagePersistRequest request) {
+    private void validate(AdminMessagePersistRequest request) {
         validateBucket(request.insertOrEmpty(), true);
         validateBucket(request.updateOrEmpty(), true);
         validateBucket(request.deleteOrEmpty(), false);
     }
 
-    private void validateBucket(List<MessageContent> contents, boolean requireLocaleValues) {
-        for (MessageContent content : contents) {
+    private void validateBucket(List<AdminMessage> contents, boolean requireLocaleValues) {
+        for (AdminMessage content : contents) {
             if (!MessageCode.matches(content.getCode())) {
                 log.warn("메시지 저장 검증 실패 - code 값 형식이 올바르지 않음: code={}", content.getCode());
-                throw new MessageValidationException(ERR_INVALID_FORMAT);
+                throw new AdminMessageValidationException(ERR_INVALID_FORMAT);
             }
             if (requireLocaleValues) {
                 if (content.getLocale() == null || content.getLocale().isEmpty()) {
                     log.warn("메시지 저장 검증 실패 - locale이 비어 있음: code={}", content.getCode());
-                    throw new MessageValidationException(ERR_LOCALE_REQUIRED);
+                    throw new AdminMessageValidationException(ERR_LOCALE_REQUIRED);
                 }
                 for (Map.Entry<String, String> entry : content.getLocale().entrySet()) {
                     if (isBlank(entry.getValue())) {
                         log.warn("메시지 저장 검증 실패 - locale.{} 값이 비어 있음: code={}",
                                 entry.getKey(), content.getCode());
-                        throw new MessageValidationException(ERR_LOCALE_REQUIRED);
+                        throw new AdminMessageValidationException(ERR_LOCALE_REQUIRED);
                     }
                 }
             }

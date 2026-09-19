@@ -20,7 +20,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @JsonIgnoreProperties({ "rownum", "createdAt", "creatorId", "updatedAt", "updaterId" })
-public class MessageContent extends BaseModel {
+public class AdminMessage extends BaseModel {
 
     private final String code;
     private final Map<String, String> locale;

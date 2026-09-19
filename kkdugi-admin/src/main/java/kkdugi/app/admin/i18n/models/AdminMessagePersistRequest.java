@@ -7,21 +7,21 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class MessagePersistRequest {
+public class AdminMessagePersistRequest {
 
-    private final List<MessageContent> insert;
-    private final List<MessageContent> update;
-    private final List<MessageContent> delete;
+    private final List<AdminMessage> insert;
+    private final List<AdminMessage> update;
+    private final List<AdminMessage> delete;
 
-    public List<MessageContent> insertOrEmpty() {
+    public List<AdminMessage> insertOrEmpty() {
         return insert != null ? insert : List.of();
     }
 
-    public List<MessageContent> updateOrEmpty() {
+    public List<AdminMessage> updateOrEmpty() {
         return update != null ? update : List.of();
     }
 
-    public List<MessageContent> deleteOrEmpty() {
+    public List<AdminMessage> deleteOrEmpty() {
         return delete != null ? delete : List.of();
     }
 }

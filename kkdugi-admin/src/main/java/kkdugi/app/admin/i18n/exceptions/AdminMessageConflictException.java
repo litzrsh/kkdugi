@@ -1,10 +1,10 @@
 package kkdugi.app.admin.i18n.exceptions;
 
-public class MessageConflictException extends RuntimeException {
+public class AdminMessageConflictException extends RuntimeException {
 
     private final String code;
 
-    public MessageConflictException(String code) {
+    public AdminMessageConflictException(String code) {
         super(code);
         this.code = code;
     }

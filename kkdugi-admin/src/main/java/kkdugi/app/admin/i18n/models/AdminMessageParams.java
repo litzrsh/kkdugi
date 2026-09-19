@@ -7,15 +7,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MessageSearchParams extends BaseParams {
+public class AdminMessageParams extends BaseParams {
 
     private String code;
     private String message;
 
-    public MessageSearchParams() {
+    public AdminMessageParams() {
     }
 
-    public MessageSearchParams(String code, String message, int page, int pageSize) {
+    public AdminMessageParams(String code, String message, int page, int pageSize) {
         this.code = code;
         this.message = message;
         setPage(page);

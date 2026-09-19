@@ -1,4 +1,4 @@
-package kkdugi.core.i18n.models;
+package kkdugi.app.admin.i18n.models;
 
 import kkdugi.core.models.BaseModel;
 
