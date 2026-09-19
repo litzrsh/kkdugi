@@ -5,7 +5,7 @@ import {flatten,prepareLocalizedRow,prepareBatch,menuDescendants,filterMenuRows,
 test('current session/auth routes are separate from admin menu CRUD',async()=>{
  const requests=[];const api=createApi({basePath:'/kk'},async(url,options)=>{requests.push({url,...options});return new Response('[]');});
  await api.menus();await api.request('/api/v1.0/auth/logout','POST');await api.list('menu',{page:7});await api.persist('menu',{insert:[],update:[],delete:[]});
- assert.deepEqual(requests.map(r=>[r.url,r.method]),[['/kk/api/v1.0/session/menu','GET'],['/kk/api/v1.0/auth/logout','POST'],['/kk/api/v1.0/admin/menu','GET'],['/kk/api/v1.0/admin/menu/persist','POST']]);assert.equal(requests[2].body,undefined);
+ assert.deepEqual(requests.map(r=>[r.url,r.method]),[['/kk/api/v1.0/menu','GET'],['/kk/api/v1.0/auth/logout','POST'],['/kk/api/v1.0/admin/menu','GET'],['/kk/api/v1.0/admin/menu/persist','POST']]);assert.equal(requests[2].body,undefined);
 });
 test('root code sends null parent and excludes optional blank translations',()=>{
  const row={id:'',parentId:'',code:'ROOT',locale:{ko_KR:{name:'코드',remarks:''},en_US:{name:'',remarks:''}}};
@@ -27,4 +27,10 @@ test('cascade delete sends only the ancestor while retaining immutable parent an
 });
 test('system menus and their ancestors retain deletion protection',()=>{
  const rows=[{id:'system',path:'/system'},{id:'codes',path:'/system/codes',program:'admin/code'}];assert.ok(isProtected(rows[0],rows));assert.ok(isProtected(rows[1],rows));
+});
+test('menu route is allowed without a trailing slash while the retired session prefix and lookalikes are rejected',async()=>{
+ const api=createApi({basePath:'/kk'},async()=>new Response('[]'));
+ await api.request('/api/v1.0/menu','GET');
+ await assert.rejects(()=>api.request('/api/v1.0/session/menu','GET'),/Invalid API path/);
+ await assert.rejects(()=>api.request('/api/v1.0/menus','GET'),/Invalid API path/);
 });

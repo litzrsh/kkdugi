@@ -5,7 +5,7 @@ export class ApiError extends Error{
 export function createHttp(config={},transport=fetch){
  const base=(config.basePath||'').replace(/\/$/,'');
  async function send(path,method,body,options={},textMode=false){
-  if(!/^\/(?:api\/v1\.0\/(?:admin|auth|session)\/|pragma\/)/.test(path)||path.includes('..')||path.includes('\\'))throw new Error('Invalid API path');
+  if(!/^\/(?:api\/v1\.0\/(?:(?:admin|auth)\/|menu(?:$|\?))|pragma\/)/.test(path)||path.includes('..')||path.includes('\\'))throw new Error('Invalid API path');
   const headers={Accept:'application/json'};
   const token=getToken();if(token)headers.Authorization='Bearer '+token;
   if(body!==undefined)headers['Content-Type']='application/json';

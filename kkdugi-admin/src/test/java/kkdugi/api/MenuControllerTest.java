@@ -1,4 +1,4 @@
-package kkdugi.api.admin.session;
+package kkdugi.api;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -24,14 +24,14 @@ import kkdugi.KkdugiAdminApplication;
 import kkdugi.support.TestLogin;
 
 /**
- * {@code SessionMenuController}이 세션의 flat {@code SessionMenu} 목록을
+ * {@code MenuController}이 세션의 flat {@code SessionMenu} 목록을
  * 실제로 트리(부모의 {@code children} 배열)로 바꿔 내려주는지, 로그인
  * 전체 경로(로그인 → 토큰 → 인증된 요청)를 통해 확인한다.
  */
 @SpringBootTest(classes = KkdugiAdminApplication.class)
-class SessionMenuControllerTest {
+class MenuControllerTest {
 
-    private static final String MENU_URL = "/api/v1.0/session/menu";
+    private static final String MENU_URL = "/api/v1.0/menu";
     private static final String USER_ID = "U_TEST_SESSION_MENU_1";
     private static final String AUTH_ID = "A_TEST_SESSION_MENU_1";
     private static final String ROOT_MENU_ID = "M_TEST_SESSION_MENU_ROOT";

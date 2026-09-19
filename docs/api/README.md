@@ -24,16 +24,15 @@
 
 ## 공통 사항
 
-- **Base URL**: 도메인 API는 모두 `/api/v1.0/admin` 하위에 있다. 예외 셋 —
-  [auth.md](auth.md)의 로그인/로그아웃(`/api/v1.0/auth/login`,
-  `/api/v1.0/auth/logout`)과 [session.md](session.md)의 내 메뉴 트리 조회
-  (`/api/v1.0/session/menu`)는 "admin 리소스"(공통코드/메시지/메뉴 CRUD)가
-  아니라 로그인한 사용자 본인을 다루는 요청이라 이 접두사 밖에 있고,
-  [session.md](session.md)의 Pragma 화면 조각 엔드포인트(`/pragma/{menuId}`)도
-  예외다(`/api/v1.0` 프리픽스조차 없음) — 이유는 해당 문서에 설명.
-  프런트엔드 `static/js/api/http.mjs`의 경로 화이트리스트도
-  `/api/v1.0/admin/`·`/api/v1.0/auth/`·`/api/v1.0/session/`·`/pragma/` 네
-  접두사만 허용한다.
+- **Base URL**: 관리자용 도메인 API(공통코드/메시지/메뉴 CRUD)는 `/api/v1.0/admin` 하위에 있고,
+  사용자용 조회 API는 `/api/v1.0/menu`([session.md](session.md)의 내 메뉴 트리 조회),
+  `/api/v1.0/code`([code.md](code.md))처럼 `/api/v1.0` 바로 아래에 있다. 예외 —
+  [auth.md](auth.md)의 로그인/로그아웃(`/api/v1.0/auth/login`, `/api/v1.0/auth/logout`)과
+  [session.md](session.md)의 Pragma 화면 조각 엔드포인트(`/pragma/{menuId}`, `/api/v1.0`
+  프리픽스조차 없음 — 이유는 해당 문서에 설명).
+  프런트엔드 `static/js/api/http.mjs`의 경로 화이트리스트는
+  `/api/v1.0/admin/`·`/api/v1.0/auth/`·`/api/v1.0/menu`·`/pragma/`만 허용한다
+  (`/api/v1.0/code`는 프런트가 아직 쓰지 않아 넣지 않았다).
 - **인증**: 로그인([auth.md](auth.md))이 발급해 쿠키로 내려준 JWT를
   `Authorization: Bearer <token>` 헤더(우선) 또는 같은 토큰 쿠키로 보낸다
   (`BearerTokenAuthenticationFilter`가 둘 다 지원). 프런트는 쿠키에서 토큰을

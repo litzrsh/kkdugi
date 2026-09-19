@@ -34,7 +34,7 @@ class AuthenticationProcessingFilterTest {
 
     private static final String LOGIN_URL = TestLogin.LOGIN_URL;
     private static final String LOGOUT_URL = "/api/v1.0/auth/logout";
-    private static final String MENU_URL = "/api/v1.0/session/menu";
+    private static final String MENU_URL = "/api/v1.0/menu";
     private static final String COOKIE = TestLogin.TOKEN_COOKIE;
     private static final String USER_ID = "U_TEST_LOGIN_1";
     private static final String LOGIN_ID = "test_login_filter";

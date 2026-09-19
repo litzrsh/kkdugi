@@ -15,20 +15,19 @@ API다. 그 문서의 [3절 메뉴
    Postgres `BIT_OR`로 합산한 목록만 받는다(`findMenusByUsername`,
    `HAVING BIT_OR(...) > 0` — 읽기 권한조차 없는 메뉴는 애초에 세션에
    담기지 않는다).
-2. 화면은 [`GET /api/v1.0/session/menu`](#1-내-메뉴-트리-조회---get-apiv10sessionmenu)로
+2. 화면은 [`GET /api/v1.0/menu`](#1-내-메뉴-트리-조회---get-apiv10menu)로
    내비게이션 트리를 받는다.
 3. 사용자가 메뉴를 클릭하면 [`GET
    /pragma/{menuId}`](#2-메뉴-화면-조각-조회---get-pragmamenuid)로 그 메뉴의
    화면(Vue SFC 조각)을 텍스트로 받아 `vue3-sfc-loader`가 브라우저에서
    컴파일한다.
 
-## 1. 내 메뉴 트리 조회 - GET /api/v1.0/session/menu
+## 1. 내 메뉴 트리 조회 - GET /api/v1.0/menu
 
-**`/api/v1.0/admin` 접두사 밖에 있다** — 로그인한 사용자 본인의 세션 정보를
-다루는 것이지 "admin 리소스"(공통코드/메시지/메뉴 CRUD)가 아니라서
-[auth.md](auth.md)의 로그인/로그아웃과 같은 이유로 이 접두사 밖이다.
+**사용자용 API라 `/api/v1.0/menu`에 있다**(관리자용 메뉴 CRUD는 `/api/v1.0/admin/menu`,
+[menu.md](menu.md)). 2026-09-19 이전에는 `/api/v1.0/session/menu`였으며 옛 경로 별칭은 없다.
 
-구현: [`SessionMenuController`](../../kkdugi-admin/src/main/java/kkdugi/api/session/SessionMenuController.java)
+구현: [`MenuController`](../../kkdugi-admin/src/main/java/kkdugi/api/MenuController.java)
 
 세션의 `SessionMenu`(flat list, `program`/`authority` 필드 포함)를 그대로
 내려주지 않고, 화면 내비게이션에 필요한 필드만 골라
@@ -72,7 +71,7 @@ Response
 
 구현: [`PragmaController`](../../kkdugi-admin/src/main/java/kkdugi/web/admin/PragmaController.java)
 
-**주의: `/api/v1.0/admin` 접두사 밖에 있다** (auth.md/이 문서의 session/menu와
+**주의: `/api/v1.0/admin` 접두사 밖에 있다** (auth.md/이 문서의 내 메뉴 트리 조회와
 같은 이유 — 사실 이 엔드포인트는 `/api/v1.0` 프리픽스조차 없다, 아래 참고).
 응답도
 JSON이 아니라 `Content-Type: text/html`의 순수 텍스트다 — 화면의
