@@ -15,6 +15,7 @@
 
 | 파일 | 범위 |
 |---|---|
+| [request-context.md](request-context.md) | 모든 API의 요청 메뉴 ID 헤더와 shell 예외, 프런트 전달 및 서버 Aspect 인가 기준 |
 | [auth.md](auth.md) | 로그인/로그아웃 (JWT 발급, 세션 생성) |
 | [common-code.md](common-code.md) | 공통코드 조회/저장 (계층형 코드 트리) |
 | [code.md](code.md) | 공통코드 조회(사용자용) — 정확한 경로 조회, 언어별 이름, 배열 응답 |
@@ -37,13 +38,12 @@
   `Authorization: Bearer <token>` 헤더(우선) 또는 같은 토큰 쿠키로 보낸다
   (`BearerTokenAuthenticationFilter`가 둘 다 지원). 프런트는 쿠키에서 토큰을
   꺼내 헤더로 붙인다.
-  현재 `SecurityConfigurer`의 인가 규칙은 전부 `permitAll`이다 — 사용자/권한
-  관리 API([archive/api-define-admin.md](../archive/api-define-admin.md) 4~5절)가 아직 구현되지 않아 실제로 무엇을
-  막아야 하는지가 정해지지 않았기 때문이며, 인증 자체(로그인/토큰 검증)는
-  이미 동작한다. 즉 지금은 "토큰이 있으면 그 사용자로 인식"만 하고,
-  "이 API는 이 권한이 있어야 접근 가능" 같은 차단은 아직 없다(메뉴 관리
-  API도 마찬가지로 아직 `permitAll`이다 — RBAC 체크 자체가 권한 시스템에
-  달려 있어서, 메뉴 CRUD가 먼저 구현됐다고 따로 잠글 방법이 없다).
+  로그인·로그아웃 외의 API/Pragma는 인증이 필요하다. 컨트롤러의
+  `@RequireAuthority` / `@HasRole`을 SecurityChecker Aspect가 검사한다.
+  `X-Menu-Id`의 세션 메뉴 소속, 프로그램과 API 관계, 읽기/쓰기/삭제/실행
+  비트를 서버에서 검증한다. 메뉴 관리 API는 SYS_ADMIN 역할도 필요하다.
+  미인증은 401, 인가 거부는 403 JSON 응답이다.
+  상세 규약은 [요청 컨텍스트](request-context.md)와 [ADR-0017](../adr/0017-menu-context-security-aspect.md)을 참조한다.
 - **에러 응답 형식**: 컨트롤러가 직접 처리하지 않는 예외는
   `RestfulExceptionAdvice`(`@RestControllerAdvice`)가 받아 아래 형태로
   내려준다(각 도메인 문서의 커스텀 에러 응답은 이 컨트롤러가 명시적으로

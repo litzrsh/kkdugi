@@ -4,8 +4,8 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.MediaType;
 import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +16,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.exceptions.TemplateInputException;
 
 import kkdugi.core.enums.Rbac;
+import kkdugi.core.security.annotation.RequireAuthority;
 import kkdugi.core.security.models.SessionMenu;
 import kkdugi.core.util.SessionUtils;
 
@@ -27,12 +28,9 @@ import kkdugi.core.util.SessionUtils;
  * 필요한 이유 — 뷰 이름 리졸빙이 아니라 문자열을 그대로 바디에 쓴다).
  * 셸 페이지 렌더링(layout/index)은 {@link IndexController}가 대신 맡는다.
  *
- * <p>{@code menuId}는 세션에 이미 로드된 사용자 본인의 메뉴 목록
- * ({@link SessionUtils#getMenu(String)})에서만 찾는다 — 목록 자체가 이미
- * RBAC로 걸러져 있으므로(권한이 0인 메뉴는 애초에 세션 메뉴 목록에 없다),
- * 여기서 찾지 못하는 경우는 "존재하지 않음"과 "권한 없음"을 구분하지 않고
- * 전부 404로 통일한다 — 로그인 아이디 존재 여부를 노출하지 않는
- * {@code KkdugiUserDetailsService.ERR_NOT_FOUND}와 같은 이유다.</p>
+ * <p>SecurityChecker가 인증, X-Menu-Id, 세션 메뉴 소속과 경로 일치를 먼저
+ * 검사한다. 미인증은 401, 메뉴 접근 거부는 403이다. 아래 컨트롤러는 프로그램
+ * 경로 형식과 템플릿 존재를 검사하며 잘못되었거나 미구현된 템플릿은 404로 응답한다.</p>
  *
  * <p>{@code program}은 {@code templates/pragma/} 기준 상대 경로이고 폴더 구분자
  * {@code /}로 하위 폴더를 가리킬 수 있다 — 예를 들어 {@code admin/code}는
@@ -58,6 +56,7 @@ public class PragmaController {
         this.pragmaTemplateEngine = pragmaTemplateEngine;
     }
 
+    @RequireAuthority
     @GetMapping(value = "/pragma/{menuId}", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> pragma(@PathVariable String menuId, Locale locale) {
         SessionMenu menu = SessionUtils.getMenu(menuId);

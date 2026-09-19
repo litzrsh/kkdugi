@@ -16,7 +16,11 @@ import kkdugi.app.admin.menu.exceptions.AdminMenuValidationException;
 import kkdugi.app.admin.menu.models.AdminMenu;
 import kkdugi.app.admin.menu.models.AdminMenuPersistRequest;
 import kkdugi.app.admin.menu.service.AdminMenuService;
+import kkdugi.core.Constants;
+import kkdugi.core.enums.Rbac;
 import kkdugi.core.exceptions.ExceptionMessage;
+import kkdugi.core.security.annotation.HasRole;
+import kkdugi.core.security.annotation.RequireAuthority;
 
 @RestController
 @RequestMapping("/api/v1.0/admin/menu")
@@ -28,11 +32,15 @@ public class AdminMenuController {
         this.service = service;
     }
 
+    @RequireAuthority(value = Rbac.READ, program = "admin/menu")
+    @HasRole(Constants.SYS_ADMIN)
     @GetMapping
     public List<AdminMenu> search() {
         return service.search();
     }
 
+    @RequireAuthority(program = "admin/menu", batch = true)
+    @HasRole(Constants.SYS_ADMIN)
     @PostMapping("/persist")
     public void persist(@RequestBody AdminMenuPersistRequest request) {
         service.persist(request);

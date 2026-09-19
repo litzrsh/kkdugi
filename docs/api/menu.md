@@ -8,6 +8,10 @@
 구현: [`AdminMenuController`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/AdminMenuController.java) /
 [`AdminMenuService`](../../kkdugi-admin/src/main/java/kkdugi/app/admin/menu/service/AdminMenuService.java)
 
+## 인가
+
+모든 요청은 인증과 `X-Menu-Id`가 필요하다. 해당 세션 메뉴의 program은 `admin/menu`여야 하며 SYS_ADMIN 역할이 필요하다. 조회는 READ, 저장은 실제 insert/update에 WRTE, delete에 DELT를 검사한다. 실패 응답은 401/403이며 [요청 컨텍스트](request-context.md)를 따른다.
+
 ## 1. 메뉴 조회 - GET /api/v1.0/admin/menu
 
 요청 본문 없음. 검색/페이징 파라미터가 없다 — 공통코드(부모 자식 단위

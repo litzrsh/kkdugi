@@ -1,4 +1,5 @@
 import {getToken,clearToken,loginUrl} from '../auth/session.mjs';
+import {MENU_ID_HEADER,requestMenuId} from './request-context.mjs';
 export class ApiError extends Error{
  constructor(status,body){super(body?.message||`HTTP ${status}`);this.status=status;this.body=body;this.errors=Array.isArray(body)?body:body?.errors||[];}
 }
@@ -10,6 +11,8 @@ export function createHttp(config={},transport=fetch){
   const token=getToken();if(token)headers.Authorization='Bearer '+token;
   if(body!==undefined)headers['Content-Type']='application/json';
   if(config.csrf?.header&&config.csrf?.token)headers[config.csrf.header]=config.csrf.token;
+  const menuId=requestMenuId(path,method,options.menuId);
+  if(menuId!==null)headers[MENU_ID_HEADER]=menuId;
   let response;
   try{response=await transport(base+path,{method,headers,credentials:'same-origin',redirect:'error',cache:'no-store',signal:options.signal,...(body===undefined?{}:{body:JSON.stringify(body)})});}
   catch(e){if(e.name==='AbortError')throw e;throw new ApiError(0,{message:'network'});}

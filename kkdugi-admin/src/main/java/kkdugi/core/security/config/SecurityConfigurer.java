@@ -2,6 +2,7 @@ package kkdugi.core.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -27,6 +28,7 @@ import kkdugi.core.security.service.JwtTokenService;
 import kkdugi.core.security.service.KkdugiUserDetailsService;
 import kkdugi.core.security.service.SessionService;
 
+@EnableAspectJAutoProxy
 @Configuration
 public class SecurityConfigurer {
 
@@ -50,13 +52,7 @@ public class SecurityConfigurer {
         this.sessionLogoutHandler = sessionLogoutHandler;
     }
 
-    /**
-     * 인가 규칙(authorizeHttpRequests)은 아직 전부 permitAll이다 — 사용자/메뉴/
-     * 권한 조회 API(docs/archive/api-define-admin.md 4~5절)가 아직 구현되지 않아 실제로
-     * 무엇을 보호해야 하는지가 정해지지 않았다. 로그인/로그아웃은 이제 붙었지만,
-     * 기존 i18n/공통코드 API까지 지금 잠그면 그 컨트롤러 테스트가 전부 깨진다 —
-     * 사용자/메뉴/권한 기능을 붙이는 시점에 실제 보호 대상 경로를 지정한다.
-     */
+    /** API/Pragma authentication is enforced here; annotated methods enforce menu and role permissions. */
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, AuthenticationProcessingFilter authenticationProcessingFilter)
             throws Exception {
@@ -83,7 +79,10 @@ public class SecurityConfigurer {
                         .addLogoutHandler(sessionLogoutHandler)
                         .logoutSuccessHandler((request, response, authentication) ->
                                 response.setStatus(HttpServletResponse.SC_NO_CONTENT)))
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/v1.0/auth/login", LOGOUT_URL).permitAll()
+                        .requestMatchers("/api/**", "/pragma/**").authenticated()
+                        .anyRequest().permitAll())
                 .build();
     }
 

@@ -140,7 +140,7 @@ class PragmaControllerTest {
     void pragma_rendersFragment_withAuthoritiesReflectingGrantedBitmask() throws Exception {
         String token = login();
 
-        mockMvc.perform(get("/pragma/" + MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        mockMvc.perform(get("/pragma/" + MENU_ID).header("X-Menu-Id", MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("READ_OK")))
                 .andExpect(content().string(not(containsString("WRTE_OK"))));
@@ -150,7 +150,7 @@ class PragmaControllerTest {
     void pragma_programInSubfolder_isRendered() throws Exception {
         String token = login();
 
-        mockMvc.perform(get("/pragma/" + NESTED_MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        mockMvc.perform(get("/pragma/" + NESTED_MENU_ID).header("X-Menu-Id", NESTED_MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("NESTED_READ_OK")));
     }
@@ -159,24 +159,24 @@ class PragmaControllerTest {
     void pragma_programEscapingPragmaRoot_returns404() throws Exception {
         String token = login();
 
-        mockMvc.perform(get("/pragma/" + TRAVERSAL_MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        mockMvc.perform(get("/pragma/" + TRAVERSAL_MENU_ID).header("X-Menu-Id", TRAVERSAL_MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void pragma_menuWithoutProgram_returns404() throws Exception {
+    void pragma_menuWithoutProgram_returns403() throws Exception {
         String token = login();
 
-        mockMvc.perform(get("/pragma/" + NO_PROGRAM_MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/pragma/" + NO_PROGRAM_MENU_ID).header("X-Menu-Id", NO_PROGRAM_MENU_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void pragma_menuNotInSession_returns404() throws Exception {
+    void pragma_menuNotInSession_returns403() throws Exception {
         String token = login();
 
-        mockMvc.perform(get("/pragma/M_NO_SUCH_MENU").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/pragma/M_NO_SUCH_MENU").header("X-Menu-Id", "M_NO_SUCH_MENU").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -189,7 +189,7 @@ class PragmaControllerTest {
                 jdbcTemplate.update("UPDATE kkdugi_auth_menu SET auth_val = ? WHERE auth_id = ?", authority, AUTH_ID);
                 jdbcTemplate.update("DELETE FROM kkdugi_session WHERE user_id = ?", USER_ID);
                 String token = login();
-                String rendered = mockMvc.perform(get("/pragma/" + MENU_ID).param("lang", "en_US")
+                String rendered = mockMvc.perform(get("/pragma/" + MENU_ID).header("X-Menu-Id", MENU_ID).param("lang", "en_US")
                         .header(HttpHeaders.ACCEPT, "application/json, text/html;q=0.9")
                         .header("X-Requested-With", "XMLHttpRequest")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
@@ -211,7 +211,7 @@ class PragmaControllerTest {
         jdbcTemplate.update("UPDATE kkdugi_menu_base SET menu_pgm = 'admin/code' WHERE menu_id = ?", MENU_ID);
         jdbcTemplate.update("UPDATE kkdugi_auth_menu SET auth_val = 2 WHERE auth_id = ?", AUTH_ID);
         String token = login();
-        mockMvc.perform(get("/pragma/" + MENU_ID).param("lang", "en_US")
+        mockMvc.perform(get("/pragma/" + MENU_ID).header("X-Menu-Id", MENU_ID).param("lang", "en_US")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("<BatchPage"))))
@@ -219,8 +219,8 @@ class PragmaControllerTest {
     }
 
     @Test
-    void pragma_anonymousRequest_returns404() throws Exception {
-        mockMvc.perform(get("/pragma/" + MENU_ID))
-                .andExpect(status().isNotFound());
+    void pragma_anonymousRequest_returns401() throws Exception {
+        mockMvc.perform(get("/pragma/" + MENU_ID).header("X-Menu-Id", MENU_ID))
+                .andExpect(status().isUnauthorized());
     }
 }

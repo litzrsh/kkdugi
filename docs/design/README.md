@@ -4,6 +4,8 @@
 
 ## 현재 기준
 
+- [API 요청 메뉴 컨텍스트 적용](plan/17-api-menu-request-context.md)
+
 - [메뉴관리 완료·검증](plan/16-menu-management-completion.md)
 
 - [메뉴·코드 리팩토링과 관리 화면 연결](plan/15-menu-code-refactor-integration.md)

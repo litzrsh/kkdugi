@@ -14,8 +14,10 @@ import kkdugi.app.admin.code.models.AdminCode;
 import kkdugi.app.admin.code.models.AdminCodeParams;
 import kkdugi.app.admin.code.models.AdminCodePersistRequest;
 import kkdugi.app.admin.code.service.AdminCodeService;
+import kkdugi.core.enums.Rbac;
 import kkdugi.core.exceptions.ExceptionMessage;
 import kkdugi.core.models.Page;
+import kkdugi.core.security.annotation.RequireAuthority;
 
 @RestController
 @RequestMapping("/api/v1.0/admin/code")
@@ -27,11 +29,13 @@ public class AdminCodeController {
         this.service = service;
     }
 
+    @RequireAuthority(value = Rbac.READ, program = "admin/code")
     @PostMapping
     public Page<AdminCode> search(@RequestBody AdminCodeParams params) {
         return service.search(params);
     }
 
+    @RequireAuthority(program = "admin/code", batch = true)
     @PostMapping("/persist")
     public void persist(@RequestBody AdminCodePersistRequest request) {
         service.persist(request);

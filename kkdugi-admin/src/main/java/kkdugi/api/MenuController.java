@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kkdugi.app.menu.models.Menu;
 import kkdugi.app.menu.service.MenuService;
+import kkdugi.core.security.annotation.RequireAuthority;
 
 /** 사용자용 메뉴 조회(내 메뉴 트리). 관리자용 메뉴 CRUD는 {@code kkdugi.api.admin.AdminMenuController}. */
 @RestController
@@ -20,6 +21,7 @@ public class MenuController {
         this.service = service;
     }
 
+    @RequireAuthority(value = kkdugi.core.enums.Rbac.READ, allowShell = true)
     @GetMapping
     public List<Menu> menu() {
         return service.tree();

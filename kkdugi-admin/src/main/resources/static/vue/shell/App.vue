@@ -6,7 +6,7 @@
    <main id="main-content" class="main-content" :aria-busy="loading">
     <div v-if="screenError" class="error-panel page-error" role="alert"><span>{{screenError}}</span><button class="text-button" @click="retry">{{t('retry')}}</button></div>
     <div v-if="loading" class="screen-loading" role="status">{{t('loading')}}</div>
-    <div :inert="loading || undefined"><PageHost ref="host" :component="component" :menu="active" :locale="state.locale"/></div>
+    <div :inert="loading || undefined"><PageHost v-if="component" :key="active.id" ref="host" :component="component" :menu="active" :locale="state.locale"/></div>
     <section v-if="!component&&!loading" class="empty-state"><i class="las la-th-large"></i><h1 tabindex="-1">{{t('select_screen')}}</h1><p>{{t('select_screen_hint')}}</p><button class="button" @click="loadMenus">{{t('refresh')}}</button></section>
    </main>
   </div>

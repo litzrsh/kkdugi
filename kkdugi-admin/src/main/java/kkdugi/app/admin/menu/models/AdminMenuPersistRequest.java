@@ -1,13 +1,14 @@
 package kkdugi.app.admin.menu.models;
 
 import java.util.List;
+import kkdugi.core.security.models.AuthorityBatch;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class AdminMenuPersistRequest {
+public class AdminMenuPersistRequest implements AuthorityBatch {
 
     private final List<AdminMenu> insert;
     private final List<AdminMenu> update;

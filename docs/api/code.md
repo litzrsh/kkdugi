@@ -28,3 +28,7 @@ name은 요청 언어의 이름이며 번역이 없으면 code 값으로 대체�
 ## 캐시
 
 CodeService는 path와 언어별로 조회 결과를 캐시한다. AdminCodeService의 배치 저장이 성공하면 공통코드 캐시 전체를 비운다. CacheConfigurer에서 Spring 캐시를 활성화하며 TransactionAwareCacheManagerProxy로 캐시 변경을 DB 트랜잭션 커밋 이후에 적용한다.
+
+## 인가
+
+인증과 실제 호출 메뉴의 `X-Menu-Id`, READ 권한이 필요하다. 공통 API이므로 program을 특정 관리 화면으로 제한하지 않는다. `__shell__`은 허용하지 않는다. 미인증은 401, 메뉴/권한 오류는 403이다. [요청 컨텍스트](request-context.md) 참조.

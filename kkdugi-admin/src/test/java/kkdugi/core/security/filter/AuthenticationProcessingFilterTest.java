@@ -286,7 +286,7 @@ class AuthenticationProcessingFilterTest {
         Timestamp soon = new Timestamp(System.currentTimeMillis() + 60_000);
         jdbcTemplate.update("UPDATE kkdugi_session SET upd_dtm = ?, exp_dtm = ? WHERE user_id = ?", longAgo, soon, USER_ID);
 
-        mockMvc.perform(get(MENU_URL).cookie(new Cookie(COOKIE, token))).andExpect(status().isOk());
+        mockMvc.perform(get(MENU_URL).header("X-Menu-Id", "__shell__").cookie(new Cookie(COOKIE, token))).andExpect(status().isOk());
 
         Timestamp expiresAt = jdbcTemplate.queryForObject(
                 "SELECT exp_dtm FROM kkdugi_session WHERE user_id = ?", Timestamp.class, USER_ID);
@@ -300,7 +300,7 @@ class AuthenticationProcessingFilterTest {
         Timestamp before = jdbcTemplate.queryForObject(
                 "SELECT exp_dtm FROM kkdugi_session WHERE user_id = ?", Timestamp.class, USER_ID);
 
-        mockMvc.perform(get(MENU_URL).cookie(new Cookie(COOKIE, token))).andExpect(status().isOk());
+        mockMvc.perform(get(MENU_URL).header("X-Menu-Id", "__shell__").cookie(new Cookie(COOKIE, token))).andExpect(status().isOk());
 
         Timestamp after = jdbcTemplate.queryForObject(
                 "SELECT exp_dtm FROM kkdugi_session WHERE user_id = ?", Timestamp.class, USER_ID);

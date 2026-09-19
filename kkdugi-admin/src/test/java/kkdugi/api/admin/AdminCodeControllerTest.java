@@ -37,7 +37,7 @@ class AdminCodeControllerTest {
 
         @BeforeEach
         void setUp() {
-                mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+                mockMvc = kkdugi.support.TestAuthorization.mvc(webApplicationContext, "admin/code");
         }
 
     @Test

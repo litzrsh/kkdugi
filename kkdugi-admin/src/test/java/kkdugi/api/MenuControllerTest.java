@@ -109,7 +109,7 @@ class MenuControllerTest {
     void menu_returnsGrantedMenusAsNestedTree() throws Exception {
         String token = TestLogin.login(mockMvc, LOGIN_ID, PASSWORD);
 
-        mockMvc.perform(get(MENU_URL).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        mockMvc.perform(get(MENU_URL).header("X-Menu-Id", "__shell__").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(ROOT_MENU_ID))
@@ -127,9 +127,8 @@ class MenuControllerTest {
     }
 
     @Test
-    void menu_anonymousRequest_returnsEmptyArray() throws Exception {
-        mockMvc.perform(get(MENU_URL))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+    void menu_anonymousRequest_returns401() throws Exception {
+        mockMvc.perform(get(MENU_URL).header("X-Menu-Id", "__shell__"))
+                .andExpect(status().isUnauthorized());
     }
 }

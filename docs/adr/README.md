@@ -22,3 +22,4 @@ kkdugi-admin 프로젝트의 아키텍처 결정을 기록한다. 각 ADR은 번
 | [0014](0014-revert-to-base-model-inheritance.md) | BaseModel/BaseParams 상속 기반으로 재전환 (ADR-0011 되돌림) | Accepted |
 | [0015](0015-menu-management-system.md) | 메뉴 관리 시스템: 전체 트리 응답(Page<T> 미사용), parentId 불변, 409 중복 없음 | Accepted |
 | [0016](0016-app-and-admin-feature-split.md) | 사용자용(app.<기능>)과 관리자용(app.admin.<기능>) 기능 분리, 세션 메뉴 /api/v1.0/menu 이전 | Accepted |
+| [0017](0017-menu-context-security-aspect.md) | 요청 메뉴 기반 Aspect 인가: 역할·RBAC·프로그램·배치 작업 검증 | Accepted |

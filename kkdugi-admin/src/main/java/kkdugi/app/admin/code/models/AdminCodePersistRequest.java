@@ -1,13 +1,14 @@
 package kkdugi.app.admin.code.models;
 
 import java.util.List;
+import kkdugi.core.security.models.AuthorityBatch;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class AdminCodePersistRequest {
+public class AdminCodePersistRequest implements AuthorityBatch {
 
     private final List<AdminCode> insert;
     private final List<AdminCode> update;

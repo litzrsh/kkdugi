@@ -90,6 +90,18 @@ class KkdugiUserDetailsServiceTest {
         grantRole(AUTH_ID, "ROLE_TEST");
     }
 
+    /** Reuse the seeded role; role type/code is unique in the database. */
+    private void grantSystemAdminRole() {
+        String authId = jdbcTemplate.queryForObject(
+                "SELECT auth_id FROM kkdugi_auth_base WHERE auth_tp_cd = 'ROLE' AND auth_role_cd = ?",
+                String.class, kkdugi.core.Constants.SYS_ADMIN);
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_user_auth (user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_id) "
+                        + "VALUES (?, ?, ?, ?, ?)",
+                USER_ID, authId, Date.valueOf(LocalDate.now().minusDays(1)),
+                Date.valueOf(LocalDate.now().plusDays(1)), "SYSTEM");
+    }
+
     private void grantRole(String authId, String roleCd) {
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_auth_base (auth_id, auth_role_cd, auth_tp_cd, auth_nm, reg_id) "
@@ -208,7 +220,7 @@ class KkdugiUserDetailsServiceTest {
     void loadUserByUsername_sysAdminSeesAllMenusRegardlessOfAuthMenu() {
         insertUser();
         insertMenu();
-        grantRole(AUTH_ID, kkdugi.core.Constants.SYS_ADMIN);
+        grantSystemAdminRole();
 
         List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
 
@@ -236,7 +248,7 @@ class KkdugiUserDetailsServiceTest {
     void loadUserByUsername_sysAdminAlsoExcludesMenuUnderDisabledAncestor() {
         insertUser();
         insertMenuUnderDisabledParent();
-        grantRole(AUTH_ID, kkdugi.core.Constants.SYS_ADMIN);
+        grantSystemAdminRole();
 
         List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
 

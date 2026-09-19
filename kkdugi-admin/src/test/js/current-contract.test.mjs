@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createApi} from '../../main/resources/static/js/api/index.mjs';
+const pageApi=(...args)=>createApi(...args).forMenu('M_TEST');
 import {flatten,prepareLocalizedRow,prepareBatch,menuDescendants,filterMenuRows,isProtected} from '../../main/resources/static/js/domain/batch.mjs';
 test('current session/auth routes are separate from admin menu CRUD',async()=>{
- const requests=[];const api=createApi({basePath:'/kk'},async(url,options)=>{requests.push({url,...options});return new Response('[]');});
+ const requests=[];const api=pageApi({basePath:'/kk'},async(url,options)=>{requests.push({url,...options});return new Response('[]');});
  await api.menus();await api.request('/api/v1.0/auth/logout','POST');await api.list('menu',{page:7});await api.persist('menu',{insert:[],update:[],delete:[]});
  assert.deepEqual(requests.map(r=>[r.url,r.method]),[['/kk/api/v1.0/menu','GET'],['/kk/api/v1.0/auth/logout','POST'],['/kk/api/v1.0/admin/menu','GET'],['/kk/api/v1.0/admin/menu/persist','POST']]);assert.equal(requests[2].body,undefined);
 });
@@ -29,7 +30,7 @@ test('system menus and their ancestors retain deletion protection',()=>{
  const rows=[{id:'system',path:'/system'},{id:'codes',path:'/system/codes',program:'admin/code'}];assert.ok(isProtected(rows[0],rows));assert.ok(isProtected(rows[1],rows));
 });
 test('menu route is allowed without a trailing slash while the retired session prefix and lookalikes are rejected',async()=>{
- const api=createApi({basePath:'/kk'},async()=>new Response('[]'));
+ const api=pageApi({basePath:'/kk'},async()=>new Response('[]'));
  await api.request('/api/v1.0/menu','GET');
  await assert.rejects(()=>api.request('/api/v1.0/session/menu','GET'),/Invalid API path/);
  await assert.rejects(()=>api.request('/api/v1.0/menus','GET'),/Invalid API path/);
@@ -37,7 +38,7 @@ test('menu route is allowed without a trailing slash while the retired session p
 
 test('localized code lookup uses GET array contract separately from paged admin CRUD',async()=>{
  let captured;
- const api=createApi({},async(url,options)=>{captured={url,options};return Response.json([]);});
+ const api=pageApi({},async(url,options)=>{captured={url,options};return Response.json([]);});
  assert.deepEqual(await api.codes('/SYS/A & B'),[]);
  assert.equal(captured.url,'/api/v1.0/code?path=%2FSYS%2FA+%26+B');
  assert.equal(captured.options.method,'GET');assert.equal(captured.options.body,undefined);

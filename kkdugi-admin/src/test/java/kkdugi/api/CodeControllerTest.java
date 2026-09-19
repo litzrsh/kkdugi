@@ -35,7 +35,7 @@ class CodeControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        mockMvc = kkdugi.support.TestAuthorization.mvc(webApplicationContext, "admin/code");
 
         insertCode(ROOT_ID, null, "TEST_USER_API_ROOT", 0, ROOT_PATH, 1, "Y");
         insertCode(CHILD_A, ROOT_ID, "CHILD_A", 1, ROOT_PATH + "/CHILD_A", 1, "Y");

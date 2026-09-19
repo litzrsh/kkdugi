@@ -36,7 +36,7 @@ class AdminMenuControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        mockMvc = kkdugi.support.TestAuthorization.mvc(webApplicationContext, "admin/menu");
     }
 
     @Test

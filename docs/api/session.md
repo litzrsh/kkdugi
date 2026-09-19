@@ -13,7 +13,7 @@ API다. 그 문서의 [3절 메뉴
    비트마스크와 무관하게 전체 메뉴를 받는다(`findAllMenus`, authority
    65535 고정). 그 외 사용자는 본인이 가진 역할들의 메뉴별 권한 비트를
    Postgres `BIT_OR`로 합산한 목록만 받는다(`findMenusByUsername`,
-   `HAVING BIT_OR(...) > 0` — 읽기 권한조차 없는 메뉴는 애초에 세션에
+   `HAVING BIT_OR(...) > 0` — 권한 비트가 하나도 없는 메뉴는 세션에
    담기지 않는다).
 2. 화면은 [`GET /api/v1.0/menu`](#1-내-메뉴-트리-조회---get-apiv10menu)로
    내비게이션 트리를 받는다.
@@ -65,7 +65,9 @@ Response
 
 |Response Status|설명|
 |---|---|
-|200|정상 — 로그인하지 않은 요청도 200과 함께 빈 배열을 받는다(익명 사용자의 세션 메뉴 목록이 비어있기 때문)|
+|200|정상 — 인증된 세션과 X-Menu-Id 필요. 최초 조회는 __shell__, 페이지 요청은 실제 메뉴 ID + READ|
+|401|인증 없음/세션 만료|
+|403|메뉴 컨텍스트 누락 또는 허용되지 않은 메뉴·권한|
 
 ## 2. 메뉴 화면 조각 조회 - GET /pragma/{menuId}
 
@@ -103,13 +105,11 @@ API로 저장되는 값이라 검증 없이 넘기면 `templates/pragma/` 밖의
 |Response Status|설명|
 |---|---|
 |200|정상 — 렌더링된 HTML/Vue 텍스트|
-|404|다음 네 경우를 구분하지 않고 전부 404로 통일: (1) `menuId`가 세션 메뉴 목록에 없음(존재하지 않거나, 읽기 권한조차 없어 애초에 세션에 담기지 않은 메뉴) (2) 메뉴는 있지만 `program`이 비어있음(그룹/폴더 노드) (3) `program`이 위 형식(하위 폴더 허용, `..` 등 불가)에 맞지 않음 (4) `program`은 있지만 `templates/pragma/{program}.vue` 파일이 아직 없음|
+|401|인증 없음/세션 만료|
+|403|X-Menu-Id 누락·형식 오류, 경로와 헤더 불일치, 세션 메뉴에 없음, 그룹/프로그램 없음, 유효한 RBAC 비트 없음|
+|404|프로그램 경로 형식이 잘못되었거나 해당 Vue 템플릿이 없음|
 
-404를 하나로 통일한 이유: 세션 메뉴 목록 자체가 이미 RBAC로 필터링돼 있어
-"존재하지 않음"과 "권한 없음"을 구분해 알려주는 게 의미가 없고(로그인
-아이디 존재 여부를 노출하지 않는 것과 같은 원칙 — `KkdugiUserDetailsService`
-참고), 화면 파일이 아직 없는 상태도 이 저장소 범위 밖의 정상적인 과도기라
-같은 상태 코드로 처리한다.
+SecurityChecker가 컨트롤러 실행 전에 메뉴 접근을 검증한다. 알 수 없는 ID와 다른 사용자의 메뉴 ID는 모두 403으로 처리한다. 화면 렌더링 시 개별 READ 비트에 따른 마크업 분기는 유지한다.
 
 ### 현재 Pragma 화면 구현
 
@@ -118,10 +118,12 @@ API로 저장되는 값이라 검증 없이 넘기면 `templates/pragma/` 밖의
 기본 메뉴(`V10__insert_default_menu.sql`)의 program 코드는 `home`,
 `admin/code`, `admin/message`, `admin/menu`, `admin/authority`, `admin/user`다.
 이 중 `admin/code`, `admin/message`, `admin/menu`는 `templates/pragma/admin/`에
-파일이 있고, `home`, `admin/authority`, `admin/user`는 아직 없어 404(4)로 응답한다.
+파일이 있고, `home`, `admin/authority`, `admin/user`는 아직 없어 404로 응답한다.
 프런트의 시스템 메뉴 삭제 보호(`isProtected`)는 이 program 코드를 기준으로 한다
 (`static/js/domain/batch.mjs`의 `systemPrograms`) — 기본 메뉴의 program을 바꾸면 함께 바꿔야 한다.
 
 ### 프런트 요청 헤더
 
 Pragma는 Accept: application/json, text/html;q=0.9로 요청한다. JSON만 수락하면 produces=text/html과 맞지 않아 406이 발생한다. X-Requested-With: XMLHttpRequest로 비동기 요청임을 표시해 HTML 페이지용 인증 리다이렉트와 구분한다.
+
+모든 Pragma 요청에 `X-Menu-Id: <URL과 동일한 메뉴 ID>`가 필요하다. API/Pragma fetch는 미인증 시 401 JSON, 인가 거부 시 403 JSON을 받는다. [ADR-0017](../adr/0017-menu-context-security-aspect.md) 참조.

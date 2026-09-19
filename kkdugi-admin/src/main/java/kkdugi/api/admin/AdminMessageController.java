@@ -14,8 +14,10 @@ import kkdugi.app.admin.i18n.models.AdminMessage;
 import kkdugi.app.admin.i18n.models.AdminMessageParams;
 import kkdugi.app.admin.i18n.models.AdminMessagePersistRequest;
 import kkdugi.app.admin.i18n.service.AdminMessageService;
+import kkdugi.core.enums.Rbac;
 import kkdugi.core.exceptions.ExceptionMessage;
 import kkdugi.core.models.Page;
+import kkdugi.core.security.annotation.RequireAuthority;
 
 @RestController
 @RequestMapping("/api/v1.0/admin/i18n")
@@ -27,11 +29,13 @@ public class AdminMessageController {
         this.service = service;
     }
 
+    @RequireAuthority(value = Rbac.READ, program = "admin/message")
     @PostMapping
     public Page<AdminMessage> search(@RequestBody AdminMessageParams params) {
         return service.search(params);
     }
 
+    @RequireAuthority(program = "admin/message", batch = true)
     @PostMapping("/persist")
     public void persist(@RequestBody AdminMessagePersistRequest request) {
         service.persist(request);
