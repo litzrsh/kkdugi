@@ -17,6 +17,7 @@
 |---|---|
 | [auth.md](auth.md) | 로그인/로그아웃 (JWT 발급, 세션 생성) |
 | [common-code.md](common-code.md) | 공통코드 조회/저장 (계층형 코드 트리) |
+| [code.md](code.md) | 공통코드 조회(사용자용) — 하위 코드 목록, 언어별 이름 |
 | [i18n-message.md](i18n-message.md) | 다국어 메시지 조회/저장 |
 | [menu.md](menu.md) | 메뉴 관리 — 전체 트리 조회/저장(SYS_ADMIN 전용, 계층형) |
 | [session.md](session.md) | 로그인한 사용자의 메뉴 트리 조회, 메뉴 단위 화면(Pragma) 조각 서빙 |

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.app.code.mapper.CodeMapper">
+
+  <!-- 감사 컬럼(reg_*/upd_*)은 select하지 않으므로 baseResultMap을 extends하지 않는다. -->
+  <resultMap id="codeResultMap" type="kkdugi.app.code.models.Code">
+    <id property="id" column="code_id"/>
+    <result property="parentId" column="code_parent_id"/>
+    <result property="code" column="code_val"/>
+    <result property="name" column="code_nm"/>
+    <result property="remarks" column="code_dc"/>
+    <result property="extra1" column="etc_val1"/>
+    <result property="extra2" column="etc_val2"/>
+    <result property="extra3" column="etc_val3"/>
+    <result property="extra4" column="etc_val4"/>
+    <result property="extra5" column="etc_val5"/>
+    <result property="path" column="code_path"/>
+    <result property="level" column="code_lvl"/>
+    <result property="sort" column="sort_seq"/>
+    <result property="totalSize" column="total_size"/>
+  </resultMap>
+
+  <!--
+    * QueryID=findChildren
+    * Description=Find used (use_yn = 'Y') direct children of a parent code, with the
+    *             name resolved to the requested language (falls back to code_val),
+    *             paged at query level (total via window function)
+    -->
+  <select id="findChildren" resultMap="codeResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.code.mapper.CodeMapper.findChildren */
+SELECT cb.code_id, cb.code_parent_id, cb.code_val,
+       COALESCE(cl.code_nm, cb.code_val) AS code_nm,
+       cl.code_dc,
+       cb.etc_val1, cb.etc_val2, cb.etc_val3, cb.etc_val4, cb.etc_val5,
+       cb.code_path, cb.code_lvl, cb.sort_seq,
+       COUNT(*) OVER() AS total_size
+FROM kkdugi_code_base cb
+LEFT JOIN kkdugi_code_lang cl
+       ON cl.code_id = cb.code_id AND cl.lang_cd = #{langCode}
+WHERE cb.use_yn = 'Y'
+]]>
+    <choose>
+      <when test="path != null and path != ''">
+<![CDATA[
+AND cb.code_parent_id = (SELECT p.code_id FROM kkdugi_code_base p WHERE p.code_path = #{path})
+]]>
+      </when>
+      <when test="parentId != null and parentId != ''">
+<![CDATA[
+AND cb.code_parent_id = #{parentId}
+]]>
+      </when>
+      <otherwise>
+<![CDATA[
+AND cb.code_parent_id IS NULL
+]]>
+      </otherwise>
+    </choose>
+<![CDATA[
+ORDER BY cb.sort_seq NULLS LAST, cb.code_val
+OFFSET #{offset} LIMIT #{pageSize}
+]]>
+  </select>
+
+</mapper>
