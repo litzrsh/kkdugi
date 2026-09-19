@@ -312,4 +312,19 @@ WHERE user_id = #{userId}
     </foreach>
   </delete>
 
+    <select id="findAuthorityCandidates" resultMap="userAuthorityResultMap">
+        SELECT #{userId} AS user_id, ab.auth_id, ab.auth_role_cd, ab.auth_tp_cd,
+               ab.auth_nm, ab.auth_dc, ab.use_yn
+        FROM kkdugi_auth_base ab
+        WHERE ab.use_yn = 'Y'
+          AND NOT EXISTS (SELECT 1 FROM kkdugi_user_auth ua
+                          WHERE ua.user_id = #{userId} AND ua.auth_id = ab.auth_id)
+        <if test="query != null">
+          AND (POSITION(LOWER(#{query}) IN LOWER(ab.auth_nm)) > 0
+            OR POSITION(LOWER(#{query}) IN LOWER(ab.auth_role_cd)) > 0
+            OR POSITION(LOWER(#{query}) IN LOWER(ab.auth_id)) > 0)
+        </if>
+        ORDER BY ab.auth_nm, ab.auth_id
+        LIMIT 200
+    </select>
 </mapper>

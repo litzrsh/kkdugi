@@ -4,6 +4,8 @@
 
 ## 현재 기준
 
+- [사용자관리 화면 구현](plan/21-user-management.md) · [설계 결정](adr/0014-user-management-ui.md)
+
 - [권한관리 화면 구현](plan/20-authority-management.md) · [설계 결정](adr/0013-authority-management-ui.md)
 
 - [언어 변경 시 메뉴 갱신](plan/19-menu-locale-refresh.md)
@@ -23,7 +25,7 @@
 - [메뉴관리·현행 CRUD 연동](plan/13-current-api-sync.md)
 - [역할별 파일 구조](plan/12-role-based-resource-layout.md)
 
-실제 구현 위치는 kkdugi-admin입니다. 로그인은 HTML/CSS/vanilla JavaScript, 관리 화면은 Thymeleaf와 Vue SFC를 사용합니다. 기본 Pragma 화면은 templates/pragma/admin/{code,message,menu,authority}.vue이며 파일 경로를 프로그램 코드로 사용합니다.
+실제 구현 위치는 kkdugi-admin입니다. 로그인은 HTML/CSS/vanilla JavaScript, 관리 화면은 Thymeleaf와 Vue SFC를 사용합니다. 기본 Pragma 화면은 templates/pragma/admin/{code,message,menu,authority,user}.vue이며 파일 경로를 프로그램 코드로 사용합니다.
 
 ## 문서 작성 위치
 

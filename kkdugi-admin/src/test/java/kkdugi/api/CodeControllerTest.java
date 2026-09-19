@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import kkdugi.KkdugiAdminApplication;
@@ -78,6 +77,64 @@ class CodeControllerTest {
     void codes_requiresPath() throws Exception {
         mockMvc.perform(get(URL)).andExpect(status().isBadRequest());
     }
+
+    @Test
+    void enumCodes_returnsLocalizedCodesAndDoesNotCacheThePreviousLocale() throws Exception {
+        mockMvc.perform(get(URL).param("path", "UserStatus").param("enum", "true").param("lang", "ko_KR"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(5))
+                .andExpect(jsonPath("$[0].id").value("UserStatus.10"))
+                .andExpect(jsonPath("$[0].code").value("10"))
+                .andExpect(jsonPath("$[0].name").value("대기"))
+                .andExpect(jsonPath("$[0].path").value("UserStatus"))
+                .andExpect(jsonPath("$[0].sort").value(1))
+                .andExpect(jsonPath("$[0].createdAt").doesNotExist());
+        mockMvc.perform(get(URL).param("path", "UserStatus").param("enum", "true").param("lang", "en_US"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].name").value("Pending"));
+        mockMvc.perform(get(URL).param("path", "UserStatus").param("enum", "true").param("lang", "ko_KR"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].name").value("대기"));
+    }
+
+    @Test
+    void enumCodes_supportsEveryCurrentEnum() throws Exception {
+        String[][] enums = {{"AuthorityType", "2", "ROLE", "Role"}, {"PasswordStatus", "3", "10", "Initial change required"},
+                {"Rbac", "4", "10", "Read"}};
+        for (String[] entry : enums) {
+            mockMvc.perform(get(URL).param("path", entry[0]).param("enum", "true").param("lang", "en_US"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(Integer.parseInt(entry[1])))
+                    .andExpect(jsonPath("$[0].code").value(entry[2])).andExpect(jsonPath("$[0].name").value(entry[3]));
+        }
+    }
+
+    @Test
+    void enumCodes_rejectsInvalidTypesAndBooleanWithoutFallingBackToDatabase() throws Exception {
+        for (String name : new String[]{"", "Missing", "CodeEnums", "java.lang.Thread", "kkdugi.core.enums.UserStatus", "userstatus", ROOT_PATH}) {
+            mockMvc.perform(get(URL).param("path", name).param("enum", "true"))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("code.err.malformed_request"));
+        }
+        mockMvc.perform(get(URL).param("path", "UserStatus").param("enum", "invalid"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("code.err.malformed_request"));
+        mockMvc.perform(get(URL).param("enum", "true")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void enumCodes_falseAndOmittedKeepDatabaseBehavior() throws Exception {
+        mockMvc.perform(get(URL).param("path", ROOT_PATH + "/CHILD_A").param("enum", "false"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(CHILD_A));
+        mockMvc.perform(get(URL).param("path", "UserStatus"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void enumCodes_requiresTheCallingMenusReadPermission() throws Exception {
+        kkdugi.support.TestAuthorization.mvc(webApplicationContext, "admin/user", 0, kkdugi.core.Constants.SYS_ADMIN)
+                .perform(get(URL).param("path", "UserStatus").param("enum", "true"))
+                .andExpect(status().isForbidden());
+        kkdugi.support.TestAuthorization.mvc(webApplicationContext, "admin/user", 1, kkdugi.core.Constants.SYS_ADMIN)
+                .perform(get(URL).param("path", "UserStatus").param("enum", "true"))
+                .andExpect(status().isOk());
+    }
+
 
     private void insertCode(String id, String parentId, String value, int level, String path, int sort, String use) {
         jdbcTemplate.update(

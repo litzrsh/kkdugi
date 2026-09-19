@@ -17,6 +17,7 @@ import kkdugi.app.admin.user.exceptions.AdminUserConflictException;
 import kkdugi.app.admin.user.exceptions.AdminUserNotFoundException;
 import kkdugi.app.admin.user.exceptions.AdminUserValidationException;
 import kkdugi.app.admin.user.models.AdminUser;
+import kkdugi.app.admin.user.models.AdminUserAuthorityQuery;
 import kkdugi.app.admin.user.models.AdminUserAuthoritiesRequest;
 import kkdugi.app.admin.user.models.AdminUserAuthority;
 import kkdugi.app.admin.user.models.AdminUserChangeStatusRequest;
@@ -103,6 +104,14 @@ public class AdminUserController {
     @GetMapping("/{id}/authorities")
     public List<AdminUserAuthority> authorities(@PathVariable("id") String id) {
         return service.authorities(id);
+    }
+
+    @RequireAuthority(value = Rbac.READ, program = PROGRAM)
+    @HasRole(Constants.SYS_ADMIN)
+    @PostMapping("/{id}/authority-candidates")
+    public List<AdminUserAuthority> authorityCandidates(@PathVariable("id") String id,
+            @RequestBody(required = false) AdminUserAuthorityQuery query) {
+        return service.authorityCandidates(id, query == null ? null : query.getQuery());
     }
 
     @RequireAuthority(program = PROGRAM, batch = true)

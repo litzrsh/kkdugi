@@ -249,6 +249,38 @@ class AdminUserControllerTest {
         mockMvc.perform(post(URL + "/" + USER_2 + "/delete")).andExpect(status().isOk());
     }
 
+    @Test
+    void authorityCandidates_filtersEnabledUnassignedAndLiteralCaseInsensitiveQuery() throws Exception {
+        insertAuthority("A_TEST_USR_API_C1", "TEST_USR_API_CANDIDATE_ONE");
+        insertAuthority("A_TEST_USR_API_C2", "TEST_USR_API_CANDIDATE_TWO");
+        insertAuthority("A_TEST_USR_API_C3", "TEST_USR_API_CANDIDATE_THREE");
+        jdbcTemplate.update("UPDATE kkdugi_auth_base SET use_yn = 'N' WHERE auth_id = ?", "A_TEST_USR_API_C2");
+        mockMvc.perform(post(URL + "/" + USER_1 + "/authorities").contentType(APPLICATION_JSON)
+                .content(json(map("insert", List.of(map("id", "A_TEST_USR_API_C3")))))).andExpect(status().isOk());
+        mockMvc.perform(post(URL + "/" + USER_1 + "/authority-candidates").contentType(APPLICATION_JSON)
+                .content(json(map("query", "  test_usr_api_candidate  "))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value("A_TEST_USR_API_C1"))
+                .andExpect(jsonPath("$[0].role").value("TEST_USR_API_CANDIDATE_ONE"))
+                .andExpect(jsonPath("$[0].use").value("Y"));
+        mockMvc.perform(post(URL + "/" + USER_1 + "/authority-candidates").contentType(APPLICATION_JSON)
+                .content(json(map("query", "%")))).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(post(URL + "/MISSING/authority-candidates")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void authorityCandidates_requiresUserMenuReadAndSystemRole() throws Exception {
+        String endpoint = URL + "/" + USER_1 + "/authority-candidates";
+        TestAuthorization.mvc(webApplicationContext, "admin/user", Rbac.READ.getValue(), Constants.SYS_ADMIN)
+                .perform(post(endpoint)).andExpect(status().isOk());
+        TestAuthorization.mvc(webApplicationContext, "admin/user", Rbac.WRTE.getValue(), Constants.SYS_ADMIN)
+                .perform(post(endpoint)).andExpect(status().isForbidden());
+        TestAuthorization.mvc(webApplicationContext, "admin/authority", 15, Constants.SYS_ADMIN)
+                .perform(post(endpoint)).andExpect(status().isForbidden());
+        TestAuthorization.mvc(webApplicationContext, "admin/user", 15, "OPERATOR")
+                .perform(post(endpoint)).andExpect(status().isForbidden());
+    }
+
     private void insertAuthority(String id, String role) {
         jdbcTemplate.update("INSERT INTO kkdugi_auth_base (auth_id, auth_role_cd, auth_tp_cd, auth_nm, reg_id) "
                 + "VALUES (?, ?, 'ROLE', ?, 'SYSTEM')", id, role, "Name " + role);

@@ -50,6 +50,8 @@ public interface AdminUserMapper {
     /** {@code authorityIds}는 비어 있으면 안 된다. */
     List<String> findExistingAuthorityIds(@Param("authorityIds") List<String> authorityIds);
 
+    List<UserAuthority> findAuthorityCandidates(@Param("userId") String userId, @Param("query") String query);
+
     int upsertAuthority(UserAuthority row);
 
     /** {@code authorityIds}는 비어 있으면 안 된다. */

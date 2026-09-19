@@ -375,6 +375,13 @@ public class AdminUserService {
         return item.getApplyEndDate() != null ? item.getApplyEndDate() : OPEN_ENDED;
     }
 
+    @Transactional(readOnly = true)
+    public List<AdminUserAuthority> authorityCandidates(String id, String query) {
+        findExisting(id);
+        return adminUserMapper.findAuthorityCandidates(id, trimToNull(query)).stream()
+                .map(AdminUserService::toAuthorityContent).toList();
+    }
+
     private static AdminUserAuthority toAuthorityContent(UserAuthority row) {
         return new AdminUserAuthority(row.getAuthorityId(), row.getRole(), row.getType().getCode(), row.getName(),
                 row.getRemarks(), row.getUse(), row.getApplyStartDate(), row.getApplyEndDate());

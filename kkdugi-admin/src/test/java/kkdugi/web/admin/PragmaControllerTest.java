@@ -183,7 +183,7 @@ class PragmaControllerTest {
     void publishedScreens_renderRealSfcWithPerRequestPermissions() throws Exception {
         Path output = Path.of("target", "pragma-test-output");
         Files.createDirectories(output);
-        for (String program : new String[]{"admin/code", "admin/message", "admin/menu", "admin/authority"}) {
+        for (String program : new String[]{"admin/code", "admin/message", "admin/menu", "admin/authority", "admin/user"}) {
             for (int authority : new int[]{1, 3, 5, 15}) {
                 jdbcTemplate.update("UPDATE kkdugi_menu_base SET menu_pgm = ? WHERE menu_id = ?", program, MENU_ID);
                 jdbcTemplate.update("UPDATE kkdugi_auth_menu SET auth_val = ? WHERE auth_id = ?", authority, AUTH_ID);
@@ -195,7 +195,7 @@ class PragmaControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                         .andExpect(status().isOk())
                         .andExpect(header().string("Cache-Control", "no-store"))
-                        .andExpect(content().string(containsString("@vue/pages/" + (program.equals("admin/authority") ? "AuthorityPage.vue" : "BatchPage.vue"))))
+                        .andExpect(content().string(containsString("@vue/pages/" + (program.equals("admin/authority") ? "AuthorityPage.vue" : program.equals("admin/user") ? "UserPage.vue" : "BatchPage.vue"))))
                         .andExpect(content().string(not(containsString("th:if"))))
                         .andReturn().getResponse().getContentAsString();
                 String compact = rendered.replaceAll("\\s", "");

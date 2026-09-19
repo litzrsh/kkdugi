@@ -21,7 +21,7 @@
 | [i18n-message.md](i18n-message.md) | 다국어 메시지 조회/저장 |
 | [menu.md](menu.md) | 메뉴 관리 — 전체 트리 조회/저장(SYS_ADMIN 전용, 계층형) |
 | [authority.md](authority.md) | 권한 관리 — 권한 CRUD, 메뉴 RBAC 매핑, 사용자 매핑, 후보 사용자 조회 |
-| [user.md](user.md) | 사용자 관리 — 목록/상세/등록/저장, 사용자별 권한, 비밀번호 초기화, 삭제, 상태 일괄 변경 |
+| [user.md](user.md) | 사용자 관리 — 목록/상세/등록/저장, 사용자별 권한·권한 후보 조회, 비밀번호 초기화, 삭제, 상태 일괄 변경 |
 | [session.md](session.md) | 로그인한 사용자의 메뉴 트리 조회, 메뉴 단위 화면(Pragma) 조각 서빙 |
 
 ## 공통 사항

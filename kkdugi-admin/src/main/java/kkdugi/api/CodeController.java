@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import kkdugi.app.code.models.Code;
 import kkdugi.app.code.service.CodeService;
+import kkdugi.core.enums.CodeEnums;
 import kkdugi.core.exceptions.ExceptionMessage;
 import kkdugi.core.security.annotation.RequireAuthority;
 
@@ -32,9 +34,15 @@ public class CodeController {
         return ResponseEntity.badRequest().body(new ExceptionMessage("code.err.malformed_request"));
     }
 
+    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ExceptionMessage> invalidCodeRequest(Exception exception) {
+        return ResponseEntity.badRequest().body(new ExceptionMessage("code.err.malformed_request"));
+    }
+
     @RequireAuthority(kkdugi.core.enums.Rbac.READ)
     @GetMapping
-    public List<Code> children(@RequestParam String path, Locale locale) {
-        return service.findCodes(path, locale.toString());
+    public List<Code> children(@RequestParam("path") String path,
+            @RequestParam(name = "enum", required = false, defaultValue = "false") boolean enumCode, Locale locale) {
+        return enumCode ? CodeEnums.toCodes(path) : service.findCodes(path, locale.toString());
     }
 }
