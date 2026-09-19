@@ -1,6 +1,10 @@
 package kkdugi.web.admin;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -42,7 +46,7 @@ import kkdugi.core.security.models.LoginResponse;
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class PragmaControllerTest {
 
-    private static final String LOGIN_URL = "/api/v1.0/admin/auth/login";
+    private static final String LOGIN_URL = "/api/v1.0/auth/login";
     private static final String USER_ID = "U_TEST_PRAGMA_1";
     private static final String AUTH_ID = "A_TEST_PRAGMA_1";
     private static final String MENU_ID = "M_TEST_PRAGMA_1";
@@ -151,6 +155,43 @@ class PragmaControllerTest {
 
         mockMvc.perform(get("/pragma/M_NO_SUCH_MENU").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void publishedScreens_renderRealSfcWithPerRequestPermissions() throws Exception {
+        Path output = Path.of("target", "pragma-test-output");
+        Files.createDirectories(output);
+        for (String program : new String[]{"admcode", "admmsge", "admmenu"}) {
+            for (int authority : new int[]{1, 3, 5, 15}) {
+                jdbcTemplate.update("UPDATE kkdugi_menu_base SET menu_pgm = ? WHERE menu_id = ?", program, MENU_ID);
+                jdbcTemplate.update("UPDATE kkdugi_auth_menu SET auth_val = ? WHERE auth_id = ?", authority, AUTH_ID);
+                jdbcTemplate.update("DELETE FROM kkdugi_session WHERE user_id = ?", USER_ID);
+                String token = login();
+                String rendered = mockMvc.perform(get("/pragma/" + MENU_ID).param("lang", "en_US")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andExpect(header().string("Cache-Control", "no-store"))
+                        .andExpect(content().string(containsString("@vue/pages/BatchPage.vue")))
+                        .andExpect(content().string(not(containsString("th:if"))))
+                        .andReturn().getResponse().getContentAsString();
+                String compact = rendered.replaceAll("\\s", "");
+                assertTrue(compact.contains("\"20\":" + ((authority & 2) != 0)));
+                assertTrue(compact.contains("\"30\":" + ((authority & 4) != 0)));
+                Files.writeString(output.resolve(program + "-" + authority + ".vue"), rendered);
+            }
+        }
+    }
+
+    @Test
+    void publishedScreen_withoutRead_usesRequestedMessageLocale() throws Exception {
+        jdbcTemplate.update("UPDATE kkdugi_menu_base SET menu_pgm = 'admcode' WHERE menu_id = ?", MENU_ID);
+        jdbcTemplate.update("UPDATE kkdugi_auth_menu SET auth_val = 2 WHERE auth_id = ?", AUTH_ID);
+        String token = login();
+        mockMvc.perform(get("/pragma/" + MENU_ID).param("lang", "en_US")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("<BatchPage"))))
+                .andExpect(content().string(containsString("You do not have permission")));
     }
 
     @Test

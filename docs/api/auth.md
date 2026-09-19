@@ -1,6 +1,6 @@
 # 인증 (로그인/로그아웃)
 
-[api-define-admin.md](../api-define-admin.md)에는 별도 절로 정의돼 있지 않다
+[api-define-admin.md](../archive/api-define-admin.md)(2026-09-18 삭제, 원문은 아카이브로 이동)에는 별도 절로 정의돼 있지 않다
 — 세션/로그인 시스템은 그 문서가 다루는 5개 절(공통코드/메시지/메뉴/권한/
 사용자) 이후의 별개 단계로 구현됐다.
 
@@ -9,7 +9,7 @@
 점이 다른 API와 다르다 — Spring Security의
 `AbstractAuthenticationProcessingFilter`를 직접 확장해 로그인 URL만 가로챈다.
 
-## 1. 로그인 - POST /api/v1.0/admin/auth/login
+## 1. 로그인 - POST /api/v1.0/auth/login
 
 인증 불필요(로그인 자체이므로).
 
@@ -47,7 +47,7 @@ Response
 직접 `{ "code": "...", "message": "..." }` 형태로 쓴다 — 형태 자체는
 [README](README.md#공통-사항)의 공통 에러 형식과 동일하다.
 
-## 2. 로그아웃 - POST /api/v1.0/admin/auth/logout
+## 2. 로그아웃 - POST /api/v1.0/auth/logout
 
 `Authorization: Bearer <token>` 필요. Spring Security 표준 `LogoutFilter` +
 `SessionLogoutHandler`로 처리되며, 별도 컨트롤러 없이 세션을 만료시키고 빈

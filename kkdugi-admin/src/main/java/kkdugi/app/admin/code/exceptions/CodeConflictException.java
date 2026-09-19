@@ -1,19 +1,15 @@
 package kkdugi.app.admin.code.exceptions;
 
-import java.util.List;
-
-import kkdugi.app.admin.code.models.CodeError;
-
 public class CodeConflictException extends RuntimeException {
 
-    private final List<CodeError> errors;
+    private final String code;
 
-    public CodeConflictException(String id, String code, String reason) {
-        super(reason);
-        this.errors = List.of(new CodeError(id, code, reason));
+    public CodeConflictException(String code) {
+        super(code);
+        this.code = code;
     }
 
-    public List<CodeError> getErrors() {
-        return errors;
+    public String getCode() {
+        return code;
     }
 }

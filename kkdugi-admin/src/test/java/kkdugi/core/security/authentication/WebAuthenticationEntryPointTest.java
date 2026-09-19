@@ -14,7 +14,7 @@ class WebAuthenticationEntryPointTest {
 
     @Test
     void commence_redirectsToLogin() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/admin");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         entryPoint.commence(request, response, new BadCredentialsException("no session"));
@@ -25,7 +25,7 @@ class WebAuthenticationEntryPointTest {
 
     @Test
     void commence_prefixesContextPath() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/kk/admin");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/kk");
         request.setContextPath("/kk");
         MockHttpServletResponse response = new MockHttpServletResponse();
 

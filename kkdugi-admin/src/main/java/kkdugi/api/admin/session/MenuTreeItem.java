@@ -5,7 +5,7 @@ import java.util.List;
 import kkdugi.core.models.Tree;
 
 /**
- * {@code GET /api/v1.0/admin/session/menu} 응답 전용 모델. 세션에 저장된
+ * {@code GET /api/v1.0/session/menu} 응답 전용 모델. 세션에 저장된
  * {@link kkdugi.core.security.models.SessionMenu}(flat list, RBAC 체크용
  * {@code program}/{@code authority} 포함)를 그대로 내려주지 않고, 화면
  * 내비게이션에 필요한 필드만 골라 트리 모양으로 변환한 결과를 담는다.

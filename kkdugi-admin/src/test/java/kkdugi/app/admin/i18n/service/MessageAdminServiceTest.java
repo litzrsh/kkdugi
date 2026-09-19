@@ -14,8 +14,10 @@ import kkdugi.app.admin.i18n.exceptions.MessageConflictException;
 import kkdugi.app.admin.i18n.exceptions.MessageValidationException;
 import kkdugi.app.admin.i18n.models.MessageContent;
 import kkdugi.app.admin.i18n.models.MessagePersistRequest;
+import kkdugi.app.admin.i18n.models.MessageSearchParams;
 import kkdugi.core.i18n.mapper.I18nMessageMapper;
 import kkdugi.core.i18n.service.KkdugiMessageSource;
+import kkdugi.core.models.Page;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -57,6 +59,22 @@ class MessageAdminServiceTest {
                 .isEqualTo("수정된 값");
         assertThat(messageSource.getMessage("test.admin.batch", null, Locale.US))
                 .isEqualTo("english value");
+    }
+
+    @Test
+    void search_returnsResolvedPagingAndTotalItemsFromQuery() {
+        service.persist(new MessagePersistRequest(
+                List.of(new MessageContent("test.admin.batch", Map.of("ko_KR", "값"))),
+                null, null));
+
+        Page<MessageContent> page = service.search(new MessageSearchParams("test.admin.batch", null, 0, 0));
+
+        assertThat(page.getPage()).isEqualTo(1);
+        assertThat(page.getPageSize()).isEqualTo(200);
+        assertThat(page.getTotalItems()).isEqualTo(1);
+        assertThat(page.getTotalPages()).isEqualTo(1);
+        assertThat(page.getContents()).hasSize(1);
+        assertThat(page.getContents().get(0).getCode()).isEqualTo("test.admin.batch");
     }
 
     @Test

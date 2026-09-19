@@ -20,3 +20,4 @@ kkdugi-admin 프로젝트의 아키텍처 결정을 기록한다. 각 ADR은 번
 | [0012](0012-common-code-system.md) | 공통코드 시스템: 채번 방식(core.serial), 계층 저장/삭제, 검색 범위 확정 | Accepted |
 | [0013](0013-code-enums-mybatis-integration.md) | 코드성 enum(`CodeEnums`)과 MyBatis 자동 변환(`default-enum-type-handler`) | Accepted |
 | [0014](0014-revert-to-base-model-inheritance.md) | BaseModel/BaseParams 상속 기반으로 재전환 (ADR-0011 되돌림) | Accepted |
+| [0015](0015-menu-management-system.md) | 메뉴 관리 시스템: 전체 트리 응답(Page<T> 미사용), parentId 불변, 409 중복 없음 | Accepted |

@@ -76,7 +76,7 @@ class MessageAdminControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors[0].code").value("Invalid.Code"));
+                .andExpect(jsonPath("$.code").value("message.err.invalid_format"));
     }
 
     @Test

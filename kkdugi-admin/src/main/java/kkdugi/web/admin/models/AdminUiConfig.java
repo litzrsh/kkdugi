@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * {@code admin/index.html}이 {@code window.KKDUGI}로 병합하는 부트스트랩 설정
+ * {@code layout/index.html}이 {@code window.KKDUGI}로 병합하는 부트스트랩 설정
  * (kkdugi-design README "Spring 프로젝트로 연결" 참고). {@code mode}/
  * {@code locale}/{@code basePath}는 템플릿이 자체적으로 {@code #locale}/
  * {@code @{/}}에서 채우므로 여기서 중복하지 않는다. CSRF는 이 프로젝트가

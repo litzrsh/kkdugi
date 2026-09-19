@@ -37,8 +37,8 @@ import kkdugi.core.security.models.LoginResponse;
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class SessionMenuControllerTest {
 
-    private static final String LOGIN_URL = "/api/v1.0/admin/auth/login";
-    private static final String MENU_URL = "/api/v1.0/admin/session/menu";
+    private static final String LOGIN_URL = "/api/v1.0/auth/login";
+    private static final String MENU_URL = "/api/v1.0/session/menu";
     private static final String USER_ID = "U_TEST_SESSION_MENU_1";
     private static final String AUTH_ID = "A_TEST_SESSION_MENU_1";
     private static final String ROOT_MENU_ID = "M_TEST_SESSION_MENU_ROOT";

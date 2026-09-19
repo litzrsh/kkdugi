@@ -14,6 +14,7 @@ import kkdugi.app.admin.i18n.models.MessageContent;
 import kkdugi.app.admin.i18n.models.MessagePersistRequest;
 import kkdugi.app.admin.i18n.models.MessageSearchParams;
 import kkdugi.app.admin.i18n.service.MessageAdminService;
+import kkdugi.core.exceptions.ExceptionMessage;
 import kkdugi.core.models.Page;
 
 @RestController
@@ -38,13 +39,13 @@ public class MessageAdminController {
 
     @ExceptionHandler(MessageValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public MessageErrorResponse handleValidation(MessageValidationException e) {
-        return new MessageErrorResponse(e.getErrors());
+    public ExceptionMessage handleValidation(MessageValidationException e) {
+        return new ExceptionMessage(e.getCode());
     }
 
     @ExceptionHandler(MessageConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public MessageErrorResponse handleConflict(MessageConflictException e) {
-        return new MessageErrorResponse(e.getErrors());
+    public ExceptionMessage handleConflict(MessageConflictException e) {
+        return new ExceptionMessage(e.getCode());
     }
 }

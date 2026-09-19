@@ -1,5 +1,8 @@
 # kkdugi admin 기획·디자인 문서
 
+> 2026-09-18 현행 기준: API는 `C:/projects/kkdugi/docs/api/`를 참조합니다. 기존 `api-define-admin.md`는 폐기되었습니다. 이 README 아래의 초기 상태 및 과거 ADR의 계약 설명은 당시 기록입니다. 실제 로그인 연결은 [계획 09](plan/09-login-backend-integration.md), 최신 Pragma 구조 설계는 [계획 10](plan/10-pragma-structure-migration.md)과 [ADR-0009](adr/0009-pragma-menu-screen-architecture.md)를 우선합니다. 현재 기능 범위와 API 경로는 [최신 계약 재동기화](plan/13-current-api-sync.md), 최신 파일 구조는 [역할별 재배치](plan/12-role-based-resource-layout.md)와 [ADR-0010](adr/0010-role-based-resource-layout.md)을 참조합니다. 공통 셸·공통코드·메시지 화면을 kkdugi-admin에 이관했습니다.
+
+
 - 작성일: 2026-09-15
 - 현재 작업: 2026-09-16 사용자 요청에 따라 디자인·퍼블리싱 소스를 작성했다. 실제 백엔드 API 구현·외부 배포는 진행하지 않았다. [현재 인계 상태](plan/06-publishing-handoff.md) 참조.
 - 제품: AI agent를 통합하고 프로젝트를 생성·진행하며 kkdugi를 유지보수하는 시스템.

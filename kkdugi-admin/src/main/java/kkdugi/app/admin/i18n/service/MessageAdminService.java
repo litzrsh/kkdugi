@@ -1,5 +1,7 @@
 package kkdugi.app.admin.i18n.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,7 +9,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,17 +19,24 @@ import java.util.stream.Collectors;
 import kkdugi.app.admin.i18n.exceptions.MessageConflictException;
 import kkdugi.app.admin.i18n.exceptions.MessageValidationException;
 import kkdugi.app.admin.i18n.models.MessageContent;
-import kkdugi.app.admin.i18n.models.MessageError;
 import kkdugi.app.admin.i18n.models.MessagePersistRequest;
 import kkdugi.app.admin.i18n.models.MessageSearchParams;
 import kkdugi.core.i18n.mapper.I18nMessageMapper;
 import kkdugi.core.i18n.models.I18nMessage;
 import kkdugi.core.i18n.models.MessageCode;
+import kkdugi.core.i18n.models.MessageCodeRow;
 import kkdugi.core.i18n.service.KkdugiMessageSource;
 import kkdugi.core.models.Page;
 
 @Service
 public class MessageAdminService {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageAdminService.class);
+
+    public static final String ERR_INVALID_FORMAT = "message.err.invalid_format";
+    public static final String ERR_LOCALE_REQUIRED = "message.err.locale_required";
+    public static final String ERR_DUPLICATE = "message.err.duplicate";
+    public static final String ERR_NOT_FOUND = "message.err.not_found";
 
     private static final String SYSTEM_USER_ID = "SYSTEM";
 
@@ -42,11 +50,12 @@ public class MessageAdminService {
 
     @Transactional(readOnly = true)
     public Page<MessageContent> search(MessageSearchParams params) {
-        int page = params.resolvedPage();
-        int pageSize = params.resolvedPageSize();
+        params.setPage(params.resolvedPage());
+        params.setPageSize(params.resolvedPageSize());
 
-        List<String> codes = mapper.searchDistinctCodes(params.getCode(), params.getMessage(), params.getOffset(), pageSize);
-        long totalItems = mapper.countDistinctCodes(params.getCode(), params.getMessage());
+        List<MessageCodeRow> codeRows = mapper.searchDistinctCodes(
+                params.getCode(), params.getMessage(), params.getOffset(), params.getLimit());
+        List<String> codes = codeRows.stream().map(MessageCodeRow::getCode).toList();
 
         List<MessageContent> contents;
         if (codes.isEmpty()) {
@@ -60,12 +69,16 @@ public class MessageAdminService {
             for (I18nMessage row : rows) {
                 grouped.get(row.getMsgCode()).put(row.getLangCode(), row.getMsgText());
             }
-            contents = codes.stream()
-                    .map(code -> new MessageContent(code, grouped.get(code)))
+            contents = codeRows.stream()
+                    .map(row -> {
+                        MessageContent content = new MessageContent(row.getCode(), grouped.get(row.getCode()));
+                        content.setTotalSize(row.getTotalSize());
+                        return content;
+                    })
                     .toList();
         }
 
-        return Page.of(contents, page, pageSize, totalItems);
+        return Page.of(contents, params);
     }
 
     @Transactional
@@ -85,7 +98,8 @@ public class MessageAdminService {
         for (MessageContent content : request.updateOrEmpty()) {
             List<I18nMessage> existingForCode = mapper.findByCode(content.getCode());
             if (existingForCode.isEmpty()) {
-                throw new MessageConflictException(content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getCode());
+                log.warn("메시지 수정 실패 - 대상 코드를 찾을 수 없음: code={}", content.getCode());
+                throw new MessageConflictException(ERR_NOT_FOUND);
             }
             Set<String> existingLangs = existingForCode.stream()
                     .map(I18nMessage::getLangCode)
@@ -110,7 +124,8 @@ public class MessageAdminService {
         for (MessageContent content : request.deleteOrEmpty()) {
             List<I18nMessage> existing = mapper.findByCode(content.getCode());
             if (existing.isEmpty()) {
-                throw new MessageConflictException(content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getCode());
+                log.warn("메시지 삭제 실패 - 대상 코드를 찾을 수 없음: code={}", content.getCode());
+                throw new MessageConflictException(ERR_NOT_FOUND);
             }
             // 코드 단위 삭제: 요청의 locale 값과 무관하게, 그 코드에 등록된
             // 모든 언어를 함께 삭제한다 (kkdugi-design ADR-0003 결정 #6).
@@ -130,7 +145,8 @@ public class MessageAdminService {
         try {
             mapper.insert(message);
         } catch (DuplicateKeyException e) {
-            throw new MessageConflictException(code, "이미 존재하는 메시지입니다: " + code + " (" + lang + ")");
+            log.warn("메시지 등록 실패 - 이미 존재하는 메시지: code={}, lang={}", code, lang);
+            throw new MessageConflictException(ERR_DUPLICATE);
         }
     }
 
@@ -140,7 +156,8 @@ public class MessageAdminService {
         message.setUpdaterId(SYSTEM_USER_ID);
         int affected = mapper.update(message);
         if (affected == 0) {
-            throw new MessageConflictException(code, "대상 언어를 찾을 수 없습니다: " + code + " (" + lang + ")");
+            log.warn("메시지 수정 실패 - 대상 언어를 찾을 수 없음: code={}, lang={}", code, lang);
+            throw new MessageConflictException(ERR_NOT_FOUND);
         }
     }
 
@@ -156,32 +173,27 @@ public class MessageAdminService {
     }
 
     private void validate(MessagePersistRequest request) {
-        List<MessageError> errors = new ArrayList<>();
-        validateBucket(request.insertOrEmpty(), true, errors);
-        validateBucket(request.updateOrEmpty(), true, errors);
-        validateBucket(request.deleteOrEmpty(), false, errors);
-        if (!errors.isEmpty()) {
-            throw new MessageValidationException(errors);
-        }
+        validateBucket(request.insertOrEmpty(), true);
+        validateBucket(request.updateOrEmpty(), true);
+        validateBucket(request.deleteOrEmpty(), false);
     }
 
-    private void validateBucket(List<MessageContent> contents, boolean requireLocaleValues, List<MessageError> errors) {
+    private void validateBucket(List<MessageContent> contents, boolean requireLocaleValues) {
         for (MessageContent content : contents) {
-            if (isBlank(content.getCode())) {
-                errors.add(new MessageError(content.getCode(), "code는 필수입니다"));
-                continue;
-            }
             if (!MessageCode.matches(content.getCode())) {
-                errors.add(new MessageError(content.getCode(), "code 형식이 올바르지 않습니다"));
+                log.warn("메시지 저장 검증 실패 - code 값 형식이 올바르지 않음: code={}", content.getCode());
+                throw new MessageValidationException(ERR_INVALID_FORMAT);
             }
             if (requireLocaleValues) {
                 if (content.getLocale() == null || content.getLocale().isEmpty()) {
-                    errors.add(new MessageError(content.getCode(), "locale은 최소 1개 이상이어야 합니다"));
-                } else {
-                    for (Map.Entry<String, String> entry : content.getLocale().entrySet()) {
-                        if (isBlank(entry.getValue())) {
-                            errors.add(new MessageError(content.getCode(), "locale." + entry.getKey() + "은 필수입니다"));
-                        }
+                    log.warn("메시지 저장 검증 실패 - locale이 비어 있음: code={}", content.getCode());
+                    throw new MessageValidationException(ERR_LOCALE_REQUIRED);
+                }
+                for (Map.Entry<String, String> entry : content.getLocale().entrySet()) {
+                    if (isBlank(entry.getValue())) {
+                        log.warn("메시지 저장 검증 실패 - locale.{} 값이 비어 있음: code={}",
+                                entry.getKey(), content.getCode());
+                        throw new MessageValidationException(ERR_LOCALE_REQUIRED);
                     }
                 }
             }

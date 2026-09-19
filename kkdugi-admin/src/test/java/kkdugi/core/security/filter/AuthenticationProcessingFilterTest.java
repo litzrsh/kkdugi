@@ -30,8 +30,8 @@ import kkdugi.core.security.service.SessionService;
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class AuthenticationProcessingFilterTest {
 
-    private static final String LOGIN_URL = "/api/v1.0/admin/auth/login";
-    private static final String LOGOUT_URL = "/api/v1.0/admin/auth/logout";
+    private static final String LOGIN_URL = "/api/v1.0/auth/login";
+    private static final String LOGOUT_URL = "/api/v1.0/auth/logout";
     private static final String USER_ID = "U_TEST_LOGIN_1";
     private static final String LOGIN_ID = "test_login_filter";
     private static final String PASSWORD = "correct-password";

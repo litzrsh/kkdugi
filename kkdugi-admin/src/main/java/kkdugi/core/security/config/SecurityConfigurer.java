@@ -30,7 +30,7 @@ import tools.jackson.databind.ObjectMapper;
 @Configuration
 public class SecurityConfigurer {
 
-    private static final String LOGOUT_URL = "/api/v1.0/admin/auth/logout";
+    private static final String LOGOUT_URL = "/api/v1.0/auth/logout";
 
     private final BearerTokenAuthenticationFilter bearerTokenAuthenticationFilter;
     private final RestfulAuthenticationEntryPoint authenticationEntryPoint;
@@ -52,7 +52,7 @@ public class SecurityConfigurer {
 
     /**
      * 인가 규칙(authorizeHttpRequests)은 아직 전부 permitAll이다 — 사용자/메뉴/
-     * 권한 조회 API(api-define-admin.md 4~5절)가 아직 구현되지 않아 실제로
+     * 권한 조회 API(docs/archive/api-define-admin.md 4~5절)가 아직 구현되지 않아 실제로
      * 무엇을 보호해야 하는지가 정해지지 않았다. 로그인/로그아웃은 이제 붙었지만,
      * 기존 i18n/공통코드 API까지 지금 잠그면 그 컨트롤러 테스트가 전부 깨진다 —
      * 사용자/메뉴/권한 기능을 붙이는 시점에 실제 보호 대상 경로를 지정한다.

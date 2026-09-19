@@ -134,6 +134,8 @@ Postgres를 전제로 한다. **2026-09-17부터, 테스트는 작성 후 `mvn t
 - `code`/`parentId` 변경(노드 이동·경로 세그먼트 이름 변경)을 지원하려면
   캐스케이드 경로 재계산이 필요하다 — 아직 미구현([ADR-0012](adr/0012-common-code-system.md)
   "미해결 이슈").
-- 메뉴/권한/사용자(`docs/api-define-admin.md` 3·4·5절) — 같은 패키지
-  규약과 `SerialConfig`/`SerialUtils`/`fn_get_serial`, `Page<T>`를
+- 메뉴/권한/사용자(옛 `docs/api-define-admin.md` 3·4·5절, 2026-09-18 삭제 —
+  원문은 [docs/archive/api-define-admin.md](archive/api-define-admin.md)
+  참고, 더 이상 살아있는 계약 아님이라 착수 전 오너 재확인 필요) — 같은
+  패키지 규약과 `SerialConfig`/`SerialUtils`/`fn_get_serial`, `Page<T>`를
   재사용해 이어서 구현한다.

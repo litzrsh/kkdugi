@@ -27,6 +27,7 @@ class KkdugiUserDetailsServiceTest {
     private static final String AUTH_ID_2 = "A_TEST_UDS_2";
     private static final String LOGIN_ID = "test_uds_login";
     private static final String MENU_ID = "M_TEST_UDS_1";
+    private static final String PARENT_MENU_ID = "M_TEST_UDS_PARENT";
 
     @Autowired
     private KkdugiUserDetailsService service;
@@ -39,6 +40,8 @@ class KkdugiUserDetailsServiceTest {
         jdbcTemplate.update("DELETE FROM kkdugi_auth_menu WHERE menu_id = ?", MENU_ID);
         jdbcTemplate.update("DELETE FROM kkdugi_menu_lang WHERE menu_id = ?", MENU_ID);
         jdbcTemplate.update("DELETE FROM kkdugi_menu_base WHERE menu_id = ?", MENU_ID);
+        jdbcTemplate.update("DELETE FROM kkdugi_menu_lang WHERE menu_id = ?", PARENT_MENU_ID);
+        jdbcTemplate.update("DELETE FROM kkdugi_menu_base WHERE menu_id = ?", PARENT_MENU_ID);
         jdbcTemplate.update("DELETE FROM kkdugi_user_auth WHERE user_id = ?", USER_ID);
         jdbcTemplate.update("DELETE FROM kkdugi_auth_base WHERE auth_id IN (?, ?)", AUTH_ID, AUTH_ID_2);
         jdbcTemplate.update("DELETE FROM kkdugi_user_base WHERE user_id = ?", USER_ID);
@@ -48,6 +51,23 @@ class KkdugiUserDetailsServiceTest {
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_menu_base (menu_id, menu_pgm, sort_seq, reg_id) VALUES (?, ?, ?, ?)",
                 MENU_ID, "test_pgm", 1, "SYSTEM");
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_menu_lang (menu_id, lang_cd, menu_nm, reg_id) VALUES (?, ?, ?, ?)",
+                MENU_ID, "ko_KR", "테스트 메뉴", "SYSTEM");
+    }
+
+    /** MENU_ID를 사용안함(use_yn='N') 상위 메뉴 밑에 둔다 — 리프 자체는 활성이다. */
+    private void insertMenuUnderDisabledParent() {
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_menu_base (menu_id, use_yn, sort_seq, reg_id) VALUES (?, 'N', ?, ?)",
+                PARENT_MENU_ID, 1, "SYSTEM");
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_menu_lang (menu_id, lang_cd, menu_nm, reg_id) VALUES (?, ?, ?, ?)",
+                PARENT_MENU_ID, "ko_KR", "비활성 상위 메뉴", "SYSTEM");
+        jdbcTemplate.update(
+                "INSERT INTO kkdugi_menu_base (menu_id, menu_parent_id, menu_pgm, sort_seq, reg_id) "
+                        + "VALUES (?, ?, ?, ?, ?)",
+                MENU_ID, PARENT_MENU_ID, "test_pgm", 1, "SYSTEM");
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_menu_lang (menu_id, lang_cd, menu_nm, reg_id) VALUES (?, ?, ?, ?)",
                 MENU_ID, "ko_KR", "테스트 메뉴", "SYSTEM");
@@ -195,5 +215,31 @@ class KkdugiUserDetailsServiceTest {
         assertThat(menus).hasSize(1);
         assertThat(menus.get(0).getId()).isEqualTo(MENU_ID);
         assertThat(menus.get(0).getAuthority()).isEqualTo(0xffff);
+    }
+
+    @Test
+    void loadUserByUsername_excludesMenuUnderDisabledAncestor() {
+        insertUser();
+        insertMenuUnderDisabledParent();
+        insertAuthority();
+        grantMenuAuthority(AUTH_ID, 0x03);
+
+        List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
+
+        // 리프 자체는 활성이고 직접 권한도 있지만, 상위 메뉴가 사용안함이라
+        // 전체 목록에서 빠져야 한다 — 트리에서만 숨기면 PragmaController가
+        // 여전히 세션의 flat 목록으로 /pragma/{menuId} 접근을 허용해버린다.
+        assertThat(menus).isEmpty();
+    }
+
+    @Test
+    void loadUserByUsername_sysAdminAlsoExcludesMenuUnderDisabledAncestor() {
+        insertUser();
+        insertMenuUnderDisabledParent();
+        grantRole(AUTH_ID, kkdugi.core.Constants.SYS_ADMIN);
+
+        List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
+
+        assertThat(menus).isEmpty();
     }
 }

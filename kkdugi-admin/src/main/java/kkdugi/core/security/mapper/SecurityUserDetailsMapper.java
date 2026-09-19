@@ -22,19 +22,12 @@ public interface SecurityUserDetailsMapper {
      * 사용자가 가진 활성 권한들이 {@code kkdugi_auth_menu}에 부여한 RBAC
      * 비트마스크를 메뉴별로 BIT_OR 합산해 돌려준다(여러 권한을 동시에 갖고
      * 있으면 권한이 누적된다). 어느 활성 권한으로도 권한값이 0인 메뉴는
-     * 결과에서 제외된다. SYS_ADMIN 여부와 무관하게 이 쿼리 자체는 항상
-     * auth_menu 조인 결과만 반환한다 — SYS_ADMIN 우회는
-     * {@link #findAllMenus(String)}를 호출하는 서비스 계층의 책임이다.
+     * 결과에서 제외된다. SYS_ADMIN 우회(권한 매핑 없이 전체 메뉴)는 이
+     * 매퍼가 아니라 {@link kkdugi.core.security.mapper.SysAdminMenuMapper}
+     * (그리고 그걸 감싼 {@code SysAdminMenuService}) — 일반 사용자 경로와
+     * 관리자 경로를 매퍼/서비스 단계에서부터 분리했다.
      */
     List<SessionMenu> findMenusByUsername(@Param("username") String username, @Param("langCode") String langCode);
-
-    /**
-     * 권한 필터링 없이 전체 메뉴를 반환한다(authority는 항상 전체 비트마스크).
-     * {@code SessionUtils.hasAuthorityByRole(Constants.SYS_ADMIN)}이
-     * 다른 RBAC 체크를 항상 전체 권한으로 취급하는 것과 동일한 우회를,
-     * 세션 메뉴 목록 조회에도 적용하기 위한 전용 쿼리다.
-     */
-    List<SessionMenu> findAllMenus(@Param("langCode") String langCode);
 
     /**
      * {@link org.springframework.security.authentication.dao.DaoAuthenticationProvider}의

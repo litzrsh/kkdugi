@@ -1,22 +1,36 @@
 package kkdugi.core.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import kkdugi.core.util.CommonUtils;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
-public class Page<T> {
+public class Page<T extends BaseModel> {
 
     private final int page;
     private final int pageSize;
     private final long totalItems;
-    private final long totalPages;
     private final List<T> contents;
 
-    public static <T> Page<T> of(List<T> contents, int page, int pageSize, long totalItems) {
-        long totalPages = Math.max(1, (long) Math.ceil((double) totalItems / pageSize));
-        return new Page<>(page, pageSize, totalItems, totalPages, contents);
+    public <P extends BaseParams> Page(List<T> contents, P params) {
+        this.page = params.getPage();
+        this.pageSize = params.getPageSize();
+        if (CommonUtils.isEmpty(contents)) {
+            this.totalItems = 0L;
+            this.contents = new ArrayList<>();
+        } else {
+            this.totalItems = contents.get(0).getTotalSize();
+            this.contents = contents;
+        }
+    }
+
+    public long getTotalPages() {
+        return (long) Math.max(1, Math.ceil((double) totalItems / pageSize));
+    }
+
+    public static <T extends BaseModel, P extends BaseParams> Page<T> of(List<T> contents, P params) {
+        return new Page<>(contents, params);
     }
 }

@@ -172,9 +172,10 @@ api-define-admin.md와 `kkdugi-design/docs/adr/0003-message-pivot-i18n.md`도
 
 - 공통코드/메뉴/권한/사용자 4개 화면은 아직 구현되지 않았다 — 이번
   패키지 규약과 `Page<T>` 재사용 방식을 그대로 적용할 것.
-- `POST /api/v1.0/admin/i18n/persist`의 정상/오류 응답 본문 형태는
+- ~~`POST /api/v1.0/admin/i18n/persist`의 정상/오류 응답 본문 형태는
   api-define-admin.md에 명시되지 않아 이 ADR에서 잠정 결정한 것이다 —
-  문서가 구체화되면 재확인이 필요하다.
+  문서가 구체화되면 재확인이 필요하다.~~ → 2026-09-18 addendum에서 오류
+  응답 형태를 `{code, message}` 단일 메시지로 확정.
 - `update` 버킷에서 신규 언어를 INSERT로 처리하는 규칙(위 4번)은
   api-define-admin.md/kkdugi-design 어느 쪽에도 명시적으로 쓰여 있지
   않은, 이번 ADR의 해석이다 — 오너 검토 후 확정한다.
@@ -233,3 +234,39 @@ api-define-admin.md와 `kkdugi-design/docs/adr/0003-message-pivot-i18n.md`도
 적용했다 — 규칙은
 [공통 규약의 7번](../conventions/common-base-model.md#7-mybatis-매퍼-xml-서식)에
 정리했다. 이후 메뉴/권한/사용자 매퍼도 이 서식을 따른다.
+
+## Addendum (2026-09-18): 에러 응답을 단일 메시지로 단순화 (위 137번 미해결 이슈 확정)
+
+[ADR-0012](0012-common-code-system.md)의 같은 날짜 addendum에서 공통코드
+쪽 에러 응답을 `{ errors: [{id, code, reason}] }`에서 `{code, message}`
+단일 메시지로 바꾸면서, 오너가 같은 방침을 메시지 관리에도 적용하라고
+지시했다: **"오류가 발생한 경우 어떤 오류가 발생했는지만 명확하게 짚어내면
+됨 — 어디서/무엇 때문에 발생했는지는 서버 사이드 로그에만 남긴다."** 이로써
+위 "미해결 이슈" 2번(`persist` 오류 응답 형태가 잠정 결정이었던 부분)이
+다음과 같이 확정된다.
+
+- `MessageValidationException`/`MessageConflictException`은 `List<MessageError>`
+  대신 메시지 코드 문자열 하나(`String code`)만 들고 있다. `MessageError`/
+  `MessageErrorResponse` 클래스는 삭제했다.
+- `MessageAdminController`의 두 `@ExceptionHandler`는
+  `kkdugi.core.exceptions.ExceptionMessage`(`{code, message}`)를 반환한다.
+  `RestfulException`/`RestfulExceptionAdvice`(checked exception + 전역
+  advice) 체계로 갈아타지는 않았다 — 이유는 ADR-0012 addendum과 동일
+  (`persist`/`search` 시그니처 변경과 `@Transactional(rollbackFor=...)`
+  추가가 필요해 파급 범위가 커짐).
+- `MessageAdminService`가 도메인 메시지 코드 상수(`ERR_INVALID_FORMAT`,
+  `ERR_LOCALE_REQUIRED`, `ERR_DUPLICATE`, `ERR_NOT_FOUND`)를 노출하고,
+  예외를 던지기 직전 SLF4J `log.warn(...)`으로 `code`/`lang` 등 구체적
+  맥락을 남긴다. `messages.properties`/`messages_ko_KR.properties`/
+  `messages_en_US.properties`에 각 코드의 기본 문구를 등록했다.
+- `validateBucket()`이 항목별 오류를 리스트로 모으던 방식에서 **첫 번째로
+  발견한 위반에서 즉시 던지는 방식**으로 바뀌었다. 부수 효과로, `code`
+  값이 비어 있는지 별도로 검사하던 코드가 없어졌다 — `MessageCode.matches(null)`이
+  이미 `false`를 반환하므로 형식 검증 하나로 흡수된다(공통코드 쪽
+  `CodeValue`와 동일한 정리).
+- [`docs/api/i18n-message.md`](../api/i18n-message.md)의 400/409 에러
+  응답 형식 절을 이 결정에 맞춰 갱신했다.
+- 이 결정은 공통코드/메시지 두 도메인 모두에 적용됐다 — 앞으로 메뉴/권한/
+  사용자를 구현할 때도 같은 패턴(도메인별 로컬 예외 클래스가 단일 메시지
+  코드만 들고, `ExceptionMessage`로 응답, 구체적 맥락은 로그로만)을
+  따른다.

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.core.i18n.mapper.I18nMessageMapper">
+
+  <resultMap id="i18nMessageResultMap" type="kkdugi.core.i18n.models.I18nMessage"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="msgCode" column="msg_cd"/>
+    <id property="langCode" column="lang_cd"/>
+    <result property="msgText" column="msg_val"/>
+  </resultMap>
+
+  <resultMap id="messageCodeRowResultMap" type="kkdugi.core.i18n.models.MessageCodeRow">
+    <id property="code" column="code"/>
+    <result property="totalSize" column="total_size"/>
+  </resultMap>
+
+  <sql id="columns">
+<![CDATA[
+msg_cd, lang_cd, msg_val, reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <!--
+    * QueryID=selectAll
+    * Description=Select all i18n messages (for cache load)
+    -->
+  <select id="selectAll" resultMap="i18nMessageResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.selectAll */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_i18n_msg
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByCodeAndLang
+    * Description=Find one message by code and language
+    -->
+  <select id="findByCodeAndLang" resultMap="i18nMessageResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.findByCodeAndLang */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_i18n_msg
+WHERE msg_cd = #{msgCode}
+  AND lang_cd = #{langCode}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByCode
+    * Description=Find all language rows for one message code
+    -->
+  <select id="findByCode" resultMap="i18nMessageResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.findByCode */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_i18n_msg
+WHERE msg_cd = #{msgCode}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findByCodes
+    * Description=Find all language rows for a set of message codes
+    -->
+  <select id="findByCodes" resultMap="i18nMessageResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.findByCodes */
+SELECT
+]]>
+    <include refid="columns"/>
+<![CDATA[
+FROM kkdugi_i18n_msg
+WHERE msg_cd IN
+]]>
+    <foreach item="code" collection="msgCodes" open="(" separator="," close=")">
+      #{code}
+    </foreach>
+<![CDATA[
+ORDER BY msg_cd, lang_cd
+]]>
+  </select>
+
+  <!--
+    * QueryID=searchDistinctCodes
+    * Description=Search distinct message codes with paging (total count via
+    *             window function in the same query, no separate count call)
+    -->
+  <select id="searchDistinctCodes" resultMap="messageCodeRowResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.searchDistinctCodes */
+SELECT code, COUNT(*) OVER() AS total_size
+FROM (
+    SELECT DISTINCT msg_cd AS code
+    FROM kkdugi_i18n_msg
+]]>
+    <where>
+      <if test="msgCode != null and msgCode != ''">
+<![CDATA[
+AND msg_cd LIKE '%' || #{msgCode} || '%'
+]]>
+      </if>
+      <if test="msgText != null and msgText != ''">
+<![CDATA[
+AND msg_val LIKE '%' || #{msgText} || '%'
+]]>
+      </if>
+    </where>
+<![CDATA[
+) distinct_codes
+ORDER BY code
+OFFSET #{offset} LIMIT #{pageSize}
+]]>
+  </select>
+
+  <!--
+    * QueryID=insert
+    * Description=Insert one message row
+    -->
+  <insert id="insert" parameterType="kkdugi.core.i18n.models.I18nMessage">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.insert */
+INSERT INTO kkdugi_i18n_msg (msg_cd, lang_cd, msg_val, reg_dtm, reg_id)
+VALUES (#{msgCode}, #{langCode}, #{msgText}, #{createdAt}, #{creatorId})
+]]>
+  </insert>
+
+  <!--
+    * QueryID=update
+    * Description=Update one message row
+    -->
+  <update id="update" parameterType="kkdugi.core.i18n.models.I18nMessage">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.update */
+UPDATE kkdugi_i18n_msg
+SET msg_val = #{msgText},
+    upd_dtm = #{updatedAt},
+    upd_id  = #{updaterId}
+WHERE msg_cd = #{msgCode}
+  AND lang_cd = #{langCode}
+]]>
+  </update>
+
+  <!--
+    * QueryID=delete
+    * Description=Delete one message row by code and language
+    -->
+  <delete id="delete">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.delete */
+DELETE FROM kkdugi_i18n_msg
+WHERE msg_cd = #{msgCode}
+  AND lang_cd = #{langCode}
+]]>
+  </delete>
+
+  <!--
+    * QueryID=deleteByCode
+    * Description=Delete all language rows for one message code
+    -->
+  <delete id="deleteByCode">
+<![CDATA[
+/* QueryID=kkdugi.core.i18n.mapper.I18nMessageMapper.deleteByCode */
+DELETE FROM kkdugi_i18n_msg
+WHERE msg_cd = #{msgCode}
+]]>
+  </delete>
+
+</mapper>

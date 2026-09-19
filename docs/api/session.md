@@ -1,7 +1,8 @@
 # 세션 메뉴 & 화면(Pragma) 조각
 
-`api-define-admin.md`에는 없는 API다. 그 문서의 [3절 메뉴
-관리](../api-define-admin.md#3-메뉴-관리)는 메뉴 자체를 CRUD하는 SYS_ADMIN
+`api-define-admin.md`(2026-09-18 삭제, 원문은 아카이브로 이동)에는 없는
+API다. 그 문서의 [3절 메뉴
+관리](../archive/api-define-admin.md#3-메뉴-관리)는 메뉴 자체를 CRUD하는 SYS_ADMIN
 전용 관리 API이고, 여기서 다루는 건 **로그인한 사용자 본인**이 볼 수 있는
 메뉴를 내려받아 화면을 구성하는 별개의 흐름이다.
 
@@ -14,14 +15,18 @@
    Postgres `BIT_OR`로 합산한 목록만 받는다(`findMenusByUsername`,
    `HAVING BIT_OR(...) > 0` — 읽기 권한조차 없는 메뉴는 애초에 세션에
    담기지 않는다).
-2. 화면은 [`GET /api/v1.0/admin/session/menu`](#1-내-메뉴-트리-조회---get-apiv10adminsessionmenu)로
+2. 화면은 [`GET /api/v1.0/session/menu`](#1-내-메뉴-트리-조회---get-apiv10sessionmenu)로
    내비게이션 트리를 받는다.
 3. 사용자가 메뉴를 클릭하면 [`GET
    /pragma/{menuId}`](#2-메뉴-화면-조각-조회---get-pragmamenuid)로 그 메뉴의
    화면(Vue SFC 조각)을 텍스트로 받아 `vue3-sfc-loader`가 브라우저에서
    컴파일한다.
 
-## 1. 내 메뉴 트리 조회 - GET /api/v1.0/admin/session/menu
+## 1. 내 메뉴 트리 조회 - GET /api/v1.0/session/menu
+
+**`/api/v1.0/admin` 접두사 밖에 있다** — 로그인한 사용자 본인의 세션 정보를
+다루는 것이지 "admin 리소스"(공통코드/메시지/메뉴 CRUD)가 아니라서
+[auth.md](auth.md)의 로그인/로그아웃과 같은 이유로 이 접두사 밖이다.
 
 구현: [`SessionMenuController`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/session/SessionMenuController.java)
 
@@ -67,7 +72,9 @@ Response
 
 구현: [`PragmaController`](../../kkdugi-admin/src/main/java/kkdugi/web/admin/PragmaController.java)
 
-**주의: 다른 모든 API와 달리 `/api/v1.0/admin` 접두사 밖에 있다.** 응답도
+**주의: `/api/v1.0/admin` 접두사 밖에 있다** (auth.md/이 문서의 session/menu와
+같은 이유 — 사실 이 엔드포인트는 `/api/v1.0` 프리픽스조차 없다, 아래 참고).
+응답도
 JSON이 아니라 `Content-Type: text/html`의 순수 텍스트다 — 화면의
 `vue3-sfc-loader`가 `fetch(url).then(r => r.text())`로 원문을 그대로 받아
 클라이언트에서 컴파일하는 구조이기 때문이다.

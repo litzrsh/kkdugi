@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.core.security.mapper.SecurityUserDetailsMapper">
+
+  <!-- SessionUser/Authority는 plain class(setter 있음)라 <id>/<result>로 충분하다.
+       pwd_stat_cd/user_stat_cd/auth_tp_cd는 CodeEnums 구현 enum이라
+       mybatis.configuration.default-enum-type-handler(CodeEnumTypeHandler)가
+       typeHandler 지정 없이 자동으로 적용된다. -->
+  <resultMap id="sessionUserResultMap" type="kkdugi.core.security.models.SessionUser">
+    <id property="id" column="user_id"/>
+    <result property="username" column="user_login_id"/>
+    <result property="password" column="user_pwd"/>
+    <result property="name" column="user_nm"/>
+    <result property="remarks" column="user_dc"/>
+    <result property="image" column="user_img_src"/>
+    <result property="lastLoginAt" column="last_login_dtm"/>
+    <result property="lastChangePasswordAt" column="last_chg_pwd_dtm"/>
+    <result property="passwordStatus" column="pwd_stat_cd"/>
+    <result property="status" column="user_stat_cd"/>
+  </resultMap>
+
+  <resultMap id="authorityResultMap" type="kkdugi.core.security.models.Authority">
+    <id property="id" column="auth_id"/>
+    <result property="authority" column="authority"/>
+    <result property="type" column="auth_tp_cd"/>
+    <result property="name" column="auth_nm"/>
+  </resultMap>
+
+  <resultMap id="sessionMenuResultMap" type="kkdugi.core.security.models.SessionMenu">
+    <id property="id" column="id"/>
+    <result property="parentId" column="parent_id"/>
+    <result property="title" column="title"/>
+    <result property="remarks" column="remarks"/>
+    <result property="program" column="program"/>
+    <result property="icon" column="icon"/>
+    <result property="sort" column="sort"/>
+    <result property="authority" column="authority"/>
+  </resultMap>
+
+  <!--
+    * QueryID=findByUsername
+    * Description=Find a user's SessionUser snapshot by login id (username)
+    -->
+  <select id="findByUsername" resultMap="sessionUserResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findByUsername */
+SELECT
+    user_id, user_login_id, user_pwd, user_nm, user_dc, user_img_src,
+    last_login_dtm, last_chg_pwd_dtm, pwd_stat_cd, user_stat_cd
+FROM kkdugi_user_base
+WHERE user_login_id = #{username}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findAuthoritiesByUsername
+    * Description=Find the currently-effective authorities granted to a user by login id
+    -->
+  <select id="findAuthoritiesByUsername" resultMap="authorityResultMap">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findAuthoritiesByUsername */
+SELECT
+    ab.auth_id,
+    ab.auth_role_cd AS authority,
+    ab.auth_tp_cd,
+    ab.auth_nm
+FROM kkdugi_user_auth ua
+JOIN kkdugi_user_base ub ON ub.user_id = ua.user_id
+JOIN kkdugi_auth_base ab ON ab.auth_id = ua.auth_id
+WHERE ub.user_login_id = #{username}
+  AND ab.use_yn = 'Y'
+  AND CURRENT_DATE BETWEEN ua.apl_st_dtm AND ua.apl_ed_dtm
+]]>
+  </select>
+
+  <!--
+    * SqlID=reachableMenuCte
+    * Description=Every menu whose entire ancestor chain (itself included)
+    *             is enabled — a disabled menu hides its whole subtree, not
+    *             just itself. Used by findMenusByUsername below so a menu
+    *             granted deep under a disabled group is excluded from BOTH
+    *             the nav tree and the flat authority list that gates direct
+    *             /pragma/{menuId} access (see PragmaController) — climbing
+    *             from an already-granted leaf upward and stopping at the
+    *             first disabled ancestor is not enough, because the leaf
+    *             itself would still leak into the flat list even when
+    *             orphaned out of the rendered tree. SysAdminMenuMapper.xml
+    *             (the SYS_ADMIN bypass query) needs the same guarantee but
+    *             keeps its own copy of this CTE rather than sharing this one
+    *             — that mapper is intentionally decoupled from this one
+    *             (general-user queries), see ADR/common-base-model.md.
+    -->
+  <sql id="reachableMenuCte">
+<![CDATA[
+WITH RECURSIVE reachable_menu AS (
+    SELECT mb.menu_id, mb.menu_parent_id, ml.menu_nm, ml.menu_dc, mb.menu_pgm, mb.menu_ico, mb.sort_seq
+    FROM kkdugi_menu_base mb
+    JOIN kkdugi_menu_lang ml ON ml.menu_id = mb.menu_id AND ml.lang_cd = #{langCode}
+    WHERE mb.menu_parent_id IS NULL
+      AND mb.use_yn = 'Y'
+    UNION ALL
+    SELECT mb.menu_id, mb.menu_parent_id, ml.menu_nm, ml.menu_dc, mb.menu_pgm, mb.menu_ico, mb.sort_seq
+    FROM kkdugi_menu_base mb
+    JOIN kkdugi_menu_lang ml ON ml.menu_id = mb.menu_id AND ml.lang_cd = #{langCode}
+    JOIN reachable_menu rm ON rm.menu_id = mb.menu_parent_id
+    WHERE mb.use_yn = 'Y'
+)
+]]>
+  </sql>
+
+  <!--
+    * QueryID=findMenusByUsername
+    * Description=Find menus visible to a user (their directly-granted menus
+    *             plus every ancestor up to the root, so the tree has no
+    *             orphaned nodes), with per-menu RBAC bitmask BIT_OR'd across
+    *             their active authorities. Both the grant itself and every
+    *             ancestor must be enabled (reachableMenuCte) — a menu granted
+    *             under a disabled group is excluded entirely, not merely
+    *             hidden from the tree. Ancestors reached only through the
+    *             recursive climb (no direct grant) get authority 0 — they're
+    *             shown as a navigable group, not as a permission.
+    -->
+  <select id="findMenusByUsername" resultMap="sessionMenuResultMap">
+    <include refid="reachableMenuCte"/>
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.findMenusByUsername */
+, grant_menu AS (
+    SELECT
+        rm.menu_id, rm.menu_parent_id, rm.menu_nm, rm.menu_dc, rm.menu_pgm, rm.menu_ico, rm.sort_seq,
+        BIT_OR(am.auth_val) AS auth_val
+    FROM kkdugi_user_auth ua
+    JOIN kkdugi_user_base ub ON ub.user_id = ua.user_id
+    JOIN kkdugi_auth_base ab ON ab.auth_id = ua.auth_id
+    JOIN kkdugi_auth_menu am ON am.auth_id = ab.auth_id
+    JOIN reachable_menu rm ON rm.menu_id = am.menu_id
+    WHERE ub.user_login_id = #{username}
+      AND ab.use_yn = 'Y'
+      AND CURRENT_DATE BETWEEN ua.apl_st_dtm AND ua.apl_ed_dtm
+    GROUP BY rm.menu_id, rm.menu_parent_id, rm.menu_nm, rm.menu_dc, rm.menu_pgm, rm.menu_ico, rm.sort_seq
+    HAVING BIT_OR(am.auth_val) > 0
+),
+menu_tree AS (
+    SELECT menu_id, menu_parent_id, menu_nm, menu_dc, menu_pgm, menu_ico, sort_seq, auth_val
+    FROM grant_menu
+    UNION ALL
+    SELECT rm.menu_id, rm.menu_parent_id, rm.menu_nm, rm.menu_dc, rm.menu_pgm, rm.menu_ico, rm.sort_seq, 0 AS auth_val
+    FROM reachable_menu rm
+    JOIN menu_tree mt ON mt.menu_parent_id = rm.menu_id
+)
+SELECT
+    menu_id        AS id,
+    menu_parent_id AS parent_id,
+    menu_nm        AS title,
+    menu_dc        AS remarks,
+    menu_pgm       AS program,
+    menu_ico       AS icon,
+    sort_seq       AS sort,
+    MAX(auth_val)  AS authority
+FROM menu_tree
+GROUP BY menu_id, menu_parent_id, menu_nm, menu_dc, menu_pgm, menu_ico, sort_seq
+ORDER BY menu_parent_id, sort_seq NULLS LAST
+]]>
+  </select>
+
+  <!--
+    * QueryID=updatePassword
+    * Description=Re-hash the current password in place (UserDetailsPasswordService upgrade path only)
+    -->
+  <update id="updatePassword">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.updatePassword */
+UPDATE kkdugi_user_base
+SET user_pwd = #{password},
+    upd_dtm  = CURRENT_TIMESTAMP
+WHERE user_id = #{userId}
+]]>
+  </update>
+
+  <!--
+    * QueryID=updateLastLoginAt
+    * Description=Record the timestamp of a successful login
+    -->
+  <update id="updateLastLoginAt">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SecurityUserDetailsMapper.updateLastLoginAt */
+UPDATE kkdugi_user_base
+SET last_login_dtm = #{lastLoginAt}
+WHERE user_id = #{userId}
+]]>
+  </update>
+
+</mapper>

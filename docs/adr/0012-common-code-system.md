@@ -85,12 +85,12 @@ root 코드만 반환한다. `path`/`code`/`name`/`use` 필터는 전체 트리�
 `EXISTS` 서브쿼리로 처리한다(어떤 언어든 이름이 일치하면 매치 — i18n의
 `message` 검색과 동일한 패턴).
 
-### 6. `code` 값 자체는 형식 검증을 하지 않는다
+### 6. `code` 값 자체는 형식 검증을 하지 않는다 — **아래 2026-09-18 addendum으로 교체됨**
 
-`MessageCode`처럼 정규식 패턴을 강제하는 근거(ERD 코멘트, api-define-admin.md)가
+~~`MessageCode`처럼 정규식 패턴을 강제하는 근거(ERD 코멘트, api-define-admin.md)가
 공통코드 `code` 값에는 없다 — 비어있지 않은지만 검증한다. 언젠가 형식
 규칙이 필요해지면 `MessageCode`와 같은 패턴으로 `core.code.models`에
-검증기를 추가한다.
+검증기를 추가한다.~~
 
 ## 결과
 
@@ -170,3 +170,55 @@ root 코드만 반환한다. `path`/`code`/`name`/`use` 필터는 전체 트리�
 
 메뉴/권한/사용자 화면을 구현할 때는 `SerialIdGenerator`(폐기됨)가 아니라
 `SerialConfig` 구현 + `SerialUtils.next(config)`를 재사용한다.
+
+## Addendum (2026-09-18): `code` 값 형식 검증 추가, 에러 응답을 단일 메시지로 단순화
+
+### `code` 값 형식 검증 (6번 미해결 이슈 해소)
+
+오너가 `code` 값 작성 규칙을 확정: **영문 대문자 + 숫자**, 특수기호는
+`_`만 허용하되 **`_`로 시작하거나 끝날 수 없다**. `MessageCode`와 같은
+패턴으로 `core.code.models.CodeValue`(정규식 `^[A-Z0-9]+(_[A-Z0-9]+)*$`)를
+추가하고, `CodeAdminService.validate()`의 insert 검증에서 이 검증기로
+`code` 필수 여부와 형식을 한 번에 확인한다(빈 문자열은 이 정규식 자체가
+거부하므로 별도의 blank 체크가 필요 없어졌다). update/delete는 `code`를
+받지 않으므로(이미 불변) 대상이 아니다.
+
+기존 테스트 픽스처가 소문자(`test_root` 등)를 쓰고 있어서 전부 대문자로
+바꿨다 — 이 정규식이 처음으로 강제되는 시점이라 어쩔 수 없는 변경이다.
+
+### 에러 응답을 `{ errors: [{id, code, reason}] }`에서 단일 메시지로 단순화
+
+오너 방침: "오류가 발생한 경우 어떤 오류가 발생했는지만 명확하게 짚어내면
+됨 — 어디서/무엇 때문에 발생했는지는 서버 사이드 로그에만 남긴다." 즉
+클라이언트 응답에는 항목별 `id`/`code`/구체적 사유를 실어 보낼 필요가
+없다. 같은 방침이 메시지 관리에도 적용됐다 —
+[ADR-0011의 같은 날짜 addendum](0011-api-define-admin-contract-and-record-models.md#addendum-2026-09-18-에러-응답을-단일-메시지로-단순화-위-137번-미해결-이슈-확정)
+참고.
+
+- `CodeValidationException`/`CodeConflictException`은 이제 `List<CodeError>`
+  대신 메시지 코드 문자열 하나(`String code`)만 들고 있다. `CodeError`/
+  `CodeErrorResponse` 클래스는 삭제했다.
+- `CodeAdminController`의 두 `@ExceptionHandler`는 이제
+  `kkdugi.core.exceptions.ExceptionMessage`(세션/인증 쪽에서 이미 쓰던
+  공통 바디 타입 — `{code, message}`)를 반환한다. 다만 `RestfulException`/
+  `RestfulExceptionAdvice`(checked exception + 전역 `@RestControllerAdvice`)
+  체계로 갈아타지는 않았다 — 그러려면 `persist`/`search`가 checked
+  exception을 던지도록 시그니처를 바꿔야 하고 `@Transactional`에
+  `rollbackFor`를 추가해야 하는 등 파급 범위가 커서, 지금은 응답 **바디
+  형태만** 공통 타입으로 맞추고 예외 클래스 자체와 컨트롤러 로컬
+  `@ExceptionHandler` 구조는 그대로 뒀다. 전역 체계로의 완전한 이관은
+  별도 결정 사항으로 남긴다.
+- `CodeAdminService`는 도메인별 메시지 코드 상수(`ERR_MALFORMED_REQUEST`,
+  `ERR_INVALID_FORMAT`, `ERR_LOCALE_REQUIRED`, `ERR_DUPLICATE`,
+  `ERR_NOT_FOUND`, `ERR_IMMUTABLE`)를 노출하고, 예외를 던지기 직전
+  SLF4J `log.warn(...)`으로 `id`/`code`/`parentId` 등 구체적 맥락을
+  남긴다. `messages.properties`/`messages_ko_KR.properties`/
+  `messages_en_US.properties`에 각 코드의 기본 문구를 등록했다(DB
+  `i18n_message`에 아직 등록 전이어도 `useCodeAsDefaultMessage`가 아니라
+  이 fallback 번들이 먼저 잡힌다).
+- `validate()`가 항목별 오류를 리스트로 모으던 방식(`List<CodeError>`
+  누적)에서 **첫 번째로 발견한 위반에서 즉시 던지는 방식**으로 바뀌었다 —
+  한 번에 여러 오류를 구조적으로 나열할 필요가 없어졌기 때문에 자연스럽게
+  단순해졌다.
+- [`docs/api/common-code.md`](../api/common-code.md)의 400/409 에러
+  응답 형식 절을 이 문서에 맞춰 갱신해야 한다.

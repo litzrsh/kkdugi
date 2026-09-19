@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createApi} from '../../main/resources/static/admin/api.mjs';
-import {saveToken,getToken,clearToken} from '../../main/resources/static/auth/session.mjs';
+import {createApi} from '../../main/resources/static/js/api/index.mjs';
+import {saveToken,getToken,clearToken} from '../../main/resources/static/js/auth/session.mjs';
 const values=new Map();
 globalThis.sessionStorage={getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
 let redirect;
@@ -23,6 +23,6 @@ test('401 removes stale token and returns to context-aware login',async()=>{
 test('cleared token is not sent on subsequent requests',async()=>{
  clearToken();let headers;
  const api=createApi({},async(url,options)=>{headers=options.headers;return new Response(null,{status:204});});
- await api.request('/api/v1.0/admin/auth/logout','POST');
+ await api.request('/api/v1.0/auth/logout','POST');
  assert.equal(headers.Authorization,undefined);
 });

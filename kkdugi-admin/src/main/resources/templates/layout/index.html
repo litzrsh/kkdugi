@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="ko" data-theme="light" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.toLanguageTag()}">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>kkdugi · Admin</title>
+<link rel="stylesheet" th:href="@{/vendor/bulma.min.css}"><link rel="stylesheet" th:href="@{/vendor/line-awesome/css/line-awesome.min.css}"><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><div id="app"><div class="boot">kkdugi <span th:text="#{admin.ui.loading}">Loading…</span></div></div>
+<script th:inline="javascript">
+window.KKDUGI = Object.assign({mode:'live',basePath:/*[[@{/}]]*/'',locale:/*[[${#locale.toString()}]]*/'ko_KR'},/*[[${adminUiConfig}]]*/{});
+</script>
+<script th:src="@{/vendor/vue.global.prod.js}"></script><script th:src="@{/vendor/vue3-sfc-loader.js}"></script><script th:src="@{/vendor/ag-grid.min.js}"></script><script type="module" th:src="@{/js/bootstrap.mjs}"></script>
+</body></html>

@@ -14,6 +14,7 @@ import kkdugi.app.admin.code.models.CodeContent;
 import kkdugi.app.admin.code.models.CodePersistRequest;
 import kkdugi.app.admin.code.models.CodeSearchParams;
 import kkdugi.app.admin.code.service.CodeAdminService;
+import kkdugi.core.exceptions.ExceptionMessage;
 import kkdugi.core.models.Page;
 
 @RestController
@@ -38,13 +39,13 @@ public class CodeAdminController {
 
     @ExceptionHandler(CodeValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public CodeErrorResponse handleValidation(CodeValidationException e) {
-        return new CodeErrorResponse(e.getErrors());
+    public ExceptionMessage handleValidation(CodeValidationException e) {
+        return new ExceptionMessage(e.getCode());
     }
 
     @ExceptionHandler(CodeConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public CodeErrorResponse handleConflict(CodeConflictException e) {
-        return new CodeErrorResponse(e.getErrors());
+    public ExceptionMessage handleConflict(CodeConflictException e) {
+        return new ExceptionMessage(e.getCode());
     }
 }

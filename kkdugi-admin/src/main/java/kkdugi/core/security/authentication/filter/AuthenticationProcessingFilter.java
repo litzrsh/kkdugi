@@ -48,7 +48,7 @@ import tools.jackson.databind.ObjectMapper;
  */
 public class AuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String LOGIN_URL = "/api/v1.0/admin/auth/login";
+    public static final String LOGIN_URL = "/api/v1.0/auth/login";
 
     public static final String ERR_BAD_CREDENTIALS = "auth.err.bad_credentials";
     public static final String ERR_MALFORMED_REQUEST = "auth.err.malformed_request";

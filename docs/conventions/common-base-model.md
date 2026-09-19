@@ -134,37 +134,63 @@ i18n 재구현이 이 예).
 
 ## 5. 목록 조회 응답 — `kkdugi.core.models.Page<T>`를 재사용한다
 
+**2026-09-18 갱신**: 쿼리 레벨 페이징(총 개수를 별도 `countX()` 쿼리가
+아니라, 데이터를 가져오는 쿼리 자체가 윈도우 함수로 함께 반환)으로
+바뀌면서 아래 두 가지가 이전과 달라졌다 — `T extends BaseModel` 제약이
+생겼고, `Page.of`가 개별 필드 대신 `BaseParams`를 통째로 받는다.
+
 ```java
-public class Page<T> {
+public class Page<T extends BaseModel> {
     private final int page;
     private final int pageSize;
-    private final long totalItems;
-    private final long totalPages;
+    private final long totalItems;  // contents.get(0).getTotalSize()에서 얻음
     private final List<T> contents;
 
-    public static <T> Page<T> of(List<T> contents, int page, int pageSize, long totalItems) {
-        long totalPages = Math.max(1, (long) Math.ceil((double) totalItems / pageSize));
-        return new Page<>(page, pageSize, totalItems, totalPages, contents);
+    public <P extends BaseParams> Page(List<T> contents, P params) { ... }
+
+    public long getTotalPages() { ... }  // totalItems/pageSize로 계산
+
+    public static <T extends BaseModel, P extends BaseParams> Page<T> of(List<T> contents, P params) {
+        return new Page<>(contents, params);
     }
 }
 ```
 
 - 필드 이름(`page`/`pageSize`/`totalItems`/`totalPages`/`contents`)은
-  `docs/api-define-admin.md`의 모든 목록 응답 형태와 정확히 일치하므로,
-  화면마다 새 응답 DTO를 정의하지 말고 컨트롤러가 `Page<T>`를 그대로
-  반환한다.
-- **`T`에는 상속 제약을 걸지 않는다**(`T extends BaseModel`을 걸지
-  않는다). `Page<CodeContent>`/`Page<MessageContent>`처럼 `T`가
-  `BaseModel`을 상속하지 않는 플레인 클래스(3번의 "그 외 순수 데이터
-  객체")인 경우가 실제로 있기 때문이다.
+  변하지 않았다 — 화면마다 새 응답 DTO를 정의하지 말고 컨트롤러가
+  `Page<T>`를 그대로 반환한다.
+- **쿼리가 `total_size`를 함께 반환해야 한다**: 목록 매퍼는 별도의
+  `countX()` 메서드/쿼리를 두지 않고, 데이터 쿼리 자체에
+  `COUNT(*) OVER()`(이미 `SELECT DISTINCT` 등으로 집계된 쿼리라면 그
+  결과를 서브쿼리로 감싸고 그 위에서 `COUNT(*) OVER()`)를 `total_size`
+  컬럼으로 추가해, 도메인 모델(`BaseModel.totalSize`)에 매핑한다. 한 행도
+  없으면(필터에 맞는 행이 없거나, 마지막 페이지 너머로 요청한 경우) 윈도우
+  함수 값 자체를 받을 수 없어 `totalItems`가 0으로 보고된다 — 이 패턴의
+  알려진 한계로 받아들인다.
+- **`T`는 `BaseModel`을 상속해야 한다.** DB 행을 그대로 노출하는 목록은
+  자연히 만족하지만, `CodeContent`/`MessageContent`처럼 여러 DB 행을
+  하나로 묶어(예: 언어별 텍스트를 `locale` 맵으로 pivot) 만드는 API 전용
+  콘텐츠 타입도 이제 `BaseModel`을 상속해야 `Page<T>`의 `T`로 쓸 수
+  있다. 이때 `BaseModel`이 원래 노출하지 않던 `rownum`/`createdAt`/
+  `creatorId`/`updatedAt`/`updaterId`가 JSON에 새로 섞여 나가지 않도록,
+  클래스에 `@JsonIgnoreProperties({"rownum", "createdAt", "creatorId",
+  "updatedAt", "updaterId"})`를 붙인다(`totalSize`는 `BaseModel`
+  자체에 이미 `@JsonIgnore`가 있어 따로 처리할 필요 없다). 서비스는 각
+  콘텐츠 객체를 만들 때 원본 행의 `totalSize`를 `setTotalSize(...)`로
+  옮겨 담아야 한다 — `CodeAdminService`/`MessageAdminService`가 실례다.
+- `Page`의 생성자는 `params.getPage()`/`params.getPageSize()`(raw 필드)를
+  그대로 읽는다 — `resolvedPage()`/`resolvedPageSize()`가 아니다. 그래서
+  서비스는 쿼리를 날리기 **전에** `params.setPage(params.resolvedPage());
+  params.setPageSize(params.resolvedPageSize());`로 params 자체를
+  정규화해야 한다. 안 그러면 클라이언트가 `page`/`pageSize`를 생략했을 때
+  응답의 `page`/`pageSize`가 실제로 적용된 값이 아니라 `0`으로 나간다.
 - 목록 조회 요청 파라미터는 [3번](#3-도메인-모델은-basemodel을-검색-파라미터는-baseparams를-상속한다--record는-쓰지-않는다)에서 정한 대로
   `kkdugi.core.models.BaseParams`를 상속하는 클래스로 만든다(예:
   `MessageSearchParams`). `page`는 1-base, 기본값 1이고 `pageSize`
   기본값/상한은 200 — `BaseParams`가 이 기본값과
-  `resolvedPage()`/`resolvedPageSize()`를 제공한다
-  (`docs/api-define-admin.md`의 모든 예시가 `"page": 1, "pageSize": 200`을
-  쓴다). 페이징 계산은 표준 SQL `OFFSET (page-1)*pageSize LIMIT pageSize`를
-  쓰며, `BaseParams.getOffset()`/`getLimit()`이 정확히 이 값을 반환하도록
+  `resolvedPage()`/`resolvedPageSize()`를 제공한다. 페이징 계산은 표준 SQL
+  `OFFSET (page-1)*pageSize LIMIT pageSize`를 쓰며,
+  `BaseParams.getOffset()`/`getLimit()`이 정확히 이 값을 반환하도록
   구현돼 있다(`getLimit()`은 `pageSize` 그대로 — ADR-0010 원안의
   `page*pageSize`이 갖고 있던 ROWNUM `BETWEEN` 스타일 모호함을
   [ADR-0014](../adr/0014-revert-to-base-model-inheritance.md)가 해소했다).
@@ -214,12 +240,20 @@ public class Page<T> {
 - `<sql id="...">` 재사용 조각도 CDATA로 감싼다.
 - `resultMap`은 이 규칙(CDATA/QueryID) 대상이 아니다. 도메인 모델
   `resultMap`은 setter 기반 `<id>`/`<result>`로 작성하고, 감사 필드
-  매핑은 직접 반복하지 않고 `mapper/postgres/CommonMapper.xml`의
+  매핑은 직접 반복하지 않고
+  `mapper/postgres/core/models/CommonMapper.xml`의
   `kkdugi.core.models.CommonMapper.baseResultMap`을 `extends`해
   재사용한다([ADR-0014](../adr/0014-revert-to-base-model-inheritance.md)).
 
 전체 예시는 `I18nMessageMapper.xml`/`CodeBaseMapper.xml`/`CodeLangMapper.xml`/
 `SerialMapper.xml`을 참고한다 — 넷 다 이 서식으로 맞춰져 있다.
+
+**매퍼 XML 파일 위치(2026-09-18)**: `mapper/postgres/` 밑에 전부 몰아넣지
+않고, 매퍼 인터페이스의 Java 패키지를 그 아래에 그대로 반영한다 — 예:
+`kkdugi.core.code.mapper.CodeBaseMapper` →
+`mapper/postgres/core/code/CodeBaseMapper.xml`. `application.yml`의
+`mybatis.mapper-locations`(`classpath:mapper/postgres/**/*Mapper.xml`)가
+이미 재귀 glob이라 경로를 옮겨도 설정 변경은 필요 없다.
 
 ## 8. 코드성 enum은 `CodeEnums`를 구현하고 `kkdugi.core.enums`에 둔다
 
@@ -282,6 +316,64 @@ public enum UserStatus implements CodeEnums {
   구현하지 않은 순수 enum을 그대로 매핑하려 하면 이 핸들러가 `getCode()`를
   호출하다 실패한다.
 
+## 9. 결과가 0개 또는 1개인 매퍼 메서드는 `Optional<T>`를 반환한다
+
+`findById`처럼 PK로 한 행을 찾는 메서드가 대표적이다 — MyBatis가
+`Optional<T>` 반환 타입을 그대로 지원하므로(찾으면 채워진 Optional, 못
+찾으면 `Optional.empty()`) XML 쪽 변경은 필요 없고 매퍼 인터페이스
+시그니처만 바꾸면 된다. `null` 반환 + 호출부 `if (x == null)` 체크보다
+호출부가 `.orElseThrow(...)`/`.map(...)`/`.orElse(...)`로 더 간결해진다
+(`SessionMapper.findById`/`findByUserId`, `SecurityUserDetailsMapper.findByUsername`가
+원래부터 이 패턴이었고, 2026-09-18에 `CodeBaseMapper.findById`/
+`MenuBaseMapper.findById`/`I18nMessageMapper.findByCodeAndLang`도 여기에
+맞췄다):
+
+```java
+// 매퍼
+Optional<CodeBase> findById(@Param("id") String id);
+
+// 서비스 — 못 찾으면 로그를 남기고 도메인 예외로 변환
+CodeBase existing = codeBaseMapper.findById(content.getId())
+        .orElseThrow(() -> {
+            log.warn("...");
+            return new CodeConflictException(ERR_NOT_FOUND);
+        });
+```
+
+목록을 반환하는 메서드(`List<T>`)는 대상이 아니다 — 빈 리스트 자체가 이미
+"없음"을 표현하므로 `Optional<List<T>>`로 감쌀 이유가 없다.
+
+## 10. 같은 기능이라도 일반 사용자 경로와 관리자 경로는 매퍼/서비스를 분리한다
+
+한 `.mapper`/`.service` 클래스 안에 "이 사용자가 SYS_ADMIN이면 다르게
+동작"하는 우회 로직을 조건문으로 끼워 넣지 않는다 — 관리자 우회는 별도
+매퍼 + 별도 서비스로 뽑아서, 일반 경로를 읽을 때 관리자 특수 케이스를
+같이 신경 쓰지 않아도 되게 한다. 2026-09-18에 `core.security`의 세션 메뉴
+로딩에서 이렇게 정리했다:
+
+```
+core.security.mapper
+├─ SecurityUserDetailsMapper — 일반 사용자 경로(findByUsername,
+│  findAuthoritiesByUsername, findMenusByUsername, updatePassword,
+│  updateLastLoginAt)
+└─ SysAdminMenuMapper — SYS_ADMIN 전용(findAllMenus, kkdugi_auth_menu
+   매핑을 완전히 우회해 전체 메뉴 반환)
+
+core.security.service
+├─ KkdugiUserDetailsService — UserDetailsService 구현체. 이미 로드한
+│  authorities로 SYS_ADMIN 여부만 판단하고, 어느 쪽을 호출할지 분기한다
+│  (SessionUtils로 "현재 로그인된 사용자의 역할"을 다시 체크하지 않는다
+│  — loadUserByUsername 시점엔 아직 인증이 안 끝나 SecurityContext가
+│  비어 있어서 항상 실패한다)
+└─ SysAdminMenuService — SysAdminMenuMapper를 감싸는 얇은 서비스
+```
+
+`KkdugiUserDetailsService`처럼 두 경로 다 알아야 하는 상위 서비스는
+남아도 된다(Spring Security 계약상 로그인 진입점이 하나여야 하니
+불가피하다) — 규칙이 막는 건 "SQL/매퍼 안에" 관리자 우회를 조건부로
+끼워 넣는 것과, 그 우회 로직을 별도 클래스로 뽑지 않고 일반 경로용
+매퍼/서비스에 같이 얹는 것이다.
+
 ## 새 도메인 착수 시 체크리스트
 
 - [ ] `{package}.models`/`.mapper`/`.service`(/`.config`)로 나뉘어 있는가
@@ -290,13 +382,23 @@ public enum UserStatus implements CodeEnums {
 - [ ] 필드명에서 DB 컬럼명(축약형 포함)이 그대로 유추되지 않는가 (2번)
 - [ ] record를 쓰지 않았는가 — 도메인 모델은 `BaseModel`을, 검색
       파라미터는 `BaseParams`를 상속하는가(예외·이벤트는 원래도 클래스라
-      해당 없음), 그 외 데이터 객체는 상속 없는 플레인 클래스인가
+      해당 없음), 그 외 데이터 객체는 상속 없는 플레인 클래스인가(단
+      `Page<T>`의 `T`로 쓰이는 콘텐츠 타입은 예외 — 5번 참고)
 - [ ] 도메인 모델 resultMap이 setter 기반 `<id>`/`<result>`이고,
       감사 필드는 `CommonMapper.baseResultMap`을 `extends`하는가
 - [ ] 목록 응답이 `core.models.Page<T>`로 감싸지는가, 매퍼가
-      1-base `page`/`pageSize`로부터 표준 `OFFSET`/`LIMIT`을 계산하는가
+      1-base `page`/`pageSize`로부터 표준 `OFFSET`/`LIMIT`을 계산하는가,
+      데이터 쿼리가 `COUNT(*) OVER()`로 `total_size`를 함께 반환해
+      별도 `countX()` 쿼리가 없는가, 서비스가 쿼리 전에 `params`의
+      `page`/`pageSize`를 `resolvedPage()`/`resolvedPageSize()`로
+      정규화하는가
 - [ ] app 계층과 api 계층 DTO를 분리해야 할 실질적 이유가 있는지 확인했는가
       (없으면 하나로 합친다)
+- [ ] 결과가 0개 또는 1개인 매퍼 메서드(`findById` 등)가 `Optional<T>`를
+      반환하는가 (9번)
+- [ ] 일반 사용자 경로와 관리자 우회 경로가 매퍼/서비스 클래스 단위로
+      분리돼 있는가, 조건문(`SessionUtils`로 현재 사용자 역할 재확인 등)이
+      매퍼/서비스 안에 섞여 있지 않은가 (10번)
 - [ ] 매퍼 XML이 7번의 CDATA/QueryID 서식을 따르는가, 주석 안에
       `#{...}`가 남아있지 않은가
 - [ ] DB에 코드로 저장되는 고정값 집합을 enum으로 만들 때 `CodeEnums`를
@@ -310,5 +412,8 @@ public enum UserStatus implements CodeEnums {
   참고) — 위반이 아니라 명시적 범위 제외다.
 - `kkdugi.app.admin.i18n`에는 아직 `events` 패키지가 없다 — 이 기능에
   이벤트가 없기 때문이며, 규약 위반이 아니다.
-- 공통코드/메뉴/권한/사용자 4개 화면은 아직 미구현 상태다. 구현 시 이
-  문서의 규칙(패키지 배치, `Page<T>` 재사용 포함)을 그대로 적용한다.
+- 공통코드/메시지/메뉴는 구현됐다. 권한/사용자 2개 화면은 아직 미구현
+  상태다 — 구현 시 이 문서의 규칙(패키지 배치, 목록 조회는 `Page<T>`
+  재사용 포함)을 그대로 적용한다. 다만 메뉴처럼 전체를 한 번에 내려주는
+  게 자연스러운 화면이라면 `Page<T>` 대신 `Tree<T>`를 쓸 수도 있다 —
+  [ADR-0015](../adr/0015-menu-management-system.md) 1번 참고.

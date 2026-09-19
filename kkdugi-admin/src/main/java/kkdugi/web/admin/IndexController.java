@@ -20,7 +20,7 @@ import kkdugi.web.admin.models.AdminUiConfig;
 import kkdugi.web.admin.models.StatusOption;
 
 /**
- * kkdugi-design의 admin 셸(admin/index.html)을 그대로 옮겨와 렌더링한다.
+ * 역할별 템플릿의 공통 셸(layout/index.html)을 렌더링한다.
  * README "Spring 프로젝트로 연결" 계약대로 {@code adminUiConfig} 모델 하나만
  * 제공하고, 실제 데이터 조회/쓰기는 화면의 Vue가 기존 code/i18n/menu/
  * authority/user REST API를 직접 호출해서 처리한다 — 이 컨트롤러는 그 API들의
@@ -52,21 +52,10 @@ public class IndexController {
         this.adminUiProperties = adminUiProperties;
     }
 
-    /**
-     * 루트에는 별도 화면이 없다 — {@code /admin}으로 보내면
-     * bootstrap.mjs가 토큰 유무를 보고 {@code /login}으로 다시 보낼지
-     * 판단한다(클라이언트 쪽 결정, 서버 인가를 대체하지 않음). 매핑이
-     * 없으면 Spring Boot의 기본 에러 핸들러가 그냥 JSON 404를 보여준다.
-     */
     @GetMapping("/")
-    public String root() {
-        return "redirect:/admin";
-    }
-
-    @GetMapping("/admin")
-    public String index(Model model, Locale locale) {
+    public String root(Model model, Locale locale) {
         model.addAttribute("adminUiConfig", buildConfig(locale));
-        return "admin/index";
+        return "layout/index";
     }
 
     private AdminUiConfig buildConfig(Locale locale) {

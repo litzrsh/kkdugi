@@ -11,7 +11,7 @@ spring:
     locations: classpath:db/migration
 
 mybatis:
-  mapper-locations: classpath:mapper/postgres/*Mapper.xml
+  mapper-locations: classpath:mapper/postgres/**/*Mapper.xml
   configuration:
     map-underscore-to-camel-case: true
     default-enum-type-handler: kkdugi.core.mybatis.CodeEnumTypeHandler

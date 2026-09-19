@@ -24,8 +24,8 @@ class LoginControllerTest {
     }
     @Test void loginRendersJsonEndpointAndNoVueOrDemo() throws Exception {
         mvc.perform(get("/login")).andExpect(status().isOk())
-            .andExpect(content().string(containsString("/api/v1.0/admin/auth/login")))
-            .andExpect(content().string(containsString("login-live.mjs")))
+            .andExpect(content().string(containsString("/api/v1.0/auth/login")))
+            .andExpect(content().string(containsString("/js/auth/login.mjs")))
             .andExpect(content().string(containsString("duplicate-panel")))
             .andExpect(content().string(not(containsString("vue.global"))))
             .andExpect(content().string(not(containsString("디자인 미리보기"))));
@@ -38,8 +38,8 @@ class LoginControllerTest {
     }
     @Test void contextPathIsAppliedToAssetsAndEndpoints() throws Exception {
         mvc.perform(get("/kk/login").contextPath("/kk")).andExpect(status().isOk())
-            .andExpect(content().string(containsString("/kk/api/v1.0/admin/auth/login")))
-            .andExpect(content().string(containsString("/kk/auth/login-live.mjs")))
-            .andExpect(content().string(containsString("data-success-url=\"/kk/admin\"")));
+            .andExpect(content().string(containsString("/kk/api/v1.0/auth/login")))
+            .andExpect(content().string(containsString("/kk/js/auth/login.mjs")))
+            .andExpect(content().string(containsString("data-success-url=\"/kk/\"")));
     }
 }

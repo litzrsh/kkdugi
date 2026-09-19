@@ -43,7 +43,7 @@ class CodeAdminControllerTest {
     @Test
     void persist_returns400_whenLocaleMissing() throws Exception {
         String body = objectMapper.writeValueAsString(new CodePersistRequest(
-                List.of(new CodeContent(null, null, "test_api_code", null, "Y",
+                List.of(new CodeContent(null, null, "TEST_API_CODE", null, "Y",
                         null, null, null, null, null, null, null, null)),
                 null, null));
 

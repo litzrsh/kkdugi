@@ -3,7 +3,6 @@ package kkdugi.web.admin;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,15 +32,8 @@ class IndexControllerTest {
     }
 
     @Test
-    void root_redirectsToAdmin_insteadOfDefaultJsonErrorPage() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin"));
-    }
-
-    @Test
     void index_isPubliclyReachable_andRendersShellWithAdminUiConfig() throws Exception {
-        mockMvc.perform(get("/admin"))
+        mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/html"))
                 // 화면 UI 문구(properties fallback)가 실제로 해석돼 들어갔는지 —
@@ -57,7 +49,7 @@ class IndexControllerTest {
 
     @Test
     void index_withLangParam_switchesResolvedMessageLocale() throws Exception {
-        mockMvc.perform(get("/admin").param("lang", "en_US"))
+        mockMvc.perform(get("/").param("lang", "en_US"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Execute")));
     }

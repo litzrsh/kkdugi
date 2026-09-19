@@ -31,13 +31,10 @@ public class KkdugiMessageSource extends AbstractMessageSource {
     }
 
     public void refresh(String msgCode, String langCode) {
-        I18nMessage message = mapper.findByCodeAndLang(msgCode, langCode);
         String key = cacheKey(msgCode, langCode);
-        if (message == null || message.getMsgText() == null) {
-            cache.remove(key);
-        } else {
-            cache.put(key, message.getMsgText());
-        }
+        mapper.findByCodeAndLang(msgCode, langCode)
+                .map(I18nMessage::getMsgText)
+                .ifPresentOrElse(text -> cache.put(key, text), () -> cache.remove(key));
     }
 
     @Override

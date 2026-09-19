@@ -1,13 +1,14 @@
 package kkdugi.app.admin.code.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import kkdugi.app.admin.code.exceptions.CodeConflictException;
 import kkdugi.app.admin.code.exceptions.CodeValidationException;
 import kkdugi.app.admin.code.models.CodeContent;
-import kkdugi.app.admin.code.models.CodeError;
 import kkdugi.app.admin.code.models.CodeLocale;
 import kkdugi.app.admin.code.models.CodePersistRequest;
 import kkdugi.app.admin.code.models.CodeSearchParams;
@@ -23,12 +23,22 @@ import kkdugi.core.code.mapper.CodeBaseMapper;
 import kkdugi.core.code.mapper.CodeLangMapper;
 import kkdugi.core.code.models.CodeBase;
 import kkdugi.core.code.models.CodeLang;
+import kkdugi.core.code.models.CodeValue;
 import kkdugi.core.models.Page;
 import kkdugi.core.serial.SerialConfig;
 import kkdugi.core.util.SerialUtils;
 
 @Service
 public class CodeAdminService {
+
+    private static final Logger log = LoggerFactory.getLogger(CodeAdminService.class);
+
+    public static final String ERR_MALFORMED_REQUEST = "code.err.malformed_request";
+    public static final String ERR_INVALID_FORMAT = "code.err.invalid_format";
+    public static final String ERR_LOCALE_REQUIRED = "code.err.locale_required";
+    public static final String ERR_DUPLICATE = "code.err.duplicate";
+    public static final String ERR_NOT_FOUND = "code.err.not_found";
+    public static final String ERR_IMMUTABLE = "code.err.immutable";
 
     private static final String SYSTEM_USER_ID = "SYSTEM";
     private static final String ID_PREFIX = "C";
@@ -57,14 +67,12 @@ public class CodeAdminService {
 
     @Transactional(readOnly = true)
     public Page<CodeContent> search(CodeSearchParams params) {
-        int page = params.resolvedPage();
-        int pageSize = params.resolvedPageSize();
+        params.setPage(params.resolvedPage());
+        params.setPageSize(params.resolvedPageSize());
 
         List<CodeBase> rows = codeBaseMapper.findChildren(
                 params.getParentId(), params.getCode(), params.getPath(), params.getName(), params.getUse(),
-                params.getOffset(), pageSize);
-        long totalItems = codeBaseMapper.countChildren(
-                params.getParentId(), params.getCode(), params.getPath(), params.getName(), params.getUse());
+                params.getOffset(), params.getLimit());
 
         List<CodeContent> contents;
         if (rows.isEmpty()) {
@@ -77,7 +85,7 @@ public class CodeAdminService {
                     .toList();
         }
 
-        return Page.of(contents, page, pageSize, totalItems);
+        return Page.of(contents, params);
     }
 
     @Transactional
@@ -99,13 +107,11 @@ public class CodeAdminService {
 
     private void insertOne(CodeContent content, LocalDateTime now) {
         String parentId = content.getParentId();
-        CodeBase parent = null;
-        if (parentId != null) {
-            parent = codeBaseMapper.findById(parentId);
-            if (parent == null) {
-                throw new CodeConflictException(null, content.getCode(), "상위 코드를 찾을 수 없습니다: " + parentId);
-            }
-        }
+        CodeBase parent = parentId == null ? null : codeBaseMapper.findById(parentId)
+                .orElseThrow(() -> {
+                    log.warn("공통코드 등록 실패 - 상위 코드를 찾을 수 없음: parentId={}", parentId);
+                    return new CodeConflictException(ERR_NOT_FOUND);
+                });
 
         String id = SerialUtils.next(SERIAL_CONFIG);
         int level = parent == null ? 0 : parent.getLevel() + 1;
@@ -120,7 +126,8 @@ public class CodeAdminService {
         try {
             codeBaseMapper.insert(row);
         } catch (DuplicateKeyException e) {
-            throw new CodeConflictException(null, content.getCode(), "같은 경로에 이미 존재하는 코드입니다: " + content.getCode());
+            log.warn("공통코드 등록 실패 - 같은 경로에 이미 존재하는 코드: parentId={}, code={}", parentId, content.getCode());
+            throw new CodeConflictException(ERR_DUPLICATE);
         }
 
         for (Map.Entry<String, CodeLocale> entry : content.getLocale().entrySet()) {
@@ -132,24 +139,27 @@ public class CodeAdminService {
     }
 
     private void updateOne(CodeContent content, LocalDateTime now) {
-        CodeBase existing = codeBaseMapper.findById(content.getId());
-        if (existing == null) {
-            throw new CodeConflictException(content.getId(), content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getId());
-        }
+        CodeBase existing = codeBaseMapper.findById(content.getId())
+                .orElseThrow(() -> {
+                    log.warn("공통코드 수정 실패 - 대상 코드를 찾을 수 없음: id={}", content.getId());
+                    return new CodeConflictException(ERR_NOT_FOUND);
+                });
         // code 값(경로 세그먼트)과 parentId는 이번 범위에서 수정 불가로 뒀다 —
         // 바꾸려면 이 노드와 모든 하위 노드의 code_path/code_lvl을 재계산해야
         // 하는데, 그 캐스케이드 재계산은 아직 구현하지 않았다. 바꾸고 싶으면
         // 삭제 후 재등록한다(삭제는 하위까지 캐스케이드된다).
         if (content.getCode() != null && !content.getCode().equals(existing.getCode())) {
-            throw new CodeConflictException(content.getId(), content.getCode(),
-                    "코드 값은 수정할 수 없습니다(삭제 후 재등록하세요): " + content.getId());
+            log.warn("공통코드 수정 실패 - code 값 변경 시도: id={}, 기존={}, 요청={}",
+                    content.getId(), existing.getCode(), content.getCode());
+            throw new CodeConflictException(ERR_IMMUTABLE);
         }
         boolean parentChanged = content.getParentId() != null
                 ? !content.getParentId().equals(existing.getParentId())
                 : existing.getParentId() != null;
         if (parentChanged) {
-            throw new CodeConflictException(content.getId(), content.getCode(),
-                    "상위 코드는 수정할 수 없습니다(삭제 후 재등록하세요): " + content.getId());
+            log.warn("공통코드 수정 실패 - 상위 코드 변경 시도: id={}, 기존={}, 요청={}",
+                    content.getId(), existing.getParentId(), content.getParentId());
+            throw new CodeConflictException(ERR_IMMUTABLE);
         }
 
         String use = content.getUse() != null ? content.getUse() : existing.getUse();
@@ -184,12 +194,14 @@ public class CodeAdminService {
     }
 
     private void deleteOne(CodeContent content) {
-        CodeBase existing = codeBaseMapper.findById(content.getId());
-        if (existing == null) {
-            throw new CodeConflictException(content.getId(), content.getCode(), "대상 코드를 찾을 수 없습니다: " + content.getId());
-        }
-        // 하위 코드도 모두 삭제 (api-define-admin.md 1.2절 "삭제 시, 하위
-        // 코드도 모두 삭제"). code_path 접두어로 자신+모든 하위를 찾는다.
+        CodeBase existing = codeBaseMapper.findById(content.getId())
+                .orElseThrow(() -> {
+                    log.warn("공통코드 삭제 실패 - 대상 코드를 찾을 수 없음: id={}", content.getId());
+                    return new CodeConflictException(ERR_NOT_FOUND);
+                });
+        // 하위 코드도 모두 삭제 (docs/archive/api-define-admin.md 1.2절
+        // "삭제 시, 하위 코드도 모두 삭제"). code_path 접두어로 자신+모든
+        // 하위를 찾는다.
         List<CodeBase> targets = codeBaseMapper.findSelfAndDescendants(existing.getPath());
         List<String> ids = targets.stream().map(CodeBase::getId).toList();
         codeLangMapper.deleteByCodeIds(ids);
@@ -197,44 +209,44 @@ public class CodeAdminService {
     }
 
     private void validate(CodePersistRequest request) {
-        List<CodeError> errors = new ArrayList<>();
         for (CodeContent content : request.insertOrEmpty()) {
             if (!isBlank(content.getId())) {
-                errors.add(new CodeError(content.getId(), content.getCode(),
-                        "insert 항목의 id는 비어 있어야 합니다(서버가 채번합니다)"));
+                log.warn("공통코드 등록 검증 실패 - insert 항목에 id가 지정됨: code={}", content.getCode());
+                throw new CodeValidationException(ERR_MALFORMED_REQUEST);
             }
-            if (isBlank(content.getCode())) {
-                errors.add(new CodeError(content.getId(), content.getCode(), "code는 필수입니다"));
+            if (!CodeValue.matches(content.getCode())) {
+                log.warn("공통코드 등록 검증 실패 - code 값 형식이 올바르지 않음: code={}", content.getCode());
+                throw new CodeValidationException(ERR_INVALID_FORMAT);
             }
-            validateLocale(content, errors);
+            validateLocale(content);
         }
         for (CodeContent content : request.updateOrEmpty()) {
             if (isBlank(content.getId())) {
-                errors.add(new CodeError(content.getId(), content.getCode(), "update 항목의 id는 필수입니다"));
+                log.warn("공통코드 수정 검증 실패 - update 항목에 id가 없음");
+                throw new CodeValidationException(ERR_MALFORMED_REQUEST);
             }
             if (content.getLocale() != null) {
-                validateLocale(content, errors);
+                validateLocale(content);
             }
         }
         for (CodeContent content : request.deleteOrEmpty()) {
             if (isBlank(content.getId())) {
-                errors.add(new CodeError(content.getId(), content.getCode(), "delete 항목의 id는 필수입니다"));
+                log.warn("공통코드 삭제 검증 실패 - delete 항목에 id가 없음");
+                throw new CodeValidationException(ERR_MALFORMED_REQUEST);
             }
-        }
-        if (!errors.isEmpty()) {
-            throw new CodeValidationException(errors);
         }
     }
 
-    private void validateLocale(CodeContent content, List<CodeError> errors) {
+    private void validateLocale(CodeContent content) {
         if (content.getLocale() == null || content.getLocale().isEmpty()) {
-            errors.add(new CodeError(content.getId(), content.getCode(), "locale은 최소 1개 이상이어야 합니다"));
-            return;
+            log.warn("공통코드 저장 검증 실패 - locale이 비어 있음: id={}, code={}", content.getId(), content.getCode());
+            throw new CodeValidationException(ERR_LOCALE_REQUIRED);
         }
         for (Map.Entry<String, CodeLocale> entry : content.getLocale().entrySet()) {
             if (entry.getValue() == null || isBlank(entry.getValue().getName())) {
-                errors.add(new CodeError(content.getId(), content.getCode(),
-                        "locale." + entry.getKey() + ".name은 필수입니다"));
+                log.warn("공통코드 저장 검증 실패 - locale.{}.name이 비어 있음: id={}, code={}",
+                        entry.getKey(), content.getId(), content.getCode());
+                throw new CodeValidationException(ERR_LOCALE_REQUIRED);
             }
         }
     }
@@ -253,8 +265,10 @@ public class CodeAdminService {
     }
 
     private static CodeContent toContent(CodeBase row, Map<String, CodeLocale> locale) {
-        return new CodeContent(row.getId(), row.getParentId(), row.getCode(), locale, row.getUse(),
+        CodeContent content = new CodeContent(row.getId(), row.getParentId(), row.getCode(), locale, row.getUse(),
                 row.getExtra1(), row.getExtra2(), row.getExtra3(), row.getExtra4(), row.getExtra5(),
                 row.getPath(), row.getLevel(), row.getSort());
+        content.setTotalSize(row.getTotalSize());
+        return content;
     }
 }

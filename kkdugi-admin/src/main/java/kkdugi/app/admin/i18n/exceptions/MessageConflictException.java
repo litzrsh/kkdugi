@@ -1,19 +1,15 @@
 package kkdugi.app.admin.i18n.exceptions;
 
-import java.util.List;
-
-import kkdugi.app.admin.i18n.models.MessageError;
-
 public class MessageConflictException extends RuntimeException {
 
-    private final List<MessageError> errors;
+    private final String code;
 
-    public MessageConflictException(String code, String reason) {
-        super(reason);
-        this.errors = List.of(new MessageError(code, reason));
+    public MessageConflictException(String code) {
+        super(code);
+        this.code = code;
     }
 
-    public List<MessageError> getErrors() {
-        return errors;
+    public String getCode() {
+        return code;
     }
 }

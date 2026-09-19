@@ -12,8 +12,8 @@ import kkdugi.core.util.TreeUtils;
 
 /**
  * 로그인한 본인이 볼 수 있는 메뉴를 화면 내비게이션용 트리로 내려준다.
- * {@code api-define-admin.md} 3절의 메뉴 관리(전체 CRUD, SYS_ADMIN 전용) API와는
- * 별개다. 세션에는 {@link SessionMenu}가 flat list로 저장돼 있다(화면 콘텐츠
+ * {@code docs/archive/api-define-admin.md} 3절의 메뉴 관리(전체 CRUD,
+ * SYS_ADMIN 전용) API와는 별개다. 세션에는 {@link SessionMenu}가 flat list로 저장돼 있다(화면 콘텐츠
  * 로딩용 {@code program}/{@code authority} 필드 포함 —
  * {@code kkdugi.web.admin.PragmaController}가 {@code SessionUtils.getMenu(menuId)}로
  * 이 필드들을 써서 프로그램별 Vue 조각을 서빙한다) — 그 필드들은 화면
@@ -23,7 +23,7 @@ import kkdugi.core.util.TreeUtils;
  * 빈 배열을 받는다.
  */
 @RestController
-@RequestMapping("/api/v1.0/admin/session")
+@RequestMapping("/api/v1.0/session")
 public class SessionMenuController {
 
     @GetMapping("/menu")

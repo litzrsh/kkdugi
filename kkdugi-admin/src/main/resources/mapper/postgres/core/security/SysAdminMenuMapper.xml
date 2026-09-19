@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.core.security.mapper.SysAdminMenuMapper">
+
+  <resultMap id="sessionMenuResultMap" type="kkdugi.core.security.models.SessionMenu">
+    <id property="id" column="id"/>
+    <result property="parentId" column="parent_id"/>
+    <result property="title" column="title"/>
+    <result property="remarks" column="remarks"/>
+    <result property="program" column="program"/>
+    <result property="icon" column="icon"/>
+    <result property="sort" column="sort"/>
+    <result property="authority" column="authority"/>
+  </resultMap>
+
+  <!--
+    * SqlID=reachableMenuCte
+    * Description=Every menu whose entire ancestor chain (itself included) is
+    *             enabled — a disabled menu hides its whole subtree, not just
+    *             itself. This is this mapper's own copy of the CTE also
+    *             defined in SecurityUserDetailsMapper.xml (findMenusByUsername,
+    *             the general-user path) — duplicated rather than shared on
+    *             purpose, so this admin-only mapper stays fully decoupled
+    *             from the general one (see common-base-model.md).
+    -->
+  <sql id="reachableMenuCte">
+<![CDATA[
+WITH RECURSIVE reachable_menu AS (
+    SELECT mb.menu_id, mb.menu_parent_id, ml.menu_nm, ml.menu_dc, mb.menu_pgm, mb.menu_ico, mb.sort_seq
+    FROM kkdugi_menu_base mb
+    JOIN kkdugi_menu_lang ml ON ml.menu_id = mb.menu_id AND ml.lang_cd = #{langCode}
+    WHERE mb.menu_parent_id IS NULL
+      AND mb.use_yn = 'Y'
+    UNION ALL
+    SELECT mb.menu_id, mb.menu_parent_id, ml.menu_nm, ml.menu_dc, mb.menu_pgm, mb.menu_ico, mb.sort_seq
+    FROM kkdugi_menu_base mb
+    JOIN kkdugi_menu_lang ml ON ml.menu_id = mb.menu_id AND ml.lang_cd = #{langCode}
+    JOIN reachable_menu rm ON rm.menu_id = mb.menu_parent_id
+    WHERE mb.use_yn = 'Y'
+)
+]]>
+  </sql>
+
+  <!--
+    * QueryID=findAllMenus
+    * Description=Find every reachable menu (whole ancestor chain enabled,
+    *             see reachableMenuCte) with the full RBAC bitmask (SYS_ADMIN
+    *             bypass, no auth_menu filtering). Only ever called by
+    *             SysAdminMenuService, in turn only called by
+    *             KkdugiUserDetailsService when the user is already known to
+    *             be SYS_ADMIN (from freshly-loaded authorities, not the
+    *             current SecurityContext — there isn't one yet mid-login) —
+    *             so this stays a single unconditional query with no
+    *             `username` parameter. The general per-user path is
+    *             SecurityUserDetailsMapper.findMenusByUsername, called
+    *             directly by KkdugiUserDetailsService for non-admins.
+    -->
+  <select id="findAllMenus" resultMap="sessionMenuResultMap">
+    <include refid="reachableMenuCte"/>
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SysAdminMenuMapper.findAllMenus */
+SELECT
+    menu_id        AS id,
+    menu_parent_id AS parent_id,
+    menu_nm        AS title,
+    menu_dc        AS remarks,
+    menu_pgm       AS program,
+    menu_ico       AS icon,
+    sort_seq       AS sort,
+    65535          AS authority
+FROM reachable_menu
+ORDER BY menu_parent_id, sort_seq NULLS LAST
+]]>
+  </select>
+
+</mapper>

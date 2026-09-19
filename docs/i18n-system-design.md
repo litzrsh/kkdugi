@@ -376,9 +376,11 @@ POST /api/v1.0/admin/i18n/persist
 
 ## 후속 작업 (이번 범위 아님)
 
-- `docs/api-define-admin.md`의 나머지 4개 화면 구현: 공통코드(1절), 메뉴(3절),
-  권한(4절), 사용자(5절) — 이번에 정리한 패키지 배치 규약과 `Page<T>` 재사용
-  방식을 그대로 적용한다.
+- (완료: 공통코드는 이후 [ADR-0012](adr/0012-common-code-system.md)로 구현됨)
+  나머지 화면(메뉴/권한/사용자)은 옛 `docs/api-define-admin.md`(2026-09-18
+  삭제, 원문은 [docs/archive/api-define-admin.md](archive/api-define-admin.md)
+  3·4·5절 참고 — 더 이상 살아있는 계약 아님, 착수 전 오너 재확인 필요) — 이번에
+  정리한 패키지 배치 규약과 `Page<T>` 재사용 방식을 그대로 적용한다.
 - `POST /api/v1.0/admin/i18n/persist`의 응답 본문 형태 확정(현재는 빈 200 —
   [ADR-0011](adr/0011-api-define-admin-contract-and-record-models.md) "미해결
   이슈" 참고)

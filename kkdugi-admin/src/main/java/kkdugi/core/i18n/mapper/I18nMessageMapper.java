@@ -4,26 +4,26 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kkdugi.core.i18n.models.I18nMessage;
+import kkdugi.core.i18n.models.MessageCodeRow;
 
 import java.util.List;
+import java.util.Optional;
 
 @Mapper
 public interface I18nMessageMapper {
 
     List<I18nMessage> selectAll();
 
-    I18nMessage findByCodeAndLang(@Param("msgCode") String msgCode, @Param("langCode") String langCode);
+    Optional<I18nMessage> findByCodeAndLang(@Param("msgCode") String msgCode, @Param("langCode") String langCode);
 
     List<I18nMessage> findByCode(@Param("msgCode") String msgCode);
 
     List<I18nMessage> findByCodes(@Param("msgCodes") List<String> msgCodes);
 
-    List<String> searchDistinctCodes(@Param("msgCode") String msgCode,
-                                      @Param("msgText") String msgText,
-                                      @Param("offset") int offset,
-                                      @Param("pageSize") int pageSize);
-
-    long countDistinctCodes(@Param("msgCode") String msgCode, @Param("msgText") String msgText);
+    List<MessageCodeRow> searchDistinctCodes(@Param("msgCode") String msgCode,
+                                              @Param("msgText") String msgText,
+                                              @Param("offset") int offset,
+                                              @Param("pageSize") int pageSize);
 
     int insert(I18nMessage message);
 

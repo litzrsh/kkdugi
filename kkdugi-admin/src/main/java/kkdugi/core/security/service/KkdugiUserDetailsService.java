@@ -33,9 +33,11 @@ public class KkdugiUserDetailsService implements UserDetailsService, UserDetails
     private static final String SESSION_LANG = "ko_KR";
 
     private final SecurityUserDetailsMapper mapper;
+    private final SysAdminMenuService sysAdminMenuService;
 
-    public KkdugiUserDetailsService(SecurityUserDetailsMapper mapper) {
+    public KkdugiUserDetailsService(SecurityUserDetailsMapper mapper, SysAdminMenuService sysAdminMenuService) {
         this.mapper = mapper;
+        this.sysAdminMenuService = sysAdminMenuService;
     }
 
     @Override
@@ -53,12 +55,14 @@ public class KkdugiUserDetailsService implements UserDetailsService, UserDetails
         // 체크가 항상 전체 권한으로 우회되는 것과 동일하게, 메뉴 "목록"
         // 자체도 kkdugi_auth_menu 매핑 없이 전체를 본다 — 그렇지 않으면
         // 메뉴/권한 매핑이 아직 없는 상태에서는 SYS_ADMIN조차 빈 메뉴
-        // 목록을 받는다.
+        // 목록을 받는다. 이 관리자 우회 자체는 SysAdminMenuService(별도
+        // 매퍼/서비스)로 분리돼 있다 — 일반 사용자 경로(mapper.findMenusByUsername)와
+        // 관리자 경로가 하나의 매퍼/서비스에 섞이지 않도록.
         boolean isSysAdmin = authorities.stream()
                 .map(Authority::getAuthority)
                 .anyMatch(Constants.SYS_ADMIN::equals);
         user.setMenus(isSysAdmin
-                ? mapper.findAllMenus(SESSION_LANG)
+                ? sysAdminMenuService.findAllMenus(SESSION_LANG)
                 : mapper.findMenusByUsername(username, SESSION_LANG));
         return user;
     }
