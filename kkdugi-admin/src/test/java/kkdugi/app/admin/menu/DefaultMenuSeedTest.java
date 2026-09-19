@@ -1,4 +1,4 @@
-package kkdugi.core.menu;
+package kkdugi.app.admin.menu;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,7 +15,7 @@ import kkdugi.KkdugiAdminApplication;
 /**
  * V10__insert_default_menu.sql이 만든 기본 메뉴 트리를 확인한다. ID는 fn_get_serial로
  * 채번한 {@code M{yyyyMMddHHmm}{0000}} 형식이어야 하고, 트리 구조/path/level은
- * {@code MenuAdminService.insertOne}이 만드는 것과 같은 규칙이어야 한다.
+ * {@code AdminMenuService.insertOne}이 만드는 것과 같은 규칙이어야 한다.
  */
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class DefaultMenuSeedTest {

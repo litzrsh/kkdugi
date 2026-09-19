@@ -1,4 +1,4 @@
-package kkdugi.api.admin.menu;
+package kkdugi.api.admin;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,12 +19,12 @@ import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
 import kkdugi.KkdugiAdminApplication;
-import kkdugi.app.admin.menu.models.MenuContent;
-import kkdugi.app.admin.menu.models.MenuLocale;
-import kkdugi.app.admin.menu.models.MenuPersistRequest;
+import kkdugi.app.admin.menu.models.AdminMenu;
+import kkdugi.app.admin.menu.models.AdminMenuLocale;
+import kkdugi.app.admin.menu.models.AdminMenuPersistRequest;
 
 @SpringBootTest(classes = KkdugiAdminApplication.class)
-class MenuAdminControllerTest {
+class AdminMenuControllerTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -41,8 +41,8 @@ class MenuAdminControllerTest {
 
     @Test
     void persist_returns400_whenLocaleMissing() throws Exception {
-        String body = objectMapper.writeValueAsString(new MenuPersistRequest(
-                List.of(new MenuContent(null, null, null, null, "adcode", "Y", "Y", null, null, 1)),
+        String body = objectMapper.writeValueAsString(new AdminMenuPersistRequest(
+                List.of(new AdminMenu(null, null, null, null, "adcode", "Y", "Y", null, null, 1)),
                 null, null));
 
         mockMvc.perform(post("/api/v1.0/admin/menu/persist")
@@ -53,8 +53,8 @@ class MenuAdminControllerTest {
 
     @Test
     void persist_returns409_whenUpdatingMissingId() throws Exception {
-        String body = objectMapper.writeValueAsString(new MenuPersistRequest(null,
-                List.of(new MenuContent("M_MISSING", null, Map.of("ko_KR", new MenuLocale("값", null)),
+        String body = objectMapper.writeValueAsString(new AdminMenuPersistRequest(null,
+                List.of(new AdminMenu("M_MISSING", null, Map.of("ko_KR", new AdminMenuLocale("값", null)),
                         null, "adcode", "Y", "Y", null, null, 1)),
                 null));
 

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class MenuLocale {
+public class AdminMenuLocale {
 
     private final String label;
     private final String remarks;

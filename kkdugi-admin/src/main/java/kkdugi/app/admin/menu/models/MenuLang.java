@@ -1,4 +1,4 @@
-package kkdugi.core.menu.models;
+package kkdugi.app.admin.menu.models;
 
 import kkdugi.core.models.BaseModel;
 

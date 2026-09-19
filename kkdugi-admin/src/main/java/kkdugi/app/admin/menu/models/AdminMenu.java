@@ -14,11 +14,11 @@ import kkdugi.core.models.Tree;
  * {@code Page<T>}로 감싸는 페이징 목록이 아니다 — 메뉴는 한 번에 전체
  * 트리를 내려준다).
  */
-public class MenuContent implements Tree<MenuContent> {
+public class AdminMenu implements Tree<AdminMenu> {
 
     private final String id;
     private final String parentId;
-    private final Map<String, MenuLocale> locale;
+    private final Map<String, AdminMenuLocale> locale;
     private final String icon;
     private final String program;
     private final String use;
@@ -26,9 +26,9 @@ public class MenuContent implements Tree<MenuContent> {
     private final String path;
     private final Integer level;
     private final int sort;
-    private List<MenuContent> children;
+    private List<AdminMenu> children;
 
-    public MenuContent(String id, String parentId, Map<String, MenuLocale> locale, String icon,
+    public AdminMenu(String id, String parentId, Map<String, AdminMenuLocale> locale, String icon,
             String program, String use, String close, String path, Integer level, Integer sort) {
         this.id = id;
         this.parentId = parentId;
@@ -52,7 +52,7 @@ public class MenuContent implements Tree<MenuContent> {
         return parentId;
     }
 
-    public Map<String, MenuLocale> getLocale() {
+    public Map<String, AdminMenuLocale> getLocale() {
         return locale;
     }
 
@@ -85,12 +85,12 @@ public class MenuContent implements Tree<MenuContent> {
         return sort;
     }
 
-    public List<MenuContent> getChildren() {
+    public List<AdminMenu> getChildren() {
         return children;
     }
 
     @Override
-    public void setChildren(List<MenuContent> children) {
+    public void setChildren(List<AdminMenu> children) {
         this.children = children;
     }
 }

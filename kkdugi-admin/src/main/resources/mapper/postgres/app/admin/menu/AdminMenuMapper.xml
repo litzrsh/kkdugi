@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.app.admin.menu.mapper.AdminMenuMapper">
+
+  <resultMap id="menuBaseResultMap" type="kkdugi.app.admin.menu.models.MenuBase"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="id" column="menu_id"/>
+    <result property="parentId" column="menu_parent_id"/>
+    <result property="icon" column="menu_ico"/>
+    <result property="program" column="menu_pgm"/>
+    <result property="level" column="menu_lvl"/>
+    <result property="path" column="menu_path"/>
+    <result property="sort" column="sort_seq"/>
+    <result property="use" column="use_yn"/>
+    <result property="close" column="close_yn"/>
+  </resultMap>
+
+  <resultMap id="menuLangResultMap" type="kkdugi.app.admin.menu.models.MenuLang"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="menuId" column="menu_id"/>
+    <id property="langCode" column="lang_cd"/>
+    <result property="label" column="menu_nm"/>
+    <result property="remarks" column="menu_dc"/>
+  </resultMap>
+
+  <sql id="baseColumns">
+<![CDATA[
+menu_id, menu_parent_id, menu_ico, menu_pgm, menu_lvl, menu_path, sort_seq, use_yn, close_yn,
+reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <sql id="langColumns">
+<![CDATA[
+menu_id, lang_cd, menu_nm, menu_dc, reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <!--
+    * QueryID=findById
+    * Description=Find one menu by id
+    -->
+  <select id="findById" resultMap="menuBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.findById */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_menu_base
+WHERE menu_id = #{id}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findAll
+    * Description=Find every menu (admin tree view has no paging/filter)
+    -->
+  <select id="findAll" resultMap="menuBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.findAll */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_menu_base
+ORDER BY menu_lvl, sort_seq NULLS LAST, menu_id
+]]>
+  </select>
+
+  <!--
+    * QueryID=findSelfAndDescendants
+    * Description=Find a menu and all its descendants by path prefix
+    -->
+  <select id="findSelfAndDescendants" resultMap="menuBaseResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.findSelfAndDescendants */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_menu_base
+WHERE menu_path = #{path} OR menu_path LIKE #{path} || '/%'
+]]>
+  </select>
+
+  <!--
+    * QueryID=insert
+    * Description=Insert one menu row
+    -->
+  <insert id="insert" parameterType="kkdugi.app.admin.menu.models.MenuBase">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.insert */
+INSERT INTO kkdugi_menu_base
+    (menu_id, menu_parent_id, menu_ico, menu_pgm, menu_lvl, menu_path, sort_seq, use_yn, close_yn,
+     reg_dtm, reg_id)
+VALUES
+    (#{id}, #{parentId}, #{icon}, #{program}, #{level}, #{path}, #{sort}, #{use}, #{close},
+     #{createdAt}, #{creatorId})
+]]>
+  </insert>
+
+  <!--
+    * QueryID=update
+    * Description=Update one menu row
+    -->
+  <update id="update" parameterType="kkdugi.app.admin.menu.models.MenuBase">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.update */
+UPDATE kkdugi_menu_base
+SET menu_ico = #{icon},
+    menu_pgm = #{program},
+    sort_seq = #{sort},
+    use_yn   = #{use},
+    close_yn = #{close},
+    upd_dtm  = #{updatedAt},
+    upd_id   = #{updaterId}
+WHERE menu_id = #{id}
+]]>
+  </update>
+
+  <!--
+    * QueryID=deleteByIds
+    * Description=Delete menu rows by id list
+    -->
+  <delete id="deleteByIds">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.deleteByIds */
+DELETE FROM kkdugi_menu_base
+WHERE menu_id IN
+]]>
+    <foreach item="id" collection="ids" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </delete>
+
+  <!--
+    * QueryID=findLangsByMenuId
+    * Description=Find all language rows for one menu
+    -->
+  <select id="findLangsByMenuId" resultMap="menuLangResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.findLangsByMenuId */
+SELECT
+]]>
+    <include refid="langColumns"/>
+<![CDATA[
+FROM kkdugi_menu_lang
+WHERE menu_id = #{menuId}
+]]>
+  </select>
+
+  <!--
+    * QueryID=findLangsByMenuIds
+    * Description=Find all language rows for a set of menus
+    -->
+  <select id="findLangsByMenuIds" resultMap="menuLangResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.findLangsByMenuIds */
+SELECT
+]]>
+    <include refid="langColumns"/>
+<![CDATA[
+FROM kkdugi_menu_lang
+WHERE menu_id IN
+]]>
+    <foreach item="id" collection="menuIds" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+<![CDATA[
+ORDER BY menu_id, lang_cd
+]]>
+  </select>
+
+  <!--
+    * QueryID=insertLang
+    * Description=Insert one menu-language row
+    -->
+  <insert id="insertLang" parameterType="kkdugi.app.admin.menu.models.MenuLang">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.insertLang */
+INSERT INTO kkdugi_menu_lang (menu_id, lang_cd, menu_nm, menu_dc, reg_dtm, reg_id)
+VALUES (#{menuId}, #{langCode}, #{label}, #{remarks}, #{createdAt}, #{creatorId})
+]]>
+  </insert>
+
+  <!--
+    * QueryID=updateLang
+    * Description=Update one menu-language row
+    -->
+  <update id="updateLang" parameterType="kkdugi.app.admin.menu.models.MenuLang">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.updateLang */
+UPDATE kkdugi_menu_lang
+SET menu_nm = #{label},
+    menu_dc = #{remarks},
+    upd_dtm = #{updatedAt},
+    upd_id  = #{updaterId}
+WHERE menu_id = #{menuId} AND lang_cd = #{langCode}
+]]>
+  </update>
+
+  <!--
+    * QueryID=deleteLangByMenuIds
+    * Description=Delete language rows for a set of menus
+    -->
+  <delete id="deleteLangByMenuIds">
+<![CDATA[
+/* QueryID=kkdugi.app.admin.menu.mapper.AdminMenuMapper.deleteLangByMenuIds */
+DELETE FROM kkdugi_menu_lang
+WHERE menu_id IN
+]]>
+    <foreach item="id" collection="menuIds" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </delete>
+
+</mapper>

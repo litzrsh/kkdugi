@@ -7,21 +7,21 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class MenuPersistRequest {
+public class AdminMenuPersistRequest {
 
-    private final List<MenuContent> insert;
-    private final List<MenuContent> update;
-    private final List<MenuContent> delete;
+    private final List<AdminMenu> insert;
+    private final List<AdminMenu> update;
+    private final List<AdminMenu> delete;
 
-    public List<MenuContent> insertOrEmpty() {
+    public List<AdminMenu> insertOrEmpty() {
         return insert != null ? insert : List.of();
     }
 
-    public List<MenuContent> updateOrEmpty() {
+    public List<AdminMenu> updateOrEmpty() {
         return update != null ? update : List.of();
     }
 
-    public List<MenuContent> deleteOrEmpty() {
+    public List<AdminMenu> deleteOrEmpty() {
         return delete != null ? delete : List.of();
     }
 }

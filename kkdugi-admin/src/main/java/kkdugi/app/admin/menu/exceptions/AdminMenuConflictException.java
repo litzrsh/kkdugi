@@ -1,10 +1,10 @@
 package kkdugi.app.admin.menu.exceptions;
 
-public class MenuValidationException extends RuntimeException {
+public class AdminMenuConflictException extends RuntimeException {
 
     private final String code;
 
-    public MenuValidationException(String code) {
+    public AdminMenuConflictException(String code) {
         super(code);
         this.code = code;
     }

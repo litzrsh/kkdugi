@@ -1,4 +1,4 @@
-package kkdugi.api.admin.menu;
+package kkdugi.api.admin;
 
 import java.util.List;
 
@@ -11,42 +11,42 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import kkdugi.app.admin.menu.exceptions.MenuConflictException;
-import kkdugi.app.admin.menu.exceptions.MenuValidationException;
-import kkdugi.app.admin.menu.models.MenuContent;
-import kkdugi.app.admin.menu.models.MenuPersistRequest;
-import kkdugi.app.admin.menu.service.MenuAdminService;
+import kkdugi.app.admin.menu.exceptions.AdminMenuConflictException;
+import kkdugi.app.admin.menu.exceptions.AdminMenuValidationException;
+import kkdugi.app.admin.menu.models.AdminMenu;
+import kkdugi.app.admin.menu.models.AdminMenuPersistRequest;
+import kkdugi.app.admin.menu.service.AdminMenuService;
 import kkdugi.core.exceptions.ExceptionMessage;
 
 @RestController
 @RequestMapping("/api/v1.0/admin/menu")
-public class MenuAdminController {
+public class AdminMenuController {
 
-    private final MenuAdminService service;
+    private final AdminMenuService service;
 
-    public MenuAdminController(MenuAdminService service) {
+    public AdminMenuController(AdminMenuService service) {
         this.service = service;
     }
 
     @GetMapping
-    public List<MenuContent> search() {
+    public List<AdminMenu> search() {
         return service.search();
     }
 
     @PostMapping("/persist")
-    public void persist(@RequestBody MenuPersistRequest request) {
+    public void persist(@RequestBody AdminMenuPersistRequest request) {
         service.persist(request);
     }
 
-    @ExceptionHandler(MenuValidationException.class)
+    @ExceptionHandler(AdminMenuValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionMessage handleValidation(MenuValidationException e) {
+    public ExceptionMessage handleValidation(AdminMenuValidationException e) {
         return new ExceptionMessage(e.getCode());
     }
 
-    @ExceptionHandler(MenuConflictException.class)
+    @ExceptionHandler(AdminMenuConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ExceptionMessage handleConflict(MenuConflictException e) {
+    public ExceptionMessage handleConflict(AdminMenuConflictException e) {
         return new ExceptionMessage(e.getCode());
     }
 }
