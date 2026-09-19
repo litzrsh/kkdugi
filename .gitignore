@@ -1,11 +1,6 @@
-.claude
 .github
 .vscode
 .idea
-.claude
-CLAUDE.md
 target/
-libraries/
-
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
