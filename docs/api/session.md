@@ -33,10 +33,17 @@ API다. 그 문서의 [3절 메뉴
 내려주지 않고, 화면 내비게이션에 필요한 필드만 골라
 [`Menu`](../../kkdugi-admin/src/main/java/kkdugi/app/menu/models/Menu.java)으로
 옮겨 담은 뒤 트리 모양으로 변환해 응답한다 — **응답에는 `id`, `parentId`,
-`title`, `remarks`, `icon`, `sort`, `children` 외의 필드가 없다**
+`title`, `remarks`, `icon`, `sort`, `children`, `openable` 외의 필드가 없다**
 (`program`/`authority`는 의도적으로 제외 — 화면 내비게이션에는 필요 없고,
 전자는 뒤에 나올 Pragma 조각 조회에서만, 후자는 그 조각을 렌더링할 때
 서버 내부에서만 쓰인다).
+
+### 언어 변경 및 메뉴 재조회
+
+- `GET /api/v1.0/menu?lang=en_US`처럼 요청 언어를 지정한다. 생략 시 Spring locale 쿠키, 쿠키가 없으면 `ko_KR`를 사용한다.
+- 메뉴 ID·계층·정렬·프로그램 유무·권한 범위는 로그인 세션을 기준으로 유지한다. 매 요청마다 세션에 있는 메뉴 ID에 한해 DB의 해당 언어 메뉴명과 설명을 조회한다.
+- 해당 언어 번역 행이 없으면 세션의 메뉴명·설명으로 대체한다. 번역 누락으로 부모나 자식을 제거하지 않는다. 권한과 세션 스냅샷은 수정하지 않는다.
+- 화면 언어 변경 시 편집 내용 확인 후 현재 메뉴 해시를 유지해 셸을 새 언어로 다시 요청하고, 새 셸에서 위 API를 선택 언어와 `X-Menu-Id: __shell__`로 다시 호출한다. Spring 메시지와 Pragma도 같은 언어를 사용한다.
 
 ```javascript
 Response
@@ -117,8 +124,8 @@ SecurityChecker가 컨트롤러 실행 전에 메뉴 접근을 검증한다. 알
 
 기본 메뉴(`V10__insert_default_menu.sql`)의 program 코드는 `home`,
 `admin/code`, `admin/message`, `admin/menu`, `admin/authority`, `admin/user`다.
-이 중 `admin/code`, `admin/message`, `admin/menu`는 `templates/pragma/admin/`에
-파일이 있고, `home`, `admin/authority`, `admin/user`는 아직 없어 404로 응답한다.
+이 중 `admin/code`, `admin/message`, `admin/menu`, `admin/authority`는 `templates/pragma/admin/`에
+파일이 있고, `home`, `admin/user`는 아직 없어 404로 응답한다.
 프런트의 시스템 메뉴 삭제 보호(`isProtected`)는 이 program 코드를 기준으로 한다
 (`static/js/domain/batch.mjs`의 `systemPrograms`) — 기본 메뉴의 program을 바꾸면 함께 바꿔야 한다.
 

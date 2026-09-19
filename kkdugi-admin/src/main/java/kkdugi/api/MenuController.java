@@ -1,6 +1,7 @@
 package kkdugi.api;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +24,7 @@ public class MenuController {
 
     @RequireAuthority(value = kkdugi.core.enums.Rbac.READ, allowShell = true)
     @GetMapping
-    public List<Menu> menu() {
-        return service.tree();
+    public List<Menu> menu(Locale locale) {
+        return service.tree(locale.toString());
     }
 }

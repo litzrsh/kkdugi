@@ -103,7 +103,8 @@ public class AdminAuthorityService {
     public AdminAuthority get(String id) {
         AuthorityBase row = findExisting(id);
         List<AdminAuthorityUser> users = adminAuthorityMapper.findUsersByAuthorityId(id).stream()
-                .map(user -> new AdminAuthorityUser(user.getUserId(), user.getApplyStartDate(), user.getApplyEndDate()))
+                .map(user -> new AdminAuthorityUser(user.getUserId(), user.getUserName(), user.getUserImage(),
+                        user.getApplyStartDate(), user.getApplyEndDate()))
                 .toList();
         return toContent(row, users);
     }

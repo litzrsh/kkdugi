@@ -200,6 +200,22 @@ class AdminAuthorityMapperTest {
     }
 
     @Test
+    void findUsersByAuthorityId_includesTheUsersNameAndProfileImage() {
+        insertAuthority(AUTH_1, ROLE_PREFIX + "N", AuthorityType.ROLE);
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET user_img_src = ? WHERE user_id = ?",
+                "https://img.example/one.png", USER_1);
+        LocalDate start = LocalDate.of(2030, 1, 1);
+        mapper.upsertUser(userRow(USER_1, AUTH_1, start, LocalDate.of(9999, 12, 31)));
+        mapper.upsertUser(userRow(USER_2, AUTH_1, start, LocalDate.of(9999, 12, 31)));
+
+        List<AuthorityUser> rows = mapper.findUsersByAuthorityId(AUTH_1);
+
+        assertThat(rows).extracting(AuthorityUser::getUserName).containsExactly("Mapper One", "Mapper Two");
+        assertThat(rows.get(0).getUserImage()).isEqualTo("https://img.example/one.png");
+        assertThat(rows.get(1).getUserImage()).isNull();
+    }
+
+    @Test
     void findExistingUserIds_returnsOnlyExistingIds() {
         assertThat(mapper.findExistingUserIds(List.of(USER_1, USER_2, "U_TEST_AUTHZ_MAPPER_MISSING")))
                 .containsExactlyInAnyOrder(USER_1, USER_2);

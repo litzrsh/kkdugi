@@ -111,4 +111,4 @@ Request
 
 프로그램은 빈 값(그룹)이거나 영문·숫자·밑줄·하이픈으로 구성한 세그먼트를 /로 연결한 상대 경로다. 예: admin/menu. 절대 경로·점·빈 세그먼트·공백은 허용하지 않는다. use/close는 생략 또는 Y/N, sort는 0 이상이다.
 
-admin/code, admin/message, admin/menu, admin/authority, admin/user 프로그램 메뉴와 그 상위 메뉴는 삭제할 수 없다. 해당 메뉴의 program/icon/sort/use/close 구조 변경도 차단한다. 라벨·설명 등 다국어 정보는 수정할 수 있다. 이 보호는 일반 API 권한 정책과 별개인 시스템 기본 메뉴 불변 규칙이다.
+admin/code, admin/message, admin/menu, admin/authority, admin/user 프로그램 메뉴와 그 상위 메뉴는 삭제할 수 없다. 해당 메뉴의 program/sort/use/close 구조 변경도 차단한다. 아이콘(icon)과 라벨·설명 등 다국어 정보는 수정할 수 있다. 아이콘 수정은 편집 팝업에서 적용 후 일괄 저장하며, 기본 메뉴의 상위 그룹에도 동일하게 허용한다. 메뉴관리 화면에서는 보호 대상 메뉴와 그 상위 그룹의 하위 메뉴 추가 버튼을 숨긴다. 이 보호는 일반 API 권한 정책과 별개인 시스템 기본 메뉴 불변 규칙이다.

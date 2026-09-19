@@ -19,6 +19,8 @@
     <id property="authorityId" column="auth_id"/>
     <result property="applyStartDate" column="apl_st_dtm"/>
     <result property="applyEndDate" column="apl_ed_dtm"/>
+    <result property="userName" column="user_nm"/>
+    <result property="userImage" column="user_img_src"/>
   </resultMap>
 
   <resultMap id="candidateUserResultMap" type="kkdugi.app.admin.authority.models.CandidateUser">
@@ -169,15 +171,17 @@ WHERE auth_id = #{id}
 
   <!--
     * QueryID=findUsersByAuthorityId
-    * Description=Find every user mapping of one authority
+    * Description=Find every user mapping of one authority together with the user's name and profile image
     -->
   <select id="findUsersByAuthorityId" resultMap="authorityUserResultMap">
 <![CDATA[
 /* QueryID=kkdugi.app.admin.authority.mapper.AdminAuthorityMapper.findUsersByAuthorityId */
-SELECT user_id, auth_id, apl_st_dtm, apl_ed_dtm, reg_dtm, reg_id, upd_dtm, upd_id
-FROM kkdugi_user_auth
-WHERE auth_id = #{authorityId}
-ORDER BY user_id
+SELECT ua.user_id, ua.auth_id, ua.apl_st_dtm, ua.apl_ed_dtm, ua.reg_dtm, ua.reg_id, ua.upd_dtm, ua.upd_id,
+       ub.user_nm, ub.user_img_src
+FROM kkdugi_user_auth ua
+JOIN kkdugi_user_base ub ON ub.user_id = ua.user_id
+WHERE ua.auth_id = #{authorityId}
+ORDER BY ua.user_id
 ]]>
   </select>
 

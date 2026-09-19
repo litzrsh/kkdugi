@@ -10,7 +10,7 @@
 - **접근 제어**: 모든 요청은 로그인(Bearer 토큰)과 요청을 발생시킨 화면의 메뉴 ID(`X-Menu-Id` 헤더)가 필요하고, `SecurityChecker` Aspect가 컨트롤러의 `@RequireAuthority`/`@HasRole`을 검사한다([요청 컨텍스트](request-context.md), [ADR-0017](../adr/0017-menu-context-security-aspect.md)). 이 API는 **`SYS_ADMIN` 역할과 프로그램 `admin/authority` 메뉴의 RBAC를 모두** 요구한다 — 조회(목록·상세·후보 사용자·메뉴 트리)는 READ, 등록·저장은 WRTE, 삭제는 DELT. 메뉴 RBAC만으로 열어두면 사용자에게 `SYS_ADMIN`을 부여할 수 있는 권한 상승 경로가 되므로 메뉴 관리 API와 같이 역할을 함께 요구한다. 미인증은 401, 인가 거부는 403이다.
 - **권한 변경은 이미 로그인된 세션에 즉시 반영되지 않는다.** 다음 로그인부터 적용된다.
 - **RBAC 맵 키**는 `Rbac` 숫자 코드다: `"10"` 조회, `"20"` 등록, `"30"` 삭제, `"40"` 실행. (원본 스펙의 `READ`/`WRITE` 표기는 쓰지 않는다.)
-- **`users`는 항상 객체** `{ "id", "applyStartDate", "applyEndDate" }`, 날짜는 `yyyy-MM-dd`. 요청에서 날짜를 생략하면 시작=오늘, 종료=`9999-12-31`.
+- **`users`는 항상 객체** `{ "id", "name", "image", "applyStartDate", "applyEndDate" }`, 날짜는 `yyyy-MM-dd`. 요청에서 날짜를 생략하면 시작=오늘, 종료=`9999-12-31`. `name`(사용자 이름)과 `image`(프로필 이미지, 없으면 `null`)는 **응답 전용**이다 — 서버가 사용자 테이블에서 채워 내려주고, 요청(regist/save)에 실려 와도 무시한다(상세 응답을 그대로 save 요청으로 돌려보내도 된다).
 - **에러 본문**: `{ "code": "authority.err.…", "message": "…" }` (`ExceptionMessage`, 컨트롤러 로컬 `@ExceptionHandler`).
 - **`SYS_ADMIN`은 유형과 무관하게 예약된 role 코드**다. 세션/메뉴 우회 판단(`KkdugiUserDetailsService`, `SessionUtils`)이 role 문자열만 보고 유형은 보지 않기 때문에, ROLE이 아닌 유형에 `SYS_ADMIN`이 생기면 우회 권한이 생긴다. 그래서 role이 `SYS_ADMIN`인 권한(기본 시드 `ROLE`/`SYS_ADMIN`)은 삭제·role/type 변경·비활성화(`use: "N"`)가 안 되고 이름/설명만 바꿀 수 있으며, 어떤 권한이든 ROLE이 아닌 유형의 `SYS_ADMIN`으로 만들거나 바꿀 수 없다.
 
@@ -52,7 +52,7 @@ Response
 {
   "id": "A2026091908110001", "role": "SYS_ADMIN", "type": "ROLE",
   "name": "시스템 관리자", "remarks": null, "use": "Y",
-  "users": [ { "id": "U2026091508020001", "applyStartDate": "2026-09-19", "applyEndDate": "9999-12-31" } ]
+  "users": [ { "id": "U2026091508020001", "name": "관리자", "image": null, "applyStartDate": "2026-09-19", "applyEndDate": "9999-12-31" } ]
 }
 ```
 

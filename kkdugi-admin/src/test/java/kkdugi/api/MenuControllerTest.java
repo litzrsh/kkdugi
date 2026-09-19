@@ -127,6 +127,46 @@ class MenuControllerTest {
     }
 
     @Test
+    void menu_reloadsLabelsForEachLocaleWithoutChangingSessionScope() throws Exception {
+        String token = TestLogin.login(mockMvc, LOGIN_ID, PASSWORD);
+        jdbcTemplate.update("INSERT INTO kkdugi_menu_lang (menu_id, lang_cd, menu_nm, menu_dc, reg_id) VALUES (?, 'en_US', ?, ?, 'SYSTEM')",
+                ROOT_MENU_ID, "Root menu", "Root description");
+        // The untranslated child must remain in the tree, with its session label.
+        mockMvc.perform(get(MENU_URL).param("lang", "en_US").header("X-Menu-Id", "__shell__")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(ROOT_MENU_ID))
+                .andExpect(jsonPath("$[0].title").value("Root menu"))
+                .andExpect(jsonPath("$[0].remarks").value("Root description"))
+                .andExpect(jsonPath("$[0].children.length()").value(1))
+                .andExpect(jsonPath("$[0].children[0].id").value(CHILD_MENU_ID))
+                .andExpect(jsonPath("$[0].children[0].title").value("자식 메뉴"));
+
+        jdbcTemplate.update("INSERT INTO kkdugi_menu_lang (menu_id, lang_cd, menu_nm, reg_id) VALUES (?, 'en_US', ?, 'SYSTEM')",
+                CHILD_MENU_ID, "Child menu");
+        jdbcTemplate.update("UPDATE kkdugi_menu_lang SET menu_nm = ? WHERE menu_id = ? AND lang_cd = 'en_US'",
+                "Updated root", ROOT_MENU_ID);
+        var english = mockMvc.perform(get(MENU_URL).param("lang", "en_US").header("X-Menu-Id", "__shell__")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Updated root"))
+                .andExpect(jsonPath("$[0].children[0].title").value("Child menu"))
+                .andExpect(jsonPath("$[0].program").doesNotExist())
+                .andExpect(jsonPath("$[0].authority").doesNotExist())
+                .andReturn();
+        mockMvc.perform(get(MENU_URL).cookie(english.getResponse().getCookies()).header("X-Menu-Id", "__shell__")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Updated root"));
+        mockMvc.perform(get(MENU_URL).param("lang", "ko_KR").header("X-Menu-Id", "__shell__")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("루트 메뉴"))
+                .andExpect(jsonPath("$[0].children[0].title").value("자식 메뉴"));
+    }
+
+    @Test
     void menu_anonymousRequest_returns401() throws Exception {
         mockMvc.perform(get(MENU_URL).header("X-Menu-Id", "__shell__"))
                 .andExpect(status().isUnauthorized());

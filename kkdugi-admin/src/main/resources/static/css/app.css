@@ -22,3 +22,12 @@
 
 /* Session navigation and persistent shell */
 .navigation-tree{list-style:none;margin:0;padding:0}.navigation-tree .nav-item{width:100%;text-align:left}.nav-status{padding:12px 20px;font-size:13px;color:#65766e}.screen-loading{position:sticky;top:76px;z-index:5;padding:12px 20px;background:#edf5f0;border:1px solid #d7e8df;border-radius:10px;margin-bottom:16px}.batch-page h1:focus{outline:none}
+
+/* Common code editors and field-specific row dialogs. */
+.code-cell-editor{width:100%;height:100%;min-height:0;border:2px solid var(--accent);border-radius:0;background:var(--surface,#fff);color:var(--ink);padding:8px 10px;font:inherit;box-sizing:border-box;outline:none}.code-editable-cell{cursor:text}.code-editable-cell:hover{background:#f0f6f3}.code-details-cell{display:flex;align-items:center;gap:8px;width:100%;height:100%;min-width:0}.code-details-summary{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;line-height:1.3}.code-details-summary strong{font-weight:500}.code-details-summary strong,.code-details-summary small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.code-details-summary small{font-size:11px;color:var(--muted)}.code-details-cell .row-action{flex-shrink:0}
+
+.grid-center-header .ag-header-cell-label{justify-content:center}.ag-cell.grid-center-cell{justify-content:center;text-align:center}.grid-center-cell .ag-cell-wrapper,.grid-center-cell .ag-cell-value{width:100%;text-align:center}.grid-center-cell .row-actions{justify-content:center;width:100%}
+
+.authority-note{display:flex;align-items:flex-start;gap:8px;margin:-4px 0 20px;color:var(--muted);font-size:13px;line-height:1.6}.authority-note i{font-size:18px;flex-shrink:0;margin-top:2px}.authority-page .below-grid p{line-height:1.6}.mapping-table input:disabled{cursor:not-allowed}.mapping-search{display:flex;gap:8px}.mapping-search .input{min-width:0}
+
+.mapping-avatar{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;min-width:32px;flex:0 0 32px;border-radius:100%;overflow:hidden;background:#edf3f0;color:var(--muted)}.mapping-avatar img{width:100%;height:100%;object-fit:cover}.mapping-label .mapping-avatar i{font-size:18px;color:inherit}

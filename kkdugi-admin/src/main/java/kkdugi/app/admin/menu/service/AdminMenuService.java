@@ -139,7 +139,6 @@ public class AdminMenuService {
         }
 
         if (isProtected(existing) && (!java.util.Objects.equals(content.getProgram(), existing.getProgram())
-                || !java.util.Objects.equals(content.getIcon(), existing.getIcon())
                 || content.getSort() != (existing.getSort() == null ? 0 : existing.getSort())
                 || (content.getUse() != null && !content.getUse().equals(existing.getUse()))
                 || (content.getClose() != null && !content.getClose().equals(existing.getClose())))) {

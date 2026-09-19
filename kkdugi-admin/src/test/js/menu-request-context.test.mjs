@@ -60,3 +60,10 @@ test('missing or malformed IDs fail before network I/O; explicit context is supp
  await api.request('/api/v1.0/admin/code','POST',{}, {menuId:'M_EXPLICIT'});
  assert.equal(calls[0].headers[MENU_ID_HEADER],'M_EXPLICIT');
 });
+
+test('menu reload sends selected locale and preserves authentication, context and cancellation',async()=>{
+ setTokenCookie('token');const {api,calls}=fixture(),controller=new AbortController();
+ for(const locale of ['en_US','ko_KR'])await api.menus({locale,signal:controller.signal});
+ assert.deepEqual(calls.map(c=>c.url),['/kk/api/v1.0/menu?lang=en_US','/kk/api/v1.0/menu?lang=ko_KR']);
+ for(const call of calls){assert.equal(call.headers[MENU_ID_HEADER],SHELL_MENU_ID);assert.equal(call.headers.Authorization,'Bearer token');assert.equal(call.signal,controller.signal);}
+});

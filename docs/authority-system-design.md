@@ -80,7 +80,7 @@ mapper XML: src/main/resources/mapper/postgres/app/admin/authority/AdminAuthorit
 | 메서드/경로 | 설명 | 응답 |
 |---|---|---|
 | `POST /` | 목록 — 요청 `{role?, type?, name?, page, pageSize}` | `Page<AdminAuthority>` (`id, role, type, name, remarks, use`) |
-| `GET /{id}` | 상세 | 위 필드 + `users: [{id, applyStartDate, applyEndDate}]`. 없으면 404 |
+| `GET /{id}` | 상세 | 위 필드 + `users: [{id, name, image, applyStartDate, applyEndDate}]`(`name`/`image`는 사용자 테이블에서 채우는 응답 전용 값, 요청에서는 무시). 없으면 404 |
 | `POST /regist` | 등록 — 요청 `{role, type, name, remarks, use, users?, menus?}` | 등록된 권한(상세와 동일 형태) |
 | `POST /{id}` | 저장 — 요청 형태는 regist와 같고 `id` 포함 | 저장된 권한 |
 | `POST /{id}/delete` | 삭제 — `kkdugi_user_auth`, `kkdugi_auth_menu`, 본체를 한 트랜잭션으로 삭제 | 200 (없는 id는 스펙에 404가 없으므로 멱등하게 200) |

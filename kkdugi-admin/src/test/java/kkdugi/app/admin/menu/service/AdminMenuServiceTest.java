@@ -99,6 +99,28 @@ class AdminMenuServiceTest {
     }
 
     @Test
+    @org.springframework.transaction.annotation.Transactional
+    void persist_allowsSystemMenuAndAncestorIconChanges() {
+        MenuBase system = adminMenuMapper.findAll().stream()
+                .filter(m -> "admin/menu".equals(m.getProgram())).findFirst().orElseThrow();
+        for (String id : List.of(system.getId(), system.getParentId())) {
+            MenuBase original = adminMenuMapper.findById(id).orElseThrow();
+            AdminMenu update = new AdminMenu(id, original.getParentId(), null, "las la-star",
+                    original.getProgram(), original.getUse(), original.getClose(), original.getPath(),
+                    original.getLevel(), original.getSort());
+            service.persist(new AdminMenuPersistRequest(null, List.of(update), null));
+            MenuBase saved = adminMenuMapper.findById(id).orElseThrow();
+            assertThat(saved.getIcon()).isEqualTo("las la-star");
+            assertThat(findById(service.search(), id).getIcon()).isEqualTo("las la-star");
+            assertThat(saved.getProgram()).isEqualTo(original.getProgram());
+            assertThat(saved.getParentId()).isEqualTo(original.getParentId());
+            assertThat(saved.getSort()).isEqualTo(original.getSort());
+            assertThat(saved.getUse()).isEqualTo(original.getUse());
+            assertThat(saved.getClose()).isEqualTo(original.getClose());
+        }
+    }
+
+    @Test
     void persist_updatesLocalesAndFlagsThenDeletesSubtree() {
         service.persist(new AdminMenuPersistRequest(List.of(newMenu(null, null, "MENU_COMPLETION_ROOT")), null, null));
         createdRootId = service.search().stream().filter(m -> m.getLocale().values().stream()

@@ -17,6 +17,7 @@ export const systemPrograms=['admin/code','admin/message','admin/menu','admin/au
 export function isProtected(row,rows=[]){return systemPrograms.includes(row.program)||rows.some(r=>systemPrograms.includes(r.program)&&r.path?.startsWith((row.path||'~')+'/'));}
 export function validate(resource,row,languages){if(resource==='i18n'){if(!/^[a-z0-9]+(_[a-z0-9]+)*(\.[a-z0-9]+(_[a-z0-9]+)*){2}$/.test(row.code||'')||/[\r\n]/.test(row.code||''))return 'invalid_code';if(!Object.values(row.locale||{}).some(v=>typeof v==='string'&&v.trim()))return 'required';}
  if(resource==='code'&&(!row.code?.trim()||!Object.values(row.locale||{}).some(v=>v.name?.trim())))return 'required';
+ if(resource==='code'&&(row.sort===null||row.sort===undefined||row.sort===''))return 'invalid_sort';
  if(resource==='code'&&!row.id&&(!/^[A-Z0-9]+(_[A-Z0-9]+)*$/.test(row.code)||/[\r\n]/.test(row.code)))return 'invalid_common_code';
  if(resource==='menu'&&row.program&&(!/^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(row.program)||/[\r\n]/.test(row.program)))return 'invalid_program';
  if(resource==='menu'&&!Object.values(row.locale||{}).some(v=>v.label?.trim()))return 'required';

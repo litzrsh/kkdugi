@@ -106,6 +106,11 @@ class AdminAuthorityServiceTest {
                 "remarks", null, users, menus);
     }
 
+    /** 요청용 users 항목 — 이름/이미지는 응답 전용이라 요청에서는 비워 둔다. */
+    private static AdminAuthorityUser user(String id, LocalDate start, LocalDate end) {
+        return new AdminAuthorityUser(id, null, null, start, end);
+    }
+
     /** {@code codes}에 든 RBAC 코드만 true, 나머지는 false인 메뉴 부여 항목. */
     private static AdminAuthorityMenu grant(String menuId, String... codes) {
         Map<String, Boolean> authorities = new LinkedHashMap<>();
@@ -185,16 +190,16 @@ class AdminAuthorityServiceTest {
         LocalDate day = LocalDate.of(2030, 1, 1);
 
         assertMalformed(request("V1", "ROLE",
-                List.of(new AdminAuthorityUser(USER_1, day.plusDays(1), day)), null));
+                List.of(user(USER_1, day.plusDays(1), day)), null));
         assertMalformed(request("V2", "ROLE",
-                List.of(new AdminAuthorityUser(USER_1, null, null), new AdminAuthorityUser(USER_1, null, null)), null));
-        assertMalformed(request("V3", "ROLE", List.of(new AdminAuthorityUser(" ", null, null)), null));
+                List.of(user(USER_1, null, null), user(USER_1, null, null)), null));
+        assertMalformed(request("V3", "ROLE", List.of(user(" ", null, null)), null));
         assertMalformed(request("V4", "ROLE", null, List.of(new AdminAuthorityMenu(MENU_1, Map.of("99", true)))));
         assertMalformed(request("V5", "ROLE", null, List.of(new AdminAuthorityMenu(MENU_1, null))));
         assertMalformed(request("V6", "ROLE", null, List.of(grant(MENU_1, "10"), grant(MENU_1, "20"))));
 
         assertThatThrownBy(() -> service.regist(request("V7", "ROLE",
-                List.of(new AdminAuthorityUser("U_TEST_AUTHZ_SVC_MISSING", null, null)), null)))
+                List.of(user("U_TEST_AUTHZ_SVC_MISSING", null, null)), null)))
                 .isInstanceOf(AdminAuthorityValidationException.class)
                 .hasMessage(AdminAuthorityService.ERR_USER_NOT_FOUND);
         assertThatThrownBy(() -> service.regist(request("V8", "ROLE", null,
@@ -209,8 +214,8 @@ class AdminAuthorityServiceTest {
     @Test
     void regist_persistsUsersAndMenus_withDefaultPeriodAndSkipsAllFalseGrants() {
         AdminAuthority created = service.regist(request("FULL", "ROLE",
-                List.of(new AdminAuthorityUser(USER_1, null, null),
-                        new AdminAuthorityUser(USER_2, LocalDate.of(2030, 1, 1), LocalDate.of(2030, 12, 31))),
+                List.of(user(USER_1, null, null),
+                        user(USER_2, LocalDate.of(2030, 1, 1), LocalDate.of(2030, 12, 31))),
                 List.of(grant(MENU_1, "10", "20"), grant(MENU_2))));
 
         assertThat(created.getUsers()).hasSize(2);
@@ -227,6 +232,30 @@ class AdminAuthorityServiceTest {
                 created.getId(), MENU_1)).isEqualTo(Rbac.READ.getValue() | Rbac.WRTE.getValue());
         // MENU_2는 전부 false라 행이 저장되지 않는다.
         assertThat(count("SELECT COUNT(*) FROM kkdugi_auth_menu WHERE auth_id = ?", created.getId())).isEqualTo(1);
+    }
+
+    @Test
+    void regist_returnsTheStoredNameAndProfileImage_ignoringWhatTheClientSent() {
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET user_img_src = ? WHERE user_id = ?",
+                "https://img.example/svc-one.png", USER_1);
+
+        AdminAuthority created = service.regist(request("PROFILE", "ROLE",
+                List.of(new AdminAuthorityUser(USER_1, "Client Name", "client.png", null, null),
+                        user(USER_2, null, null)),
+                null));
+
+        AdminAuthorityUser first = created.getUsers().stream()
+                .filter(user -> USER_1.equals(user.getId())).findFirst().orElseThrow();
+        assertThat(first.getName()).isEqualTo("Svc One");
+        assertThat(first.getImage()).isEqualTo("https://img.example/svc-one.png");
+        AdminAuthorityUser second = created.getUsers().stream()
+                .filter(user -> USER_2.equals(user.getId())).findFirst().orElseThrow();
+        assertThat(second.getName()).isEqualTo("Svc Two");
+        assertThat(second.getImage()).isNull();
+
+        // 이후 상세 조회도 저장된 값(사용자 테이블)을 그대로 돌려준다.
+        assertThat(service.get(created.getId()).getUsers())
+                .extracting(AdminAuthorityUser::getName).containsExactlyInAnyOrder("Svc One", "Svc Two");
     }
 
     // ---- get / search -------------------------------------------------
@@ -260,7 +289,7 @@ class AdminAuthorityServiceTest {
     @Test
     void save_updatesFields_andLeavesMappingsAlone_whenUsersAndMenusAreNull() {
         AdminAuthority created = service.regist(request("KEEP", "ROLE",
-                List.of(new AdminAuthorityUser(USER_1, null, null)), List.of(grant(MENU_1, "10"))));
+                List.of(user(USER_1, null, null)), List.of(grant(MENU_1, "10"))));
 
         AdminAuthority saved = service.save(created.getId(), new AdminAuthorityPersistRequest(
                 ROLE_PREFIX + "KEEP", "ROLE", "Renamed", "new remarks", "N", null, null));
@@ -289,11 +318,11 @@ class AdminAuthorityServiceTest {
     @Test
     void save_replacesUsersAndMenus_andEmptyListsClearThem() {
         AdminAuthority created = service.regist(request("REPL", "ROLE",
-                List.of(new AdminAuthorityUser(USER_1, null, null)),
+                List.of(user(USER_1, null, null)),
                 List.of(grant(MENU_1, "10"), grant(MENU_2, "10"))));
 
         AdminAuthority replaced = service.save(created.getId(), request("REPL", "ROLE",
-                List.of(new AdminAuthorityUser(USER_2, null, null)),
+                List.of(user(USER_2, null, null)),
                 List.of(grant(MENU_1, "10", "20", "30", "40"))));
 
         assertThat(replaced.getUsers()).extracting(AdminAuthorityUser::getId).containsExactly(USER_2);
@@ -405,7 +434,7 @@ class AdminAuthorityServiceTest {
     @Test
     void delete_removesAuthorityUsersAndMenus_andMissingIdIsNoOp() {
         AdminAuthority created = service.regist(request("DEL", "ROLE",
-                List.of(new AdminAuthorityUser(USER_1, null, null)), List.of(grant(MENU_1, "10"))));
+                List.of(user(USER_1, null, null)), List.of(grant(MENU_1, "10"))));
 
         service.delete(created.getId());
 
@@ -424,7 +453,7 @@ class AdminAuthorityServiceTest {
     @Test
     void searchCandidates_excludesMappedAndNonNormalUsers_andUnknownAuthorityIsNotFound() {
         AdminAuthority created = service.regist(request("CAND", "ROLE",
-                List.of(new AdminAuthorityUser(USER_1, null, null)), null));
+                List.of(user(USER_1, null, null)), null));
 
         List<AdminAuthorityCandidate> candidates = service.searchCandidates(created.getId(), "TEST_AUTHZ_SVC");
 

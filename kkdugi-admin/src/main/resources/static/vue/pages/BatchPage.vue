@@ -6,16 +6,17 @@
     <section class="list-panel" :aria-label="t(screen)+' '+t('list')" :aria-busy="loading">
      <div class="list-toolbar"><div class="list-title"><h2>{{t(screen)}} <span class="count-chip">{{displayTotal}}</span></h2><span v-if="selected.length" class="selection-count">{{selected.length}} {{t('selected')}}</span></div><div class="toolbar-actions"><button class="icon-button refresh-button" :aria-label="t('refresh')" @click="refresh" :disabled="loading"><i class="las la-sync-alt"></i></button><button v-if="canDelete" class="button danger-ghost" :disabled="!selected.length" @click="removeRows(selected)"><i class="las la-trash-alt"></i>{{t('delete')}}</button><button v-if="canWrite" class="button is-primary is-light" @click="editRow()"><i class="las la-plus"></i>{{t('add')}}</button></div></div>
      <div v-if="screen==='admcode'" class="code-breadcrumb"><button @click="goLevel(-1)" class="crumb-root"><i class="las la-folder-open"></i>{{t('root')}}</button><template v-for="(crumb,index) in trail" :key="crumb.id"><i class="las la-angle-right"></i><button @click="goLevel(index)">{{localeValue(crumb,state.locale)||crumb.code}}</button></template><button class="up-button" :disabled="!trail.length" @click="goLevel(trail.length-2)"><i class="las la-level-up-alt"></i>{{t('up')}}</button></div>
-     <div class="grid-zone"><Grid ref="grid" :key="screen+'-'+state.locale" :rows="visibleRows" :columns="columns" :locale="state.locale" :title="t(screen)" :loading="loading" :inline-messages="screen==='admmsge'&&canWrite" :selectable="canDelete" @selection="selected=$event" @edit="cellEdited"/><div v-if="!loading&&!visibleRows.length" class="empty-state"><i class="las la-inbox"></i><h3>{{t('empty')}}</h3><p>{{t('empty_hint')}}</p><button v-if="canWrite" class="button" @click="editRow()"><i class="las la-plus"></i>{{t('add')}}</button></div></div>
+     <div class="grid-zone"><Grid ref="grid" :key="screen+'-'+state.locale" :rows="visibleRows" :columns="columns" :locale="state.locale" :title="t(screen)" :loading="loading" :inline-editing="['admcode','admmsge'].includes(screen)&&canWrite" :selectable="canDelete" @selection="selected=$event" @edit="cellEdited"/><div v-if="!loading&&!visibleRows.length" class="empty-state"><i class="las la-inbox"></i><h3>{{t('empty')}}</h3><p>{{t('empty_hint')}}</p><button v-if="canWrite" class="button" @click="editRow()"><i class="las la-plus"></i>{{t('add')}}</button></div></div>
      <div class="grid-footer"><span>{{t('total')}} <strong>{{displayTotal}}</strong> {{t('items')}}</span><div v-if="screen!=='admmenu'" class="pagination-controls"><label class="page-size"><select :value="pageSize" @change="setPageSize(+$event.target.value)" :aria-label="t('page_size')"><option :value="20">20 / {{t('page')}}</option><option :value="50">50 / {{t('page')}}</option><option :value="100">100 / {{t('page')}}</option><option :value="200">200 / {{t('page')}}</option></select></label><button class="icon-button" :disabled="page<=1||loading" @click="movePage(page-1)" :aria-label="t('previous')"><i class="las la-angle-left"></i></button><span class="current-page">{{page}}</span><span class="page-total">/ {{Math.max(1,pages)}}</span><button class="icon-button" :disabled="page>=pages||loading" @click="movePage(page+1)" :aria-label="t('next')"><i class="las la-angle-right"></i></button></div><span v-else class="muted">{{t('system')}}</span></div>
     </section>
-    <div class="below-grid"><p><i class="las la-info-circle"></i><span class="desktop-hint">{{t(screen==='admmsge'?'message_inline_hint':'edit_hint')}}</span><span class="mobile-hint">{{t(screen==='admmsge'?'message_inline_hint':'mobile_hint')}}</span></p><span class="muted">kkdugi admin</span></div>
+    <div class="below-grid"><p><i class="las la-info-circle"></i><span class="desktop-hint">{{t(screen==='admcode'?'code_inline_hint':screen==='admmsge'?'message_inline_hint':'edit_hint')}}</span><span class="mobile-hint">{{t(screen==='admcode'?'code_inline_hint':screen==='admmsge'?'message_inline_hint':'mobile_hint')}}</span></p><span class="muted">kkdugi admin</span></div>
 
 </div></template>
 <script setup>
 import {ref,computed,inject,onMounted,onBeforeUnmount,nextTick} from 'vue';
 import Grid from '../components/Grid.vue';
 import {MessageCellEditor} from '@js/grid/MessageCellEditor.mjs';
+import {CodeCellEditor} from '@js/grid/CodeCellEditor.mjs';
 const props=defineProps({screen:String,permissions:Object,menuId:String,title:String,remarks:String});
 const s=inject('kkdugi');const {t,state,api,clone,payload,rowState,localeValue,validate,flatten,isProtected,prepareLocalizedRow,prepareBatch,menuDescendants,filterMenuRows,markMenuDeleted,restoreMenuRows,menuLabel}=s;
 const definitions={admcode:{resource:'code',icon:'las la-layer-group',desc:'code_desc',batch:true,filters:['path','code','name','use']},admmsge:{resource:'i18n',icon:'las la-language',desc:'message_desc',batch:true,filters:['code','message']},admmenu:{resource:'menu',icon:'las la-sitemap',desc:'menu_desc',batch:true,filters:['name']}};
@@ -51,24 +52,54 @@ async function descend(row){if(row.id&&await guard()){trail.value.push(clone(row
 function badge(text,kind=''){const el=document.createElement('span');el.className='status-badge '+kind;el.textContent=text;return el;}
 function action(label,icon,fn,danger=false){const b=document.createElement('button');b.type='button';b.className='row-action'+(danger?' danger':'');b.title=label;b.setAttribute('aria-label',label);const i=document.createElement('i');i.className=icon;const span=document.createElement('span');span.textContent=label;b.append(i,span);b.onclick=e=>{e.stopPropagation();fn();};return b;}
 const columns=computed(()=>{
- tick.value;const list=[{headerName:t('status'),width:84,minWidth:84,cellRenderer:p=>{const value=rowState(p.data,baseline.value);return badge(value?t(value):'—',value||'neutral');}}];
+ const list=[{colId:'status',headerName:t('status'),headerClass:'grid-center-header',cellClass:'grid-center-cell',width:84,minWidth:84,cellRenderer:p=>{const value=rowState(p.data,baseline.value);return badge(value?t(value):'—',value||'neutral');}}];
  const simple=(field,title,width=150,editable=false)=>({field,headerName:t(title),width,editable:p=>canWrite.value&&editable&&!p.data._deleted});
  if(props.screen==='admcode'){
- list.push({...simple('code','code',165),editable:p=>canWrite.value&&!p.data.id&&!p.data._deleted,cellClass:'mono-cell'});
- for(const [field,label,width] of [['name','code_name',205],['remarks','remarks',310]])list.push({headerName:t(label),width,valueGetter:p=>localeValue(p.data,state.locale,field)});
- list.push({...simple('use','use',105),cellRenderer:p=>badge(t(p.value==='Y'?'enabled':'disabled'),p.value==='Y'?'active':'neutral')},simple('sort','sort',95,true));
+ const editable=p=>canWrite.value&&!p.data._deleted;
+ list.push({...simple('code','code',175),editable:p=>editable(p)&&!p.data.id,cellClass:p=>'mono-cell '+(!p.data.id&&canWrite.value?'code-editable-cell':''),cellEditor:CodeCellEditor,tooltipValueGetter:p=>p.data.id?t('code_locked_hint'):t('invalid_common_code')});
+ list.push({...simple('use','use',115),editable,cellClass:canWrite.value?'code-editable-cell':'',cellEditor:CodeCellEditor,cellEditorParams:{kind:'select',options:[{value:'Y',label:t('enabled')},{value:'N',label:t('disabled')}]},cellRenderer:p=>badge(t(p.value==='Y'?'enabled':'disabled'),p.value==='Y'?'active':'neutral')});
+ list.push({...simple('sort','sort',100),editable,cellClass:canWrite.value?'code-editable-cell':'',cellEditor:CodeCellEditor,cellEditorParams:{kind:'number'}});
+ list.push({colId:'code_details',headerName:t('code_details'),width:300,minWidth:220,cellRenderer:p=>{
+  const el=document.createElement('div');el.className='code-details-cell';const summary=document.createElement('span');summary.className='code-details-summary';
+  const name=document.createElement('strong');name.textContent=localeValue(p.data,state.locale)||t('untranslated');const remarks=document.createElement('small');remarks.textContent=localeValue(p.data,state.locale,'remarks')||'—';summary.append(name,remarks);summary.title=name.textContent+'\n'+remarks.textContent;el.append(summary);
+  if(!p.data._deleted){const button=action(t(canWrite.value?'edit':'view'),'las la-language',()=>editCodeDetails(p.data));button.setAttribute('aria-label',t('code_details')+' · '+(p.data.code||t('new')));el.append(button);}return el;
+ }});
+ list.push({colId:'code_extras',headerName:t('extra'),width:160,minWidth:145,cellRenderer:p=>{
+  if(p.data._deleted)return '';const count=[1,2,3,4,5].filter(n=>p.data['extra'+n]?.trim()).length;
+  const button=action(t('extra')+' '+count+'/5','las la-sliders-h',()=>editCodeExtras(p.data));button.setAttribute('aria-label',t('extra')+' · '+(p.data.code||t('new')));return button;
+ }});
  }else if(props.screen==='admmenu'){
- list.push({headerName:t('label'),width:270,valueGetter:p=>menuLabel(p.data,state.locale),cellRenderer:p=>{const el=document.createElement('span');el.className='name-cell';el.style.paddingLeft=(p.data._depth||0)*18+'px';const icon=document.createElement('i');icon.className=p.data.program?'las la-window-maximize':'las la-folder';icon.setAttribute('aria-hidden','true');el.append(icon,document.createTextNode(' '+(p.value||'—')));return el;}},simple('program','program',160),simple('path','path',230),{...simple('use','use',110),cellRenderer:p=>badge(t(p.value==='Y'?'enabled':'disabled'),p.value==='Y'?'active':'neutral')},{...simple('close','closable',120),cellRenderer:p=>badge(t(p.value==='Y'?'enabled':'disabled'),p.value==='Y'?'active':'neutral')},simple('sort','sort',95));
+ list.push({headerName:t('label'),width:270,valueGetter:p=>menuLabel(p.data,state.locale),cellRenderer:p=>{const el=document.createElement('span');el.className='name-cell';el.style.paddingLeft=(p.data._depth||0)*18+'px';const icon=document.createElement('i');icon.className=p.data.program?'las la-window-maximize':'las la-folder';icon.setAttribute('aria-hidden','true');el.append(icon,document.createTextNode(' '+(p.value||'—')));return el;}},simple('program','program',160),{...simple('use','use',110),cellRenderer:p=>badge(t(p.value==='Y'?'enabled':'disabled'),p.value==='Y'?'active':'neutral')},{...simple('close','closable',120),cellRenderer:p=>badge(t(p.value==='Y'?'enabled':'disabled'),p.value==='Y'?'active':'neutral')},simple('sort','sort',95));
  }else{
  list.push({...simple('code','code',260),editable:p=>canWrite.value&&!p.data._deleted&&!baseline.value.some(r=>r._key===p.data._key),cellClass:'mono-cell'});
  for(const lang of langs.value)list.push({colId:'locale_'+lang.code,headerName:lang.label+' · '+lang.code,width:270,cellClass:'message-cell',valueGetter:p=>p.data.locale?.[lang.code]||'',valueSetter:p=>{if(!canWrite.value)return false;p.data.locale??={};p.data.locale[lang.code]=p.newValue;return true;},editable:p=>canWrite.value&&!p.data._deleted,cellEditor:MessageCellEditor,cellEditorPopup:false});
  }
- list.push({headerName:t('actions'),minWidth:190,width:props.screen==='admmenu'?300:220,cellRenderer:p=>{const el=document.createElement('div');el.className='row-actions';if(p.data._deleted){if(canDelete.value)el.append(action(t('restore'),'las la-undo',()=>restore(p.data)));return el;}if(props.screen==='admcode'){if(canWrite.value)el.append(action(t('edit'),'las la-pen',()=>editRow(p.data)));if(p.data.id)el.append(action(t('children'),'las la-folder-open',()=>descend(p.data))); }else if(props.screen==='admmenu'){
- if(canWrite.value){el.append(action(t('edit'),'las la-pen',()=>editRow(p.data)));el.append(action(t('add_child'),'las la-plus',()=>editRow(null,p.data)));}
+ list.push({colId:'actions',headerName:t('actions'),headerClass:'grid-center-header',cellClass:'grid-center-cell',minWidth:190,width:props.screen==='admmenu'?300:props.screen==='admcode'?190:220,cellRenderer:p=>{const el=document.createElement('div');el.className='row-actions';if(p.data._deleted){if(canDelete.value)el.append(action(t('restore'),'las la-undo',()=>restore(p.data)));return el;}if(props.screen==='admcode'){if(p.data.id)el.append(action(t('children'),'las la-folder-open',()=>descend(p.data)));if(canDelete.value)el.append(action(t('delete'),'las la-trash-alt',()=>removeRows([p.data]),true)); }else if(props.screen==='admmenu'){
+ if(canWrite.value){el.append(action(t('edit'),'las la-pen',()=>editRow(p.data)));if(!isProtected(p.data,rows.value))el.append(action(t('add_child'),'las la-plus',()=>editRow(null,p.data)));}
  if(canDelete.value&&!isProtected(p.data,rows.value))el.append(action(t('delete'),'las la-trash-alt',()=>removeRows([p.data]),true));
  }else if(canDelete.value)el.append(action(t('delete'),'las la-trash-alt',()=>removeRows([p.data]),true));return el;}});return list;
 });
-function cellEdited(){tick.value++;rows.value=[...rows.value];}
+function cellEdited(event){
+ if(props.screen==='admcode'&&!event.data.id&&event.colDef.field==='code')event.data.path=(trail.value.at(-1)?.path||'')+'/'+event.data.code;
+ tick.value++;rows.value=rows.value.map(row=>row._key===event.data._key?{...row}:row);
+}
+function codeLanguages(row){const languages=[...langs.value];for(const code of Object.keys(row.locale||{}))if(!languages.some(l=>l.code===code))languages.push({code,label:code});return languages;}
+function applyCodeFields(key,fields){
+ if(disposed||!canWrite.value)return;const index=rows.value.findIndex(r=>r._key===key&&!r._deleted);if(index<0)return;
+ rows.value[index]={...rows.value[index],...fields};rows.value=[...rows.value];tick.value++;
+}
+async function editCodeDetails(row){
+ if(saving.value||loading.value||row._deleted)return;grid.value?.stop();
+ const original=baseline.value.find(r=>r._key===row._key);
+ await dialog.open({kind:'form',title:t('code_details'),subtitle:row.code||t('new'),batch:canWrite.value,readonly:!canWrite.value,initial:{locale:clone(row.locale||{})},translation:'name',languages:codeLanguages(row),validate:value=>{
+  try{prepareLocalizedRow('code',{...row,locale:value.locale},original);return '';}catch(e){return errorText(e);}
+ },onSubmit:value=>applyCodeFields(row._key,{locale:prepareLocalizedRow('code',{...row,locale:value.locale},original).locale})});
+}
+async function editCodeExtras(row){
+ if(saving.value||loading.value||row._deleted)return;grid.value?.stop();
+ const initial=clone(Object.fromEntries([1,2,3,4,5].map(n=>['extra'+n,row['extra'+n]])));
+ await dialog.open({kind:'form',title:t('extra'),subtitle:row.code||t('new'),batch:canWrite.value,readonly:!canWrite.value,initial,extraTabs:true,onSubmit:value=>applyCodeFields(row._key,value)});
+}
 function newRow(parent){
  const locale=Object.fromEntries(langs.value.map(l=>[l.code,props.screen==='admmsge'?'':{[props.screen==='admmenu'?'label':'name']:'',remarks:''}]));
  if(props.screen==='admmsge')return {code:'',locale};
@@ -77,20 +108,21 @@ function newRow(parent){
 }
 async function editRow(row=null,parent=null){
  if(!canWrite.value||saving.value||loading.value)return;
- if(props.screen==='admmsge'){grid.value?.stop();rows.value=[{...newRow(),_key:crypto.randomUUID()},...rows.value];tick.value++;await nextTick();grid.value?.edit(0,'code');return;}
+ if(['admcode','admmsge'].includes(props.screen)){grid.value?.stop();rows.value=[{...newRow(),_key:crypto.randomUUID()},...rows.value];tick.value++;await nextTick();grid.value?.edit(0,'code');return;}
+ if(parent&&isProtected(parent,rows.value))return;
  if(parent&&!parent.id){s.notify('menu_parent_pending');return;}
  const menu=props.screen==='admmenu',initial=row?clone(row):newRow(parent),fixed=menu&&row&&isProtected(row,rows.value);
  const fields=[];const add=(path,label,type='text',extra={})=>fields.push({path,label:t(label),type,...extra});
  if(menu){
   initial._parentLabel=menuLabel(rows.value.find(r=>r.id&&r.id===initial.parentId),state.locale)||t('root');
-  add('_parentLabel','parent','text',{readonly:true});add('program','program','text',{readonly:fixed,hint:t('program_hint'),placeholder:'admin/menu'});add('icon','icon','text',{readonly:fixed});
- }else add('code','code','text',{required:true,readonly:!!row?.id,hint:!row?.id?t('invalid_common_code'):undefined});
+  add('_parentLabel','parent','text',{readonly:true});add('program','program','text',{readonly:fixed,hint:t('program_hint'),placeholder:'admin/menu'});add('icon','icon','text');
+ }
  add('use','use','select',{readonly:fixed,options:[{value:'Y',label:t('enabled')},{value:'N',label:t('disabled')}]});
  if(menu)add('close','closable','select',{readonly:fixed,options:[{value:'Y',label:t('enabled')},{value:'N',label:t('disabled')}]});
  add('sort','sort','number',{readonly:fixed});
  const original=row?baseline.value.find(r=>r._key===row._key):undefined;
  const languages=[...langs.value];for(const code of Object.keys(initial.locale||{}))if(!languages.some(l=>l.code===code))languages.push({code,label:code});
- await dialog.open({kind:'form',title:t(row?'edit':'add')+' · '+(props.title||t(props.screen)),subtitle:row?.code||row?.program,batch:true,wide:true,initial,fields,extraTabs:!menu,translation:menu?'label':'name',languages,validate:value=>{
+ await dialog.open({kind:'form',title:t(row?'edit':'add')+' · '+(props.title||t(props.screen)),subtitle:row?.code||row?.program,batch:true,wide:true,initial,fields,translation:'label',languages,validate:value=>{
   try{const e=validate(def.value.resource,prepareLocalizedRow(def.value.resource,value,original),langs.value);return e?t(e):'';}catch(e){return errorText(e);}
  },onSubmit:value=>{
   if(disposed||!canWrite.value)return;

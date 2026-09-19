@@ -59,6 +59,8 @@ class AdminAuthorityControllerTest {
         wipe();
         insertUser(USER_1, "test_authz_api_one", "Api One");
         insertUser(USER_2, "test_authz_api_two", "Api Two");
+        jdbcTemplate.update("UPDATE kkdugi_user_base SET user_img_src = ? WHERE user_id = ?",
+                "https://img.example/api-one.png", USER_1);
         jdbcTemplate.update(
                 "INSERT INTO kkdugi_menu_base (menu_id, menu_pgm, sort_seq, reg_id) VALUES (?, ?, ?, ?)",
                 MENU_1, "authz_api_1", 1, "SYSTEM");
@@ -104,7 +106,9 @@ class AdminAuthorityControllerTest {
     private Map<String, Object> fullBody(String roleSuffix) {
         return map("role", ROLE_PREFIX + roleSuffix, "type", "ROLE", "name", "API " + roleSuffix,
                 "remarks", "r", "use", "Y",
-                "users", List.of(map("id", USER_1, "applyStartDate", "2030-01-01", "applyEndDate", "2030-12-31")),
+                // name/image는 응답 전용이라 요청에 실어 보내도 무시되고 사용자 테이블의 값이 내려온다.
+                "users", List.of(map("id", USER_1, "name", "Client Supplied", "image", "client.png",
+                        "applyStartDate", "2030-01-01", "applyEndDate", "2030-12-31")),
                 "menus", List.of(map("id", MENU_1,
                         "authorities", map("10", true, "20", false, "30", false, "40", false))));
     }
@@ -182,6 +186,8 @@ class AdminAuthorityControllerTest {
                 .andExpect(jsonPath("$.use").value("Y"))
                 .andExpect(jsonPath("$.users.length()").value(1))
                 .andExpect(jsonPath("$.users[0].id").value(USER_1))
+                .andExpect(jsonPath("$.users[0].name").value("Api One"))
+                .andExpect(jsonPath("$.users[0].image").value("https://img.example/api-one.png"))
                 .andExpect(jsonPath("$.users[0].applyStartDate").value("2030-01-01"))
                 .andExpect(jsonPath("$.users[0].applyEndDate").value("2030-12-31"))
                 .andExpect(jsonPath("$.createdAt").doesNotExist())
