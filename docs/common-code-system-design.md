@@ -87,7 +87,7 @@ i18n과 마찬가지로 컨트롤러는 `app.admin.code.models`의 타입을 요
 
 **중요**: `parentId`가 오면(생략 시 root 취급) **그 부모의 직접 자식만**
 반환한다 — 트리 전체를 가로지르는 전역 검색이 아니다
-(`kkdugi-design/docs/adr/0002-grid-batch-and-hierarchy.md`의 브레드크럼
+(`docs/design/adr/0002-grid-batch-and-hierarchy.md`의 브레드크럼
 탐색 결정을 따름). `path`/`code`/`name`/`use`는 그 형제 범위 안에서 추가로
 좁히는 필터다. `name`은 등록된 언어 중 아무 언어에라도 일치하면 매치된다.
 

@@ -6,7 +6,7 @@
 
 ## 1. 확인한 근거
 
-현행 API: `../../../docs/api/README.md`, `auth.md`, `session.md`, `common-code.md`, `i18n-message.md`.
+현행 API: `../../api/README.md`, `auth.md`, `session.md`, `common-code.md`, `i18n-message.md`.
 
 코드 루트는 `../../../kkdugi-admin/src/`다. 확인 파일:
 

@@ -1,8 +1,6 @@
 package kkdugi.api.admin.session;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,15 +17,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import tools.jackson.databind.ObjectMapper;
-
 import kkdugi.KkdugiAdminApplication;
-import kkdugi.core.security.models.LoginRequest;
-import kkdugi.core.security.models.LoginResponse;
+import kkdugi.support.TestLogin;
 
 /**
  * {@code SessionMenuController}이 세션의 flat {@code SessionMenu} 목록을
@@ -37,7 +31,6 @@ import kkdugi.core.security.models.LoginResponse;
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class SessionMenuControllerTest {
 
-    private static final String LOGIN_URL = "/api/v1.0/auth/login";
     private static final String MENU_URL = "/api/v1.0/session/menu";
     private static final String USER_ID = "U_TEST_SESSION_MENU_1";
     private static final String AUTH_ID = "A_TEST_SESSION_MENU_1";
@@ -48,9 +41,6 @@ class SessionMenuControllerTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -117,14 +107,7 @@ class SessionMenuControllerTest {
 
     @Test
     void menu_returnsGrantedMenusAsNestedTree() throws Exception {
-        String loginBody = objectMapper.writeValueAsString(new LoginRequest(LOGIN_ID, PASSWORD, false));
-
-        MvcResult loginResult = mockMvc.perform(post(LOGIN_URL).contentType(APPLICATION_JSON).content(loginBody))
-                .andExpect(status().isOk())
-                .andReturn();
-        LoginResponse loginResponse = objectMapper.readValue(
-                loginResult.getResponse().getContentAsString(), LoginResponse.class);
-        String token = loginResponse.getToken();
+        String token = TestLogin.login(mockMvc, LOGIN_ID, PASSWORD);
 
         mockMvc.perform(get(MENU_URL).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())

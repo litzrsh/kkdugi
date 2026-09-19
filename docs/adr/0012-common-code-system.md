@@ -76,7 +76,7 @@ api-define-admin.md 1.2절 "삭제 시, 하위 코드도 모두 삭제"를 그�
 
 ### 5. 조회는 항상 "현재 parentId의 직접 자식"만 보여준다
 
-`kkdugi-design/docs/adr/0002-grid-batch-and-hierarchy.md`("공통코드는 현재
+`docs/design/adr/0002-grid-batch-and-hierarchy.md`("공통코드는 현재
 부모의 직접 자식만 표시하고 breadcrumb·상위 이동·하위 목록 버튼으로
 탐색한다")를 그대로 따른다: `parentId`가 오면 그 자식만, 안 오면(=null)
 root 코드만 반환한다. `path`/`code`/`name`/`use` 필터는 전체 트리를

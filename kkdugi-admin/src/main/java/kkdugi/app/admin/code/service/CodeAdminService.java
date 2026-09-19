@@ -41,7 +41,6 @@ public class CodeAdminService {
     public static final String ERR_IMMUTABLE = "code.err.immutable";
 
     private static final String SYSTEM_USER_ID = "SYSTEM";
-    private static final String ID_PREFIX = "C";
     private static final String DEFAULT_USE = "Y";
 
     private static final SerialConfig SERIAL_CONFIG = new SerialConfig() {

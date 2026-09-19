@@ -1,4 +1,4 @@
-package kkdugi.api.admin.session;
+package kkdugi.api.session;
 
 import java.util.List;
 
@@ -19,14 +19,16 @@ public class MenuTreeItem implements Tree<MenuTreeItem> {
     private final String icon;
     private final int sort;
     private List<MenuTreeItem> children;
+    private boolean openable;
 
-    public MenuTreeItem(String id, String parentId, String title, String remarks, String icon, int sort) {
+    public MenuTreeItem(String id, String parentId, String title, String remarks, String icon, int sort, boolean openable) {
         this.id = id;
         this.parentId = parentId;
         this.title = title;
         this.remarks = remarks;
         this.icon = icon;
         this.sort = sort;
+        this.openable = openable;
     }
 
     @Override
@@ -63,5 +65,13 @@ public class MenuTreeItem implements Tree<MenuTreeItem> {
     @Override
     public void setChildren(List<MenuTreeItem> children) {
         this.children = children;
+    }
+
+    public boolean isOpenable() {
+        return openable;
+    }
+
+    public void setOpenable(boolean openable) {
+        this.openable = openable;
     }
 }

@@ -22,24 +22,42 @@ class LoginControllerTest {
     @BeforeEach void setup() {
         mvc=MockMvcBuilders.webAppContextSetup(context).apply(SecurityMockMvcConfigurers.springSecurity()).build();
     }
-    @Test void loginRendersJsonEndpointAndNoVueOrDemo() throws Exception {
+    @Test void loginRendersFormPostingToLoginEndpointAndNoVueOrDemo() throws Exception {
         mvc.perform(get("/login")).andExpect(status().isOk())
-            .andExpect(content().string(containsString("/api/v1.0/auth/login")))
+            .andExpect(content().string(containsString("action=\"/api/v1.0/auth/login\"")))
+            .andExpect(content().string(containsString("enctype=\"application/x-www-form-urlencoded\"")))
+            .andExpect(content().string(containsString("name=\"force\" value=\"false\"")))
             .andExpect(content().string(containsString("/js/auth/login.mjs")))
-            .andExpect(content().string(containsString("duplicate-panel")))
+            .andExpect(content().string(not(containsString("duplicate-panel"))))
             .andExpect(content().string(not(containsString("vue.global"))))
             .andExpect(content().string(not(containsString("디자인 미리보기"))));
     }
-    @Test void localeResolvesLoginAndDuplicateLabels() throws Exception {
+    @Test void duplicateRedirectKeepsNormalFormAndOffersExplicitConfirmation() throws Exception {
+        mvc.perform(get("/login").param("duplicate","").param("username","admin").param("lang","en_US")).andExpect(status().isOk())
+            .andExpect(content().string(containsString("id=\"duplicate-dialog\"")))
+            .andExpect(content().string(containsString("name=\"force\" value=\"false\"")))
+            .andExpect(content().string(containsString("value=\"admin\"")))
+            .andExpect(content().string(containsString("End previous session and sign in")))
+            .andExpect(content().string(containsString("Do not sign in")))
+            .andExpect(content().string(not(containsString("login.ui."))));
+    }
+    @Test void renderLoginFixtures() throws Exception {
+        java.nio.file.Path output=java.nio.file.Path.of("target", "login-test-output");
+        java.nio.file.Files.createDirectories(output);
+        for (String lang : new String[]{"ko_KR", "en_US"}) {
+            String html=mvc.perform(get("/kk/login").contextPath("/kk").param("lang",lang))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            java.nio.file.Files.writeString(output.resolve(lang+".html"),html);
+        }
+    }
+    @Test void localeResolvesLoginLabels() throws Exception {
         mvc.perform(get("/login").param("lang","en_US")).andExpect(status().isOk())
             .andExpect(content().string(containsString("Welcome back")))
-            .andExpect(content().string(containsString("End previous session and sign in")))
             .andExpect(content().string(not(containsString("login.ui."))));
     }
     @Test void contextPathIsAppliedToAssetsAndEndpoints() throws Exception {
         mvc.perform(get("/kk/login").contextPath("/kk")).andExpect(status().isOk())
             .andExpect(content().string(containsString("/kk/api/v1.0/auth/login")))
-            .andExpect(content().string(containsString("/kk/js/auth/login.mjs")))
-            .andExpect(content().string(containsString("data-success-url=\"/kk/\"")));
+            .andExpect(content().string(containsString("/kk/js/auth/login.mjs")));
     }
 }

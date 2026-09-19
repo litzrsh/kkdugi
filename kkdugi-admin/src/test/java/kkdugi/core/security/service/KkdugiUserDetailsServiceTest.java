@@ -212,9 +212,9 @@ class KkdugiUserDetailsServiceTest {
 
         List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
 
-        assertThat(menus).hasSize(1);
-        assertThat(menus.get(0).getId()).isEqualTo(MENU_ID);
-        assertThat(menus.get(0).getAuthority()).isEqualTo(0xffff);
+        // SYS_ADMIN은 기본 시드 메뉴(V10)도 함께 받으므로 전체 개수가 아니라 이 테스트의 메뉴만 본다.
+        SessionMenu fixture = menus.stream().filter(m -> MENU_ID.equals(m.getId())).findFirst().orElseThrow();
+        assertThat(fixture.getAuthority()).isEqualTo(0xffff);
     }
 
     @Test
@@ -240,6 +240,7 @@ class KkdugiUserDetailsServiceTest {
 
         List<SessionMenu> menus = ((SessionUser) service.loadUserByUsername(LOGIN_ID)).getMenus();
 
-        assertThat(menus).isEmpty();
+        // 기본 시드 메뉴(V10)는 그대로 보이므로, 비활성 상위 아래의 이 테스트 메뉴들만 빠졌는지 본다.
+        assertThat(menus).extracting(SessionMenu::getId).doesNotContain(MENU_ID, PARENT_MENU_ID);
     }
 }

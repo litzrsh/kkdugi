@@ -119,7 +119,7 @@
   설계가 확정되면 ADR-0007에 addendum을 추가하거나 이를 대체하는 별도
   ADR-0011로 기록한다. 설계 문서의 ["관리 API 모델" 절](../i18n-system-design.md#관리-api-모델)도
   함께 갱신한다.
-- 참고: `kkdugi-design/docs/adr/0003-message-pivot-i18n.md`에 이 pivot
+- 참고: `docs/design/adr/0003-message-pivot-i18n.md`에 이 pivot
   재설계에 대한 별도의 기획/디자인 검토가 이미 존재한다("설계 채택, 조회 API
   보완 필요" 상태) — grouped 조회 API의 URI/DTO 미확정, 등록 언어 목록을
   `ko_KR`/`en_US` 두 개로 고정하지 않을 것, 코드 단위 삭제 시 등록된 모든

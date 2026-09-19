@@ -1,3 +1,5 @@
+> 2026-09-19: 이 문서의 로그인·세션 계약은 당시 기록입니다. 현행 form/쿠키/JSON 오류 및 확인 팝업은 [최신 연동 기록](../plan/14-session-auth-confirm-and-docs.md)을 참조합니다.
+
 # kkdugi-admin 로그인 구현 준비 분석
 
 2026-09-17 / 대상: `C:\projects\kkdugi\kkdugi-admin` / 읽기 전용 소스 분석

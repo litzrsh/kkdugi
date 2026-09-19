@@ -1,7 +1,6 @@
 package kkdugi.core.security.service;
 
 import java.util.Base64;
-import java.util.Date;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,21 +28,20 @@ class JwtTokenServiceTest {
     void issue_thenExtractSessionId_roundTrips() {
         JwtTokenService service = newService(randomSecret());
 
-        String token = service.issue("S_TEST_1", new Date(System.currentTimeMillis() + 60_000));
+        String token = service.issue("S_TEST_1");
 
         assertThat(service.extractSessionId(token)).isEqualTo("S_TEST_1");
     }
 
     @Test
-    void extractSessionId_expiredToken_throwsInvalidToken() {
+    void issue_carriesNoExpiry_sessionRowOwnsExpiry() {
         JwtTokenService service = newService(randomSecret());
 
-        String token = service.issue("S_TEST_2", new Date(System.currentTimeMillis() - 1_000));
+        String token = service.issue("S_TEST_2");
 
-        assertThatThrownBy(() -> service.extractSessionId(token))
-                .isInstanceOf(RestfulAuthenticationException.class)
-                .satisfies(ex -> assertThat(((RestfulAuthenticationException) ex).getExceptionMessage().getCode())
-                        .isEqualTo(JwtTokenService.ERR_INVALID_TOKEN));
+        // payload(두 번째 조각)에 exp 클레임이 없다 — 슬라이딩 세션이라 만료는 DB가 결정한다.
+        String payload = new String(Base64.getUrlDecoder().decode(token.split("\\.")[1]));
+        assertThat(payload).contains("sess_id").doesNotContain("exp");
     }
 
     @Test
@@ -51,7 +49,7 @@ class JwtTokenServiceTest {
         JwtTokenService issuer = newService(randomSecret());
         JwtTokenService verifier = newService(randomSecret());
 
-        String token = issuer.issue("S_TEST_3", new Date(System.currentTimeMillis() + 60_000));
+        String token = issuer.issue("S_TEST_3");
 
         assertThatThrownBy(() -> verifier.extractSessionId(token))
                 .isInstanceOf(RestfulAuthenticationException.class);

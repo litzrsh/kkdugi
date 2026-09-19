@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.Optional;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,9 +18,11 @@ import kkdugi.core.security.models.SessionUser;
 import kkdugi.core.serial.SerialConfig;
 import kkdugi.core.util.DateUtils;
 import kkdugi.core.util.SerialUtils;
+import kkdugi.core.util.SessionUtils;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
-public class SessionService {
+public class SessionService implements InitializingBean {
 
     public static final String ERR_NOT_EXISTS = "session.err.not_exists";
     public static final String ERR_DUPLICATE = "session.err.duplicate";
@@ -49,10 +52,19 @@ public class SessionService {
 
     private final SecurityConfigurationProperties properties;
     private final SessionMapper sessionMapper;
+    private final ObjectMapper objectMapper;
 
-    public SessionService(SecurityConfigurationProperties properties, SessionMapper sessionMapper) {
+    public SessionService(SecurityConfigurationProperties properties, SessionMapper sessionMapper,
+            ObjectMapper objectMapper) {
         this.properties = properties;
         this.sessionMapper = sessionMapper;
+        this.objectMapper = objectMapper;
+    }
+
+    /** {@link SessionUtils}가 DI 없이 attribute를 DB에 반영할 수 있게 자신을 등록한다. */
+    @Override
+    public void afterPropertiesSet() {
+        SessionUtils.setSessionService(this);
     }
 
     /**
@@ -114,8 +126,53 @@ public class SessionService {
         return session;
     }
 
+    /**
+     * 슬라이딩 세션 — 인증된 요청마다 만료 시각을 지금부터 {@code sessionTimeout}
+     * 뒤로 미룬다. 마지막 갱신({@code updatedAt}) 후 {@code sessionRefreshInterval}이
+     * 지나지 않았으면 DB 쓰기를 건너뛴다(요청마다 쓰지 않기 위함).
+     */
+    @Transactional
+    public void extend(Session session) {
+        Date now = new Date();
+        if (DateUtils.diff(session.getUpdatedAt(), now) < properties.getSessionRefreshInterval().toMillis()) {
+            return;
+        }
+        Date expiresAt = DateUtils.plus(now, properties.getSessionTimeout());
+        sessionMapper.extend(session.getId(), expiresAt, now);
+        session.setExpiresAt(expiresAt);
+        session.setUpdatedAt(now);
+    }
+
     @Transactional
     public void invalidate(String id) {
         sessionMapper.deleteById(id);
+    }
+
+    /**
+     * 로그아웃 처리. {@code allowMultiple=false}면 사용자당 세션이 하나여야 하므로
+     * 사용자 ID 기준으로 그 사용자의 세션을 전부 지우고, {@code allowMultiple=true}면
+     * 다른 기기의 세션은 그대로 둔 채 이 요청의 세션 하나만 지운다.
+     */
+    @Transactional
+    public void logout(String sessionId, String userId) {
+        if (properties.isAllowMultiple()) {
+            sessionMapper.deleteById(sessionId);
+        } else {
+            sessionMapper.deleteByUserId(userId);
+        }
+    }
+
+    /**
+     * 세션 사용자 스냅샷의 attribute 하나를 DB에 반영한다({@code value}가 null이면
+     * 제거). 스냅샷 전체를 다시 쓰지 않고 {@code jsonb} 연산으로 해당 키만
+     * 바꾸므로, 같은 세션에서 동시에 다른 키를 갱신해도 서로 덮어쓰지 않는다.
+     */
+    @Transactional
+    public void updateAttribute(String sessionId, String key, Object value) {
+        if (value == null) {
+            sessionMapper.removeAttribute(sessionId, key);
+        } else {
+            sessionMapper.putAttribute(sessionId, key, objectMapper.writeValueAsString(value));
+        }
     }
 }

@@ -6,29 +6,33 @@ import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kkdugi.core.security.authentication.filter.BearerTokenAuthenticationFilter;
+import kkdugi.core.security.models.SessionUser;
 import kkdugi.core.security.service.SessionService;
 
 /**
- * 로그아웃 시 이 요청을 인증했던 세션 하나만 끊는다({@code allowMultiple=true}일
- * 때 같은 사용자의 다른 세션까지 함께 끊으면 안 되므로 사용자 ID가 아니라
- * 세션 ID 기준). 세션 ID는 {@link BearerTokenAuthenticationFilter}가 이번
- * 요청을 인증하면서 이미 검증해 요청 속성에 남겨둔 값을 그대로 쓴다.
+ * 로그아웃 시 세션을 끊고 토큰 쿠키를 지운다. 어떤 세션을 끊을지는
+ * {@link SessionService#logout}이 {@code allowMultiple}에 따라 정한다 —
+ * false면 사용자 ID 기준으로 모든 세션, true면 이 요청의 세션 ID 하나만.
+ * 세션 ID와 사용자 ID는 {@code BearerTokenAuthenticationFilter}가 이 요청을
+ * 인증하면서 남긴 {@link SessionAuthentication}에서 꺼낸다.
  */
 @Component
 public class SessionLogoutHandler implements LogoutHandler {
 
     private final SessionService sessionService;
+    private final AuthTokenCookie tokenCookie;
 
-    public SessionLogoutHandler(SessionService sessionService) {
+    public SessionLogoutHandler(SessionService sessionService, AuthTokenCookie tokenCookie) {
         this.sessionService = sessionService;
+        this.tokenCookie = tokenCookie;
     }
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        String sessionId = BearerTokenAuthenticationFilter.getSessionId(request);
-        if (sessionId != null) {
-            sessionService.invalidate(sessionId);
+        if (authentication instanceof SessionAuthentication session
+                && session.getPrincipal() instanceof SessionUser user) {
+            sessionService.logout(session.getSessionId(), user.getId());
         }
+        tokenCookie.clear(request, response);
     }
 }

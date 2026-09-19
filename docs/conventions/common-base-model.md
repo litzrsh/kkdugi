@@ -107,7 +107,7 @@ kkdugi.app.admin.i18n
   `getOffset()`/`getLimit()`)은 `BaseParams`가 제공하므로 화면마다
   반복 선언하지 않는다.
 - **그 외 커맨드/결과/에러/옵션 같은 순수 데이터 객체**(`MessageContent`,
-  `MessagePersistRequest`, `LoginResponse`, `StatusOption` 등)는
+  `MessagePersistRequest`, `StatusOption` 등)는
   `BaseModel`/`BaseParams`를 상속하지 않는다 — 감사 필드나 페이징
   개념이 없는 객체에 억지로 붙이지 않는다. 대신 플레인 클래스로,
   불변성을 유지하기 위해 필드를 `final`로 두고 전체 필드 생성자만

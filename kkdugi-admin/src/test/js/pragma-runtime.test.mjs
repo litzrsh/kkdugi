@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createApi} from '../../main/resources/static/js/api/index.mjs';
 import {normalizeMenus,menuIdFromHash,menuHash,createPageRequests,menuIcon} from '../../main/resources/static/js/runtime/navigation.mjs';
-import {saveToken,getToken} from '../../main/resources/static/js/auth/session.mjs';
+import {getToken} from '../../main/resources/static/js/auth/session.mjs';
+import {setTokenCookie} from './support/cookie-jar.mjs';
 import {validate} from '../../main/resources/static/js/domain/batch.mjs';
-const values=new Map();globalThis.sessionStorage={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};
 globalThis.location={replace:()=>{}};
 test('menu tree accepts null children, sorts siblings and preserves server IDs',()=>{
  const tree=normalizeMenus([{id:'folder',children:[{id:'B',sort:2,children:null},{id:'A',sort:1,children:[]}]}]);
@@ -13,7 +13,7 @@ test('menu tree accepts null children, sorts siblings and preserves server IDs',
  assert.equal(menuIcon('https://unknown'),'las la-folder');
 });
 test('Pragma uses authenticated text request with context path and no redirect/cache',async()=>{
- saveToken('token');let captured;
+ setTokenCookie('token');let captured;
  const api=createApi({basePath:'/kk/'},async(url,options)=>{captured={url,options};return new Response('<template><p>Screen</p></template>',{headers:{'Content-Type':'text/html;charset=UTF-8'}});});
  assert.match(await api.pragma('M & 1'),/Screen/);assert.equal(captured.url,'/kk/pragma/M%20%26%201');
  assert.equal(captured.options.headers.Authorization,'Bearer token');assert.equal(captured.options.cache,'no-store');assert.equal(captured.options.redirect,'error');
@@ -21,11 +21,11 @@ test('Pragma uses authenticated text request with context path and no redirect/c
 test('Pragma refuses login HTML and reports 404 without pretending it is a session failure',async()=>{
  const api=createApi({},async()=>new Response('<!doctype html><html>Login</html>',{headers:{'content-type':'text/html'}}));
  await assert.rejects(api.pragma('M'),e=>e.status===502);
- saveToken('still-present');const missing=createApi({},async()=>new Response(null,{status:404}));
+ setTokenCookie('still-present');const missing=createApi({},async()=>new Response(null,{status:404}));
  await assert.rejects(missing.pragma('M'),e=>e.status===404);assert.equal(getToken(),'still-present');
 });
 test('401 with non-JSON body still clears token and calls disposal',async()=>{
- saveToken('expired');let disposed=false;
+ setTokenCookie('expired');let disposed=false;
  const api=createApi({onUnauthorized:()=>disposed=true},async()=>new Response('<html>unauthorized</html>',{status:401}));
  await assert.rejects(api.menus(),e=>e.status===401);assert.equal(getToken(),'');assert.ok(disposed);
 });

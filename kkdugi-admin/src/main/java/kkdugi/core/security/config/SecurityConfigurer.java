@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kkdugi.core.security.authentication.AuthTokenCookie;
 import kkdugi.core.security.authentication.RestfulAccessDeniedHandler;
 import kkdugi.core.security.authentication.RestfulAuthenticationEntryPoint;
 import kkdugi.core.security.authentication.SessionLogoutHandler;
@@ -25,7 +26,6 @@ import kkdugi.core.security.authentication.filter.BearerTokenAuthenticationFilte
 import kkdugi.core.security.service.JwtTokenService;
 import kkdugi.core.security.service.KkdugiUserDetailsService;
 import kkdugi.core.security.service.SessionService;
-import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 public class SecurityConfigurer {
@@ -89,9 +89,9 @@ public class SecurityConfigurer {
     @Bean
     AuthenticationProcessingFilter authenticationProcessingFilter(AuthenticationManager authenticationManager,
             SessionService sessionService, JwtTokenService jwtTokenService,
-            KkdugiUserDetailsService userDetailsService, ObjectMapper objectMapper) {
+            KkdugiUserDetailsService userDetailsService, AuthTokenCookie tokenCookie) {
         return new AuthenticationProcessingFilter(authenticationManager, sessionService, jwtTokenService,
-                userDetailsService, objectMapper);
+                userDetailsService, tokenCookie);
     }
 
     @Bean

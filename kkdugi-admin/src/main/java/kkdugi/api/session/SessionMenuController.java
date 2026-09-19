@@ -1,4 +1,4 @@
-package kkdugi.api.admin.session;
+package kkdugi.api.session;
 
 import java.util.List;
 
@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kkdugi.core.security.models.SessionMenu;
+import kkdugi.core.util.CommonUtils;
 import kkdugi.core.util.SessionUtils;
 import kkdugi.core.util.TreeUtils;
 
@@ -36,6 +37,6 @@ public class SessionMenuController {
 
     private static MenuTreeItem toTreeItem(SessionMenu menu) {
         return new MenuTreeItem(menu.getId(), menu.getParentId(), menu.getTitle(), menu.getRemarks(),
-                menu.getIcon(), menu.getSort());
+                menu.getIcon(), menu.getSort(), CommonUtils.isNotEmpty(menu.getProgram()));
     }
 }

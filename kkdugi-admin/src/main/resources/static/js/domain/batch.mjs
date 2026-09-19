@@ -12,7 +12,9 @@ export function cleanRow(row){return Object.fromEntries(Object.entries(clone(row
 export function payload(rows,baseline){const out={insert:[],update:[],delete:[]};for(const row of rows){const orig=baseline.find(x=>rowKey(x)===rowKey(row));if(!orig){if(!row._deleted)out.insert.push({...cleanRow(row),...(row.code&& !('id'in row)?{}:{id:''})});}else if(row._deleted){out.delete.push(cleanRow(orig));}else if(JSON.stringify(cleanRow(row))!==JSON.stringify(cleanRow(orig))){out.update.push(cleanRow(row));}}return out;}
 export function rowState(row,baseline){const p=payload([row],baseline);return p.insert.length?'new':p.delete.length?'removed':p.update.length?'changed':'';}
 export function localeValue(row,locale,field='name'){const val=row?.locale?.[locale];return typeof val==='string'?val:val?.[field]||'';}
-export function isProtected(row,rows=[]){return Object.keys(screenDefs).includes(row.program)||rows.some(r=>Object.keys(screenDefs).includes(r.program)&&r.path?.startsWith((row.path||'~')+'/'));}
+// Menu program codes are template paths under templates/pragma/ (see V10__insert_default_menu.sql); they differ from the screenDefs keys above.
+export const systemPrograms=['admin/code','admin/message','admin/menu','admin/authority','admin/user'];
+export function isProtected(row,rows=[]){return systemPrograms.includes(row.program)||rows.some(r=>systemPrograms.includes(r.program)&&r.path?.startsWith((row.path||'~')+'/'));}
 export function validate(resource,row,languages){if(resource==='i18n'){if(!/^[a-z0-9]+(_[a-z0-9]+)*(\.[a-z0-9]+(_[a-z0-9]+)*){2}$/.test(row.code||'')||/[\r\n]/.test(row.code||''))return 'invalid_code';if(!Object.values(row.locale||{}).some(v=>typeof v==='string'&&v.trim()))return 'required';}
  if(resource==='code'&&(!row.code?.trim()||!Object.values(row.locale||{}).some(v=>v.name?.trim())))return 'required';
  if(resource==='code'&&!row.id&&(!/^[A-Z0-9]+(_[A-Z0-9]+)*$/.test(row.code)||/[\r\n]/.test(row.code)))return 'invalid_common_code';

@@ -1,3 +1,5 @@
+> 2026-09-19: 문서는 [docs/design](../docs/design/README.md)으로 통합했습니다. 실제 서버 구현과 로그인 계약은 [최신 연동 기록](../docs/design/plan/14-session-auth-confirm-and-docs.md), [현행 API](../docs/api/README.md)를 참조합니다. 아래는 독립 미리보기의 과거 퍼블리싱 기록입니다.
+
 # kkdugi admin · 디자인 & 퍼블리싱
 
 2026-09-16 / Spring Thymeleaf + Vue 3 SFC / Bulma / Pretendard / line-awesome / AG Grid
@@ -109,4 +111,4 @@ Vue 3.4.21, vue3-sfc-loader 0.9.5는 사용자가 지정한 Kluvo 로컬 자산�
 
 ## 로그인 화면
 
-미리보기: http://127.0.0.1:4173/login.html. HTML + CSS3 + vanilla JS로 구현하며 Vue를 로드하지 않는다. 서버 연동은 docs/plan/07-login-publishing.md를 참고한다.
+미리보기: http://127.0.0.1:4173/login.html. HTML + CSS3 + vanilla JS로 구현하며 Vue를 로드하지 않는다. 서버 연동은 ../docs/design/plan/07-login-publishing.md를 참고한다.

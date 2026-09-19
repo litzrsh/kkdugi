@@ -7,17 +7,23 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import kkdugi.core.security.authentication.SessionAuthentication;
 import kkdugi.core.security.models.Authority;
 import kkdugi.core.security.models.SessionMenu;
 import kkdugi.core.security.models.SessionUser;
+import kkdugi.core.security.service.SessionService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class SessionUtilsTest {
 
     @AfterEach
     void cleanUp() {
         SecurityContextHolder.clearContext();
+        SessionUtils.setSessionService(null);
     }
 
     private Authority authority(String role) {
@@ -115,5 +121,58 @@ class SessionUtilsTest {
     @Test
     void getMenu_anonymousUser_returnsNull() {
         assertThat(SessionUtils.getMenu("M_1")).isNull();
+    }
+
+    @Test
+    void getAttribute_returnsSessionUserAttribute() {
+        SessionUser user = new SessionUser();
+        user.getAttributes().put("theme", "dark");
+        authenticateAs(user);
+
+        assertThat(SessionUtils.getAttribute("theme")).isEqualTo("dark");
+        assertThat(SessionUtils.getAttribute("missing")).isNull();
+    }
+
+    @Test
+    void getAttribute_anonymousUser_returnsNull() {
+        assertThat(SessionUtils.getAttribute("theme")).isNull();
+    }
+
+    @Test
+    void setAttribute_updatesDbBySessionIdAndCurrentUser() {
+        SessionService service = mock(SessionService.class);
+        SessionUtils.setSessionService(service);
+        SecurityContextHolder.getContext().setAuthentication(new SessionAuthentication(new SessionUser(), "S_1"));
+
+        SessionUtils.setAttribute("theme", "dark");
+
+        verify(service).updateAttribute("S_1", "theme", "dark");
+        assertThat(SessionUtils.getAttribute("theme")).isEqualTo("dark");
+    }
+
+    @Test
+    void setAttribute_nullValueRemovesKeyFromCurrentUser() {
+        SessionService service = mock(SessionService.class);
+        SessionUtils.setSessionService(service);
+        SessionUser user = new SessionUser();
+        user.getAttributes().put("theme", "dark");
+        SecurityContextHolder.getContext().setAuthentication(new SessionAuthentication(user, "S_1"));
+
+        SessionUtils.setAttribute("theme", null);
+
+        verify(service).updateAttribute("S_1", "theme", null);
+        assertThat(SessionUtils.getAttribute("theme")).isNull();
+    }
+
+    @Test
+    void setAttribute_withoutSessionAuthentication_throws() {
+        SessionUtils.setSessionService(mock(SessionService.class));
+
+        assertThatThrownBy(() -> SessionUtils.setAttribute("theme", "dark"))
+                .isInstanceOf(IllegalStateException.class);
+
+        authenticateAs(new SessionUser());
+        assertThatThrownBy(() -> SessionUtils.setAttribute("theme", "dark"))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

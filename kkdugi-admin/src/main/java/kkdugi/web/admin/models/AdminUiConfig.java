@@ -20,4 +20,7 @@ public class AdminUiConfig {
     private final List<LanguageOption> languages;
     private final List<StatusOption> statuses;
     private final Map<String, String> messages;
+
+    /** 로그인 시 발급된 토큰 쿠키 이름 — 프론트가 이 쿠키에서 토큰을 꺼내 Bearer 헤더로 보낸다. */
+    private final String tokenCookie;
 }

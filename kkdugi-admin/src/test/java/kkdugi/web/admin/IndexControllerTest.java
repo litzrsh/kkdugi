@@ -48,6 +48,13 @@ class IndexControllerTest {
     }
 
     @Test
+    void index_exposesTokenCookieNameToFrontend() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"tokenCookie\":\"KKDUGI_TOKEN\"")));
+    }
+
+    @Test
     void index_withLangParam_switchesResolvedMessageLocale() throws Exception {
         mockMvc.perform(get("/").param("lang", "en_US"))
                 .andExpect(status().isOk())

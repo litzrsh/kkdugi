@@ -28,11 +28,11 @@ API다. 그 문서의 [3절 메뉴
 다루는 것이지 "admin 리소스"(공통코드/메시지/메뉴 CRUD)가 아니라서
 [auth.md](auth.md)의 로그인/로그아웃과 같은 이유로 이 접두사 밖이다.
 
-구현: [`SessionMenuController`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/session/SessionMenuController.java)
+구현: [`SessionMenuController`](../../kkdugi-admin/src/main/java/kkdugi/api/session/SessionMenuController.java)
 
 세션의 `SessionMenu`(flat list, `program`/`authority` 필드 포함)를 그대로
 내려주지 않고, 화면 내비게이션에 필요한 필드만 골라
-[`MenuTreeItem`](../../kkdugi-admin/src/main/java/kkdugi/api/admin/session/MenuTreeItem.java)으로
+[`MenuTreeItem`](../../kkdugi-admin/src/main/java/kkdugi/api/session/MenuTreeItem.java)으로
 옮겨 담은 뒤 트리 모양으로 변환해 응답한다 — **응답에는 `id`, `parentId`,
 `title`, `remarks`, `icon`, `sort`, `children` 외의 필드가 없다**
 (`program`/`authority`는 의도적으로 제외 — 화면 내비게이션에는 필요 없고,
@@ -82,6 +82,12 @@ JSON이 아니라 `Content-Type: text/html`의 순수 텍스트다 — 화면의
 `menuId`로 세션의 `SessionMenu`를 찾아, 그 메뉴에 등록된 `program` 필드
 이름으로 `src/main/resources/templates/pragma/{program}.vue` 파일을 찾아
 Thymeleaf(`SpringTemplateEngine`)로 렌더링한 뒤 그대로 응답 바디에 쓴다.
+`program`은 `/`로 하위 폴더를 가리킬 수 있다 — 기본 메뉴의 `admin/code`는
+`templates/pragma/admin/code.vue`다. 각 세그먼트는 영문/숫자/`_`/`-`만
+허용하고(정규식 `[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*`), 점(`..` 포함)·역슬래시·
+절대 경로·빈 세그먼트가 들어 있으면 파일을 찾지 않고 404다 — `program`은 메뉴
+API로 저장되는 값이라 검증 없이 넘기면 `templates/pragma/` 밖의 `.vue`를 읽을 수
+있기 때문이다.
 `.vue` 파일 안에 `th:if`/`th:text` 같은 Thymeleaf 속성을 그대로 써서, 서버가
 내려주는 시점에 권한에 따라 조건부로 마크업을 걸러낼 수 있다.
 
@@ -98,7 +104,7 @@ Thymeleaf(`SpringTemplateEngine`)로 렌더링한 뒤 그대로 응답 바디에
 |Response Status|설명|
 |---|---|
 |200|정상 — 렌더링된 HTML/Vue 텍스트|
-|404|다음 세 경우를 구분하지 않고 전부 404로 통일: (1) `menuId`가 세션 메뉴 목록에 없음(존재하지 않거나, 읽기 권한조차 없어 애초에 세션에 담기지 않은 메뉴) (2) 메뉴는 있지만 `program`이 비어있음(그룹/폴더 노드) (3) `program`은 있지만 `templates/pragma/{program}.vue` 파일이 아직 없음|
+|404|다음 네 경우를 구분하지 않고 전부 404로 통일: (1) `menuId`가 세션 메뉴 목록에 없음(존재하지 않거나, 읽기 권한조차 없어 애초에 세션에 담기지 않은 메뉴) (2) 메뉴는 있지만 `program`이 비어있음(그룹/폴더 노드) (3) `program`이 위 형식(하위 폴더 허용, `..` 등 불가)에 맞지 않음 (4) `program`은 있지만 `templates/pragma/{program}.vue` 파일이 아직 없음|
 
 404를 하나로 통일한 이유: 세션 메뉴 목록 자체가 이미 RBAC로 필터링돼 있어
 "존재하지 않음"과 "권한 없음"을 구분해 알려주는 게 의미가 없고(로그인
@@ -106,10 +112,13 @@ Thymeleaf(`SpringTemplateEngine`)로 렌더링한 뒤 그대로 응답 바디에
 참고), 화면 파일이 아직 없는 상태도 이 저장소 범위 밖의 정상적인 과도기라
 같은 상태 코드로 처리한다.
 
-### `templates/pragma/` 파일은 이 저장소가 만들지 않는다
+### 현재 Pragma 화면 구현
 
-`src/main/resources/templates/pragma/*.vue`는 실제 화면 산출물이며,
-CLAUDE.md의 "backend-only, UI 콘텐츠를 명시적 요청 없이 추가하지 않는다"
-범위 밖이다. 현재 이 디렉터리에는 아무 파일도 없다 — 렌더링 파이프라인
-자체의 동작만 테스트 전용 픽스처
-(`src/test/resources/templates/pragma/test_program.vue`)로 검증돼 있다.
+사용자의 프런트엔드 구현 요청에 따라 실제 화면은 kkdugi-admin의 templates/pragma 아래에서 관리한다. 자세한 구조는 [디자인·프런트엔드 문서](../design/README.md)를 참조한다.
+
+기본 메뉴(`V10__insert_default_menu.sql`)의 program 코드는 `home`,
+`admin/code`, `admin/message`, `admin/menu`, `admin/authority`, `admin/user`다.
+이 중 `admin/code`, `admin/message`, `admin/menu`는 `templates/pragma/admin/`에
+파일이 있고, `home`, `admin/authority`, `admin/user`는 아직 없어 404(4)로 응답한다.
+프런트의 시스템 메뉴 삭제 보호(`isProtected`)는 이 program 코드를 기준으로 한다
+(`static/js/domain/batch.mjs`의 `systemPrograms`) — 기본 메뉴의 program을 바꾸면 함께 바꿔야 한다.

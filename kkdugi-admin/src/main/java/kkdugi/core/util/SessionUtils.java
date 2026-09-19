@@ -6,18 +6,24 @@ import java.util.Set;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import kkdugi.core.security.authentication.SessionAuthentication;
 import kkdugi.core.security.models.Authority;
 import kkdugi.core.security.models.SessionMenu;
 import kkdugi.core.security.models.SessionUser;
+import kkdugi.core.security.service.SessionService;
 
 /**
  * 현재 요청의 {@link SessionUser}에 접근하는 정적 헬퍼. {@code SerialUtils}/
  * {@code MessageUtils}와 달리 Spring 빈을 등록해두는 서비스 로케이터가
  * 아니다 — {@link SecurityContextHolder}가 이미 요청 스코프의 정적
  * 접근점이라({@code BearerTokenAuthenticationFilter}가 매 요청마다 채워둔다),
- * 그 위에 얇게 얹은 조회 헬퍼일 뿐이다.
+ * 그 위에 얇게 얹은 조회 헬퍼다. 단, attribute를 DB에 반영하는
+ * {@link #setAttribute}만은 {@link SessionService}가 필요해 {@code SerialUtils}처럼
+ * 서비스가 빈 초기화 때 스스로를 등록한다.
  */
 public abstract class SessionUtils {
+
+    private static SessionService sessionService;
 
     public static final String ANONYMOUS_ID = "ANONYMOUS";
     public static final String ANONYMOUS_USERNAME = "anonymous";
@@ -68,6 +74,42 @@ public abstract class SessionUtils {
                 .filter(m -> m.getId().equals(menuId))
                 .findAny()
                 .orElse(null);
+    }
+
+    public static void setSessionService(SessionService service) {
+        sessionService = service;
+    }
+
+    /** 세션 사용자의 attribute 값을 꺼낸다(없거나 익명이면 {@code null}). 값은 JSON을
+     * 거쳐 복원되므로 숫자는 Integer/Long/Double, 객체는 Map, 배열은 List로 돌아온다. */
+    public static Object getAttribute(String key) {
+        return getUser().getAttributes().get(key);
+    }
+
+    /**
+     * 세션 사용자의 attribute를 바꾸고 DB({@code kkdugi_session.user_dtl})에도 반영한다.
+     * {@code value}가 null이면 해당 키를 제거한다. 이 요청의 {@link SessionUser}에도 즉시
+     * 반영되므로 같은 요청 안에서는 {@link #getAttribute}로 바로 읽힌다 — 다른 요청은
+     * 다음 요청에서 DB 스냅샷을 다시 읽으며 보게 된다.
+     *
+     * @throws IllegalStateException 토큰으로 인증된 요청이 아닌 경우(익명 등)
+     */
+    public static void setAttribute(String key, Object value) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof SessionAuthentication session)) {
+            throw new IllegalStateException("Cannot update attribute: no authenticated session");
+        }
+        if (sessionService == null) {
+            throw new IllegalStateException("SessionUtils is not initialized: SessionService is missing");
+        }
+        sessionService.updateAttribute(session.getSessionId(), key, value);
+
+        SessionUser user = (SessionUser) session.getPrincipal();
+        if (value == null) {
+            user.getAttributes().remove(key);
+        } else {
+            user.getAttributes().put(key, value);
+        }
     }
 
     private static SessionUser anonymous() {

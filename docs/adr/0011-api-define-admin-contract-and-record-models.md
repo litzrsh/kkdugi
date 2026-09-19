@@ -111,7 +111,7 @@ Jackson 특화 애너테이션이 전혀 필요 없어, 이 분리가 주는 이
 
 ### 4. 메시지 저장(persist) 의미 확정 (이전에 미확정이었던 부분)
 
-api-define-admin.md와 `kkdugi-design/docs/adr/0003-message-pivot-i18n.md`도
+api-define-admin.md와 `docs/design/adr/0003-message-pivot-i18n.md`도
 완전히 명시하지 않은 세부 동작을 아래와 같이 확정한다:
 
 - **insert**: `locale` 맵의 각 언어에 대해 새 행을 INSERT한다. 이미 존재하는
@@ -123,7 +123,7 @@ api-define-admin.md와 `kkdugi-design/docs/adr/0003-message-pivot-i18n.md`도
   번역을 추가하는 흐름을 `update`로 표현할 수 있게 하기 위함). 이미 있는
   언어는 UPDATE한다.
 - **delete**: 요청 항목의 `locale` 값은 무시하고, 그 `code`에 등록된
-  **모든 언어 행을 함께 삭제**한다(`kkdugi-design/docs/adr/0003-message-pivot-i18n.md`
+  **모든 언어 행을 함께 삭제**한다(`docs/design/adr/0003-message-pivot-i18n.md`
   결정 #6을 따름 — 코드 행 삭제는 하위 모든 언어에 DELETE를 생성해야
   한다). 대상 코드가 없으면 409.
 - 저장 전체는 하나의 `@Transactional` 메서드에서 처리하며, 위 세 버킷 중

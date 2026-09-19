@@ -316,7 +316,7 @@ POST /api/v1.0/admin/i18n/persist
    언어는 INSERT로(기존 코드에 새 언어 추가), 이미 있으면 UPDATE로
    처리한다.
 4. **delete**: 요청 항목의 `locale` 값과 무관하게, 그 코드에 등록된
-   **모든 언어 행을 함께 삭제**한다(`kkdugi-design/docs/adr/0003-message-pivot-i18n.md`
+   **모든 언어 행을 함께 삭제**한다(`docs/design/adr/0003-message-pivot-i18n.md`
    결정 #6). 대상 코드가 없으면 409.
 5. **전체 트랜잭션**: 하나의 `@Transactional` 메서드 안에서 위 세 버킷을
    순서대로 처리하며, 어느 하나라도 실패하면 전체를 롤백한다

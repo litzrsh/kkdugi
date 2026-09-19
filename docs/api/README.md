@@ -33,8 +33,10 @@
   프런트엔드 `static/js/api/http.mjs`의 경로 화이트리스트도
   `/api/v1.0/admin/`·`/api/v1.0/auth/`·`/api/v1.0/session/`·`/pragma/` 네
   접두사만 허용한다.
-- **인증**: 로그인([auth.md](auth.md))으로 발급받은 JWT를
-  `Authorization: Bearer <token>` 헤더로 보낸다(`BearerTokenAuthenticationFilter`).
+- **인증**: 로그인([auth.md](auth.md))이 발급해 쿠키로 내려준 JWT를
+  `Authorization: Bearer <token>` 헤더(우선) 또는 같은 토큰 쿠키로 보낸다
+  (`BearerTokenAuthenticationFilter`가 둘 다 지원). 프런트는 쿠키에서 토큰을
+  꺼내 헤더로 붙인다.
   현재 `SecurityConfigurer`의 인가 규칙은 전부 `permitAll`이다 — 사용자/권한
   관리 API([archive/api-define-admin.md](../archive/api-define-admin.md) 4~5절)가 아직 구현되지 않아 실제로 무엇을
   막아야 하는지가 정해지지 않았기 때문이며, 인증 자체(로그인/토큰 검증)는

@@ -76,7 +76,7 @@ JSON 구조, 언어별 값의 부분 업데이트를 저장 요청에서 어떻�
 
 관련: [ADR-0010](0010-common-base-model-adoption.md)의 "미해결 이슈",
 [설계 문서 "관리 API 모델" 절](../i18n-system-design.md#관리-api-모델),
-`kkdugi-design/docs/adr/0003-message-pivot-i18n.md`(화면 기획 문서 트랙의
+`docs/design/adr/0003-message-pivot-i18n.md`(화면 기획 문서 트랙의
 별도 검토 — 자체 ADR 번호 체계를 쓰므로 이 저장소의 ADR-0003
 (`i18n-messagesource-spring-integration` 아님, `docs/adr/0003`은 캐시 전략
 ADR임)과는 다른 문서다. 혼동 주의).

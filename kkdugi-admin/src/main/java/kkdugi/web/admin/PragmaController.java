@@ -1,6 +1,7 @@
 package kkdugi.web.admin;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -33,6 +34,14 @@ import kkdugi.core.util.SessionUtils;
  * 전부 404로 통일한다 — 로그인 아이디 존재 여부를 노출하지 않는
  * {@code KkdugiUserDetailsService.ERR_NOT_FOUND}와 같은 이유다.</p>
  *
+ * <p>{@code program}은 {@code templates/pragma/} 기준 상대 경로이고 폴더 구분자
+ * {@code /}로 하위 폴더를 가리킬 수 있다 — 예를 들어 {@code admin/code}는
+ * {@code templates/pragma/admin/code.vue}다. 이 값은 메뉴 API로 관리자가 저장하는
+ * 값이라, 그대로 리졸버에 넘기면 {@code ../}로 {@code templates/pragma/} 밖의
+ * {@code .vue}까지 읽을 수 있다. 그래서 세그먼트가 영문/숫자/{@code _}/{@code -}로만
+ * 이루어진 경우({@link #PROGRAM_PATTERN})만 처리하고, 그 외(점, 역슬래시, 빈 세그먼트,
+ * 절대 경로 등)는 파일이 없는 것과 똑같이 404로 응답한다.</p>
+ *
  * <p>메뉴에 매핑된 {@code program} 파일이 아직 {@code templates/pragma/}에
  * 없는 경우({@link TemplateInputException})도 404로 처리한다 — 화면
  * 산출물은 이 저장소가 만드는 대상이 아니라서(CLAUDE.md), 파일이 없는
@@ -40,6 +49,8 @@ import kkdugi.core.util.SessionUtils;
  */
 @RestController
 public class PragmaController {
+
+    private static final Pattern PROGRAM_PATTERN = Pattern.compile("[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*");
 
     private final TemplateEngine pragmaTemplateEngine;
 
@@ -50,7 +61,8 @@ public class PragmaController {
     @GetMapping(value = "/pragma/{menuId}", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> pragma(@PathVariable String menuId, Locale locale) {
         SessionMenu menu = SessionUtils.getMenu(menuId);
-        if (menu == null || !StringUtils.hasText(menu.getProgram())) {
+        if (menu == null || !StringUtils.hasText(menu.getProgram())
+                || !PROGRAM_PATTERN.matcher(menu.getProgram()).matches()) {
             return ResponseEntity.notFound().cacheControl(CacheControl.noStore()).build();
         }
 

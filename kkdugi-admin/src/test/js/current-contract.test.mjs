@@ -26,5 +26,5 @@ test('cascade delete sends only the ancestor while retaining immutable parent an
  const edit={...rows[1],close:'N',locale:{en_US:{label:'Renamed'}}};const update=prepareBatch('menu',{insert:[],update:[edit],delete:[]},rows).update[0];assert.equal(update.parentId,'root');assert.equal(update.close,'N');assert.equal(update._depth,undefined);
 });
 test('system menus and their ancestors retain deletion protection',()=>{
- const rows=[{id:'system',path:'/system'},{id:'codes',path:'/system/codes',program:'admcode'}];assert.ok(isProtected(rows[0],rows));assert.ok(isProtected(rows[1],rows));
+ const rows=[{id:'system',path:'/system'},{id:'codes',path:'/system/codes',program:'admin/code'}];assert.ok(isProtected(rows[0],rows));assert.ok(isProtected(rows[1],rows));
 });

@@ -74,6 +74,47 @@ SET user_dtl = EXCLUDED.user_dtl,
   </insert>
 
   <!--
+    * QueryID=extend
+    * Description=Push a session's expiry back (sliding session)
+    -->
+  <update id="extend">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.extend */
+UPDATE kkdugi_session
+SET exp_dtm = #{expiresAt},
+    upd_dtm = #{updatedAt}
+WHERE sess_id = #{id}
+]]>
+  </update>
+
+  <!--
+    * QueryID=putAttribute
+    * Description=Set one key of the session user's attributes map without rewriting the rest of user_dtl
+    -->
+  <update id="putAttribute">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.putAttribute */
+UPDATE kkdugi_session
+SET user_dtl = jsonb_set(user_dtl, '{attributes}',
+                         COALESCE(user_dtl -> 'attributes', '{}'::jsonb) || jsonb_build_object(#{key}::text, #{json}::jsonb))
+WHERE sess_id = #{id}
+]]>
+  </update>
+
+  <!--
+    * QueryID=removeAttribute
+    * Description=Remove one key of the session user's attributes map
+    -->
+  <update id="removeAttribute">
+<![CDATA[
+/* QueryID=kkdugi.core.security.mapper.SessionMapper.removeAttribute */
+UPDATE kkdugi_session
+SET user_dtl = jsonb_set(user_dtl, '{attributes}', COALESCE(user_dtl -> 'attributes', '{}'::jsonb) - #{key}::text)
+WHERE sess_id = #{id}
+]]>
+  </update>
+
+  <!--
     * QueryID=deleteById
     * Description=Delete one session by id
     -->

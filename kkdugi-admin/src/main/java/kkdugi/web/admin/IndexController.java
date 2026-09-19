@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import kkdugi.core.enums.UserStatus;
+import kkdugi.core.security.config.SecurityConfigurationProperties;
 import kkdugi.web.admin.config.AdminUiProperties;
 import kkdugi.web.admin.models.AdminUiConfig;
 import kkdugi.web.admin.models.StatusOption;
@@ -33,10 +34,9 @@ import kkdugi.web.admin.models.StatusOption;
  * {@link kkdugi.web.admin.PragmaController} 참고.</p>
  *
  * <p>이 경로는 permitAll로 공개돼 있다. 셸 자체에는 민감한 데이터가 없고,
- * 실제 보호는 화면이 호출하는 CRUD API(Bearer 헤더 필요)에서 이뤄진다 —
- * 일반 브라우저 페이지 이동에는 JS가 지정하는 Authorization 헤더가 자동으로
- * 붙지 않으므로, 셸 자체를 서버에서 인증 요구하도록 만들면 별도의 쿠키
- * 기반 인증 체계가 필요해진다(로그인 화면/challenge 흐름은 별도 범위).</p>
+ * 실제 보호는 화면이 호출하는 CRUD API에서 이뤄진다 — 화면의 JS가 로그인 때
+ * 발급된 토큰 쿠키(이름은 {@code adminUiConfig.tokenCookie})에서 토큰을 꺼내
+ * 매 API 호출에 Bearer 헤더로 붙인다.</p>
  */
 @Controller
 public class IndexController {
@@ -46,10 +46,13 @@ public class IndexController {
 
     private final MessageSource messageSource;
     private final AdminUiProperties adminUiProperties;
+    private final SecurityConfigurationProperties securityProperties;
 
-    public IndexController(MessageSource messageSource, AdminUiProperties adminUiProperties) {
+    public IndexController(MessageSource messageSource, AdminUiProperties adminUiProperties,
+            SecurityConfigurationProperties securityProperties) {
         this.messageSource = messageSource;
         this.adminUiProperties = adminUiProperties;
+        this.securityProperties = securityProperties;
     }
 
     @GetMapping("/")
@@ -61,7 +64,8 @@ public class IndexController {
     private AdminUiConfig buildConfig(Locale locale) {
         Map<String, String> messages = MESSAGE_KEYS.stream()
                 .collect(Collectors.toMap(key -> key, key -> messageSource.getMessage(key, null, locale)));
-        return new AdminUiConfig(adminUiProperties.getLanguages(), statusOptions(), messages);
+        return new AdminUiConfig(adminUiProperties.getLanguages(), statusOptions(), messages,
+                securityProperties.getTokenCookieName());
     }
 
     private List<StatusOption> statusOptions() {

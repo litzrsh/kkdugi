@@ -6,7 +6,7 @@
 > 문서가 다르면 그쪽이 맞다. 3~5절(메뉴/권한/사용자)은 아직 구현되지 않았고,
 > 이 문서가 그 스펙의 유일한 기록이라 내용을 그대로 보존한다. 다만 이
 > 문서는 더 이상 살아있는 계약이 아니다 — kkdugi-design 쪽 결정
-> (`kkdugi-design/docs/README.md`, `kkdugi-design/docs/adr/0009-pragma-menu-screen-architecture.md`
+> (`docs/design/README.md`, `docs/design/adr/0009-pragma-menu-screen-architecture.md`
 > 참고: "폐기된 `api-define-admin.md`... 신규 구현 근거가 아니다")에 따라,
 > 이 스펙을 근거로 그대로 구현을 시작하지 말고 실제 착수 시점에 오너에게
 > 재확인한다.
