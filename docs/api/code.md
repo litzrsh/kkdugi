@@ -1,37 +1,30 @@
 # 공통코드 조회 (사용자용) - GET /api/v1.0/code
 
-로그인 여부와 무관하게(현재 인가 규칙은 전부 `permitAll`) 사용할 수 있는 읽기 전용 API.
-관리자용 조회/저장은 [common-code.md](common-code.md)(`/api/v1.0/admin/code`)이며 모델을 공유하지 않는다.
+현재 코드 조회 리팩토링 기준(2026-09-19). 관리용 목록·저장은 [common-code.md](common-code.md)의 POST /api/v1.0/admin/code를 사용한다.
 
 ## 요청
 
-쿼리 파라미터 (모두 선택):
-
-| 이름 | 설명 |
+| 파라미터 | 설명 |
 |---|---|
-| `path` | 이 경로(`/SYS/USER_STAT` 형식)의 코드의 하위 코드를 조회한다. 우선순위 1 |
-| `parentId` | 이 ID의 코드의 하위 코드를 조회한다. `path`가 없을 때만 사용 |
-| `page`, `pageSize` | 기본 1, 200. `pageSize` 최대 200 |
-| `lang` | `ko_KR`/`en_US`. 지정하면 이후 요청에도 쿠키로 유지된다(기본 `ko_KR`) |
+| path | 필수. 코드의 전체 경로와 정확히 일치하는 사용(Y) 코드를 조회한다. 예: /SYS/USER_STAT/ACTIVE |
+| lang | 선택. ko_KR/en_US. 서버 LocaleResolver가 해석한다. |
 
-`path`와 `parentId`가 모두 없으면 최상위 코드를 조회한다. 존재하지 않는 `path`는 빈 목록이다.
+path 누락은 400(code.err.malformed_request), 존재하지 않는 경로는 빈 배열이다. parentId와 page/pageSize는 이 API에서 사용하지 않는다. 부모 경로의 하위 목록이 필요한 관리 화면은 관리용 API의 parentId 검색을 사용한다.
 
-## 응답 200
+## 응답
 
-```json
-{
-  "page": 1,
-  "pageSize": 200,
-  "totalItems": 2,
-  "totalPages": 1,
-  "contents": [
-    { "id": "C2026091912000001", "parentId": "C2026091912000000", "code": "ACTIVE",
-      "name": "사용", "remarks": null, "extra1": null, "extra2": null, "extra3": null,
-      "extra4": null, "extra5": null, "path": "/SYS/USER_STAT/ACTIVE", "level": 2, "sort": 1 }
-  ]
-}
-```
+페이지 객체가 아닌 배열이다.
 
-- 사용 여부가 사용(Y)인 코드만 내려준다. 정렬은 `sort`(없으면 뒤), `code` 순.
-- `name`은 요청 언어의 이름이고, 그 언어 행이 없으면 `code` 값으로 대체된다. `remarks`는 그 언어 행이 없으면 `null`.
-- 사용 여부는 행 단위로만 적용된다 — 상위 코드가 사용 안 함(N)이어도 사용(Y)인 하위 코드는 내려간다.
+~~~json
+[
+  { "id": "C1", "parentId": "C0", "code": "ACTIVE", "name": "사용", "remarks": null,
+    "extra1": null, "extra2": null, "extra3": null, "extra4": null, "extra5": null,
+    "path": "/SYS/USER_STAT/ACTIVE", "level": 2, "sort": 1 }
+]
+~~~
+
+name은 요청 언어의 이름이며 번역이 없으면 code 값으로 대체한다. use=N인 행은 제외한다. 정렬은 sort, code 순이다.
+
+## 캐시
+
+CodeService는 path와 언어별로 조회 결과를 캐시한다. AdminCodeService의 배치 저장이 성공하면 공통코드 캐시 전체를 비운다. CacheConfigurer에서 Spring 캐시를 활성화하며 TransactionAwareCacheManagerProxy로 캐시 변경을 DB 트랜잭션 커밋 이후에 적용한다.

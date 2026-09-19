@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,8 @@ import kkdugi.core.util.SerialUtils;
 public class AdminCodeService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminCodeService.class);
+
+    public static final String CACHE_NAME = "KKDUGI_CODE_CACHE";
 
     public static final String ERR_MALFORMED_REQUEST = "code.err.malformed_request";
     public static final String ERR_INVALID_FORMAT = "code.err.invalid_format";
@@ -84,6 +87,7 @@ public class AdminCodeService {
         return Page.of(contents, params);
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, allEntries = true)
     @Transactional
     public void persist(AdminCodePersistRequest request) {
         validate(request);

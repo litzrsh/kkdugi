@@ -52,30 +52,31 @@ class CodeControllerTest {
     }
 
     @Test
-    void children_byPath_returnsPagedLocalizedContentsInDefaultLanguage() throws Exception {
-        mockMvc.perform(get(URL).param("path", ROOT_PATH))
+    void codes_byExactPath_returnsLocalizedArray() throws Exception {
+        mockMvc.perform(get(URL).param("path", ROOT_PATH + "/CHILD_A"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page").value(1))
-                .andExpect(jsonPath("$.pageSize").value(200))
-                .andExpect(jsonPath("$.totalItems").value(2))
-                .andExpect(jsonPath("$.contents.length()").value(2))
-                .andExpect(jsonPath("$.contents[0].id").value(CHILD_A))
-                .andExpect(jsonPath("$.contents[0].parentId").value(ROOT_ID))
-                .andExpect(jsonPath("$.contents[0].code").value("CHILD_A"))
-                .andExpect(jsonPath("$.contents[0].name").value("자식A"))
-                .andExpect(jsonPath("$.contents[0].path").value(ROOT_PATH + "/CHILD_A"))
-                .andExpect(jsonPath("$.contents[1].name").value("CHILD_C"))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(CHILD_A))
+                .andExpect(jsonPath("$[0].parentId").value(ROOT_ID))
+                .andExpect(jsonPath("$[0].code").value("CHILD_A"))
+                .andExpect(jsonPath("$[0].name").value("자식A"))
+                .andExpect(jsonPath("$[0].path").value(ROOT_PATH + "/CHILD_A"))
                 // BaseModel 상속 필드는 응답에 노출되지 않는다.
-                .andExpect(jsonPath("$.contents[0].createdAt").doesNotExist())
-                .andExpect(jsonPath("$.contents[0].creatorId").doesNotExist())
-                .andExpect(jsonPath("$.contents[0].rownum").doesNotExist());
+                .andExpect(jsonPath("$[0].createdAt").doesNotExist())
+                .andExpect(jsonPath("$[0].creatorId").doesNotExist())
+                .andExpect(jsonPath("$[0].rownum").doesNotExist());
     }
 
     @Test
     void children_withLangParam_usesRequestedLanguage() throws Exception {
-        mockMvc.perform(get(URL).param("path", ROOT_PATH).param("lang", "en_US"))
+        mockMvc.perform(get(URL).param("path", ROOT_PATH + "/CHILD_A").param("lang", "en_US"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.contents[0].name").value("Child A"));
+                .andExpect(jsonPath("$[0].name").value("Child A"));
+    }
+
+    @Test
+    void codes_requiresPath() throws Exception {
+        mockMvc.perform(get(URL)).andExpect(status().isBadRequest());
     }
 
     private void insertCode(String id, String parentId, String value, int level, String path, int sort, String use) {

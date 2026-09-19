@@ -17,49 +17,25 @@
     <result property="path" column="code_path"/>
     <result property="level" column="code_lvl"/>
     <result property="sort" column="sort_seq"/>
-    <result property="totalSize" column="total_size"/>
   </resultMap>
 
   <!--
-    * QueryID=findChildren
-    * Description=Find used (use_yn = 'Y') direct children of a parent code, with the
-    *             name resolved to the requested language (falls back to code_val),
-    *             paged at query level (total via window function)
+    * QueryID=findAll
+    * Description=Find used codes at the exact path, localized to the requested language
     -->
-  <select id="findChildren" resultMap="codeResultMap">
+  <select id="findAll" resultMap="codeResultMap">
 <![CDATA[
-/* QueryID=kkdugi.app.code.mapper.CodeMapper.findChildren */
+/* QueryID=kkdugi.app.code.mapper.CodeMapper.findAll */
 SELECT cb.code_id, cb.code_parent_id, cb.code_val,
        COALESCE(cl.code_nm, cb.code_val) AS code_nm,
        cl.code_dc,
        cb.etc_val1, cb.etc_val2, cb.etc_val3, cb.etc_val4, cb.etc_val5,
-       cb.code_path, cb.code_lvl, cb.sort_seq,
-       COUNT(*) OVER() AS total_size
+       cb.code_path, cb.code_lvl, cb.sort_seq
 FROM kkdugi_code_base cb
 LEFT JOIN kkdugi_code_lang cl
        ON cl.code_id = cb.code_id AND cl.lang_cd = #{langCode}
-WHERE cb.use_yn = 'Y'
-]]>
-    <choose>
-      <when test="path != null and path != ''">
-<![CDATA[
-AND cb.code_parent_id = (SELECT p.code_id FROM kkdugi_code_base p WHERE p.code_path = #{path})
-]]>
-      </when>
-      <when test="parentId != null and parentId != ''">
-<![CDATA[
-AND cb.code_parent_id = #{parentId}
-]]>
-      </when>
-      <otherwise>
-<![CDATA[
-AND cb.code_parent_id IS NULL
-]]>
-      </otherwise>
-    </choose>
-<![CDATA[
+WHERE cb.use_yn = 'Y' and cb.code_path = #{path}
 ORDER BY cb.sort_seq NULLS LAST, cb.code_val
-OFFSET #{offset} LIMIT #{pageSize}
 ]]>
   </select>
 

@@ -10,9 +10,6 @@ import kkdugi.app.code.models.Code;
 @Mapper
 public interface CodeMapper {
 
-    List<Code> findChildren(@Param("parentId") String parentId,
-                            @Param("path") String path,
-                            @Param("langCode") String langCode,
-                            @Param("offset") int offset,
-                            @Param("pageSize") int pageSize);
+    List<Code> findAll(@Param("path") String path,
+                       @Param("langCode") String langCode);
 }

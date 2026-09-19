@@ -68,7 +68,8 @@ public class SecurityConfigurer {
                         // 리다이렉트하고, 그 외(fetch/JSON API 호출)는 기존
                         // JSON ExceptionMessage 응답을 그대로 쓴다.
                         .defaultAuthenticationEntryPointFor(webAuthenticationEntryPoint,
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML))
+                                request -> !"XMLHttpRequest".equals(request.getHeader("X-Requested-With"))
+                                        && new MediaTypeRequestMatcher(MediaType.TEXT_HTML).matches(request))
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 // LogoutFilter는 UsernamePasswordAuthenticationFilter보다 앞선 순번이라,

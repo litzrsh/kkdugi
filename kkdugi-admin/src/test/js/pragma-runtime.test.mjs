@@ -16,7 +16,7 @@ test('Pragma uses authenticated text request with context path and no redirect/c
  setTokenCookie('token');let captured;
  const api=createApi({basePath:'/kk/'},async(url,options)=>{captured={url,options};return new Response('<template><p>Screen</p></template>',{headers:{'Content-Type':'text/html;charset=UTF-8'}});});
  assert.match(await api.pragma('M & 1'),/Screen/);assert.equal(captured.url,'/kk/pragma/M%20%26%201');
- assert.equal(captured.options.headers.Authorization,'Bearer token');assert.equal(captured.options.cache,'no-store');assert.equal(captured.options.redirect,'error');
+ assert.equal(captured.options.headers.Accept,'application/json, text/html;q=0.9');assert.equal(captured.options.headers['X-Requested-With'],'XMLHttpRequest');assert.equal(captured.options.headers.Authorization,'Bearer token');assert.equal(captured.options.cache,'no-store');assert.equal(captured.options.redirect,'error');
 });
 test('Pragma refuses login HTML and reports 404 without pretending it is a session failure',async()=>{
  const api=createApi({},async()=>new Response('<!doctype html><html>Login</html>',{headers:{'content-type':'text/html'}}));

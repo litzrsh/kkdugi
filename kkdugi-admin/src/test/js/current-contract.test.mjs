@@ -34,3 +34,13 @@ test('menu route is allowed without a trailing slash while the retired session p
  await assert.rejects(()=>api.request('/api/v1.0/session/menu','GET'),/Invalid API path/);
  await assert.rejects(()=>api.request('/api/v1.0/menus','GET'),/Invalid API path/);
 });
+
+test('localized code lookup uses GET array contract separately from paged admin CRUD',async()=>{
+ let captured;
+ const api=createApi({},async(url,options)=>{captured={url,options};return Response.json([]);});
+ assert.deepEqual(await api.codes('/SYS/A & B'),[]);
+ assert.equal(captured.url,'/api/v1.0/code?path=%2FSYS%2FA+%26+B');
+ assert.equal(captured.options.method,'GET');assert.equal(captured.options.body,undefined);
+ await api.list('code',{parentId:null,page:1,pageSize:20});
+ assert.equal(captured.url,'/api/v1.0/admin/code');assert.equal(captured.options.method,'POST');
+});

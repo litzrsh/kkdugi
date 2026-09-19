@@ -121,3 +121,7 @@ API로 저장되는 값이라 검증 없이 넘기면 `templates/pragma/` 밖의
 파일이 있고, `home`, `admin/authority`, `admin/user`는 아직 없어 404(4)로 응답한다.
 프런트의 시스템 메뉴 삭제 보호(`isProtected`)는 이 program 코드를 기준으로 한다
 (`static/js/domain/batch.mjs`의 `systemPrograms`) — 기본 메뉴의 program을 바꾸면 함께 바꿔야 한다.
+
+### 프런트 요청 헤더
+
+Pragma는 Accept: application/json, text/html;q=0.9로 요청한다. JSON만 수락하면 produces=text/html과 맞지 않아 406이 발생한다. X-Requested-With: XMLHttpRequest로 비동기 요청임을 표시해 HTML 페이지용 인증 리다이렉트와 구분한다.

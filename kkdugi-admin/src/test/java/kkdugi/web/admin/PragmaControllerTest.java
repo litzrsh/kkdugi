@@ -190,6 +190,8 @@ class PragmaControllerTest {
                 jdbcTemplate.update("DELETE FROM kkdugi_session WHERE user_id = ?", USER_ID);
                 String token = login();
                 String rendered = mockMvc.perform(get("/pragma/" + MENU_ID).param("lang", "en_US")
+                        .header(HttpHeaders.ACCEPT, "application/json, text/html;q=0.9")
+                        .header("X-Requested-With", "XMLHttpRequest")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                         .andExpect(status().isOk())
                         .andExpect(header().string("Cache-Control", "no-store"))

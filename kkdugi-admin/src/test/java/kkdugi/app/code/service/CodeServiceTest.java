@@ -2,6 +2,8 @@ package kkdugi.app.code.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,8 +13,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import kkdugi.KkdugiAdminApplication;
 import kkdugi.app.code.models.Code;
-import kkdugi.app.code.models.CodeParams;
-import kkdugi.core.models.Page;
 
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class CodeServiceTest {
@@ -29,8 +29,12 @@ class CodeServiceTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private org.springframework.cache.CacheManager cacheManager;
+
     @BeforeEach
     void seed() {
+        cacheManager.getCache(CodeService.CACHE_NAME).clear();
         insertCode(ROOT_ID, null, "TEST_USER_SVC_ROOT", 0, ROOT_PATH, 1, "Y");
         insertCode(CHILD_A, ROOT_ID, "CHILD_A", 1, ROOT_PATH + "/CHILD_A", 1, "Y");
         insertCode(CHILD_B, ROOT_ID, "CHILD_B", 1, ROOT_PATH + "/CHILD_B", 2, "N");
@@ -45,63 +49,55 @@ class CodeServiceTest {
 
     @AfterEach
     void cleanUp() {
+        cacheManager.getCache(CodeService.CACHE_NAME).clear();
         jdbcTemplate.update("DELETE FROM kkdugi_code_lang WHERE code_id LIKE 'C_TEST_USER_SVC_%'");
         jdbcTemplate.update("DELETE FROM kkdugi_code_base WHERE code_parent_id = ?", ROOT_ID);
         jdbcTemplate.update("DELETE FROM kkdugi_code_base WHERE code_id = ?", ROOT_ID);
     }
 
     @Test
-    void findChildren_byParentId_returnsUsedChildrenInSortOrderWithLocalizedName() {
-        Page<Code> page = service.findChildren(new CodeParams(ROOT_ID, null, 1, 200), "ko_KR");
-
-        assertThat(page.getContents()).extracting(Code::getId).containsExactly(CHILD_A, CHILD_C);
-        assertThat(page.getContents()).extracting(Code::getName).containsExactly("자식A", "CHILD_C");
-        assertThat(page.getContents().get(0).getCode()).isEqualTo("CHILD_A");
-        assertThat(page.getContents().get(0).getPath()).isEqualTo(ROOT_PATH + "/CHILD_A");
-        assertThat(page.getContents().get(0).getLevel()).isEqualTo(1);
-        assertThat(page.getContents().get(1).getRemarks()).isNull();
-        assertThat(page.getTotalItems()).isEqualTo(2);
+    void findCodes_matchesExactPathAndLanguage() {
+        List<Code> list = service.findCodes(ROOT_PATH + "/CHILD_A", "ko_KR");
+        assertThat(list).extracting(Code::getId).containsExactly(CHILD_A);
+        assertThat(list).extracting(Code::getName).containsExactly("자식A");
+        assertThat(service.findCodes(ROOT_PATH + "/CHILD_A", "en_US"))
+                .extracting(Code::getName).containsExactly("Child A");
+        assertThat(service.findCodes(ROOT_PATH, "ko_KR"))
+                .extracting(Code::getId).containsExactly(ROOT_ID);
     }
 
     @Test
-    void findChildren_byPath_resolvesParentFromPathAndUsesRequestedLanguage() {
-        Page<Code> page = service.findChildren(new CodeParams(null, ROOT_PATH, 1, 200), "en_US");
-
-        assertThat(page.getContents()).extracting(Code::getName).containsExactly("Child A", "CHILD_C");
+    void findCodes_excludesDisabledAndUnknownPaths() {
+        assertThat(service.findCodes(ROOT_PATH + "/CHILD_B", "ko_KR")).isEmpty();
+        assertThat(service.findCodes("/NO_SUCH_PATH", "ko_KR")).isEmpty();
     }
 
     @Test
-    void findChildren_withUnknownPath_returnsEmptyInsteadOfRoots() {
-        Page<Code> page = service.findChildren(new CodeParams(null, "/NO_SUCH_PATH", 1, 200), "ko_KR");
-
-        assertThat(page.getContents()).isEmpty();
-        assertThat(page.getTotalItems()).isZero();
+    void findCodes_fallsBackToCodeWithoutTranslation() {
+        List<Code> list = service.findCodes(ROOT_PATH + "/CHILD_C", "ko_KR");
+        assertThat(list).extracting(Code::getName).containsExactly("CHILD_C");
+        assertThat(list.get(0).getRemarks()).isNull();
     }
 
     @Test
-    void findChildren_withoutParentOrPath_returnsRootsOnly() {
-        Page<Code> page = service.findChildren(new CodeParams(null, null, 1, 200), "ko_KR");
-
-        assertThat(page.getContents()).extracting(Code::getId).contains(ROOT_ID).doesNotContain(CHILD_A);
+    void findCodes_cachesByPathAndLanguage() {
+        service.findCodes(ROOT_PATH + "/CHILD_A", "ko_KR");
+        org.springframework.cache.Cache cache=cacheManager.getCache(CodeService.CACHE_NAME);
+        assertThat(cache.get(ROOT_PATH + "/CHILD_A@@ko_KR")).isNotNull();
+        assertThat(cache.get(ROOT_PATH + "/CHILD_A@@en_US")).isNull();
     }
 
-    @Test
-    void findChildren_pagesAtQueryLevelAndReportsResolvedPageParams() {
-        Page<Code> page = service.findChildren(new CodeParams(ROOT_ID, null, 2, 1), "ko_KR");
-
-        assertThat(page.getContents()).extracting(Code::getId).containsExactly(CHILD_C);
-        assertThat(page.getPage()).isEqualTo(2);
-        assertThat(page.getPageSize()).isEqualTo(1);
-        assertThat(page.getTotalItems()).isEqualTo(2);
-        assertThat(page.getTotalPages()).isEqualTo(2);
-    }
+    @Autowired
+    private kkdugi.app.admin.code.service.AdminCodeService adminService;
 
     @Test
-    void findChildren_withUnresolvedPageParams_reportsDefaults() {
-        Page<Code> page = service.findChildren(new CodeParams(ROOT_ID, null, 0, 0), "ko_KR");
-
-        assertThat(page.getPage()).isEqualTo(1);
-        assertThat(page.getPageSize()).isEqualTo(200);
+    void adminPersist_invalidatesPreviouslyCachedTranslations() {
+        assertThat(service.findCodes(ROOT_PATH, "ko_KR")).extracting(Code::getName).containsExactly("루트");
+        adminService.persist(new kkdugi.app.admin.code.models.AdminCodePersistRequest(null,
+                List.of(new kkdugi.app.admin.code.models.AdminCode(ROOT_ID, null, "TEST_USER_SVC_ROOT",
+                        java.util.Map.of("ko_KR", new kkdugi.app.admin.code.models.AdminCodeLocale("수정된 루트", "")),
+                        "Y", null, null, null, null, null, ROOT_PATH, 0, 1)), null));
+        assertThat(service.findCodes(ROOT_PATH, "ko_KR")).extracting(Code::getName).containsExactly("수정된 루트");
     }
 
     private void insertCode(String id, String parentId, String value, int level, String path, int sort, String use) {

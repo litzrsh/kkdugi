@@ -2,16 +2,17 @@ package kkdugi.app.code.service;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kkdugi.app.code.mapper.CodeMapper;
 import kkdugi.app.code.models.Code;
-import kkdugi.app.code.models.CodeParams;
-import kkdugi.core.models.Page;
 
 @Service
 public class CodeService {
+
+    public static final String CACHE_NAME = "KKDUGI_CODE_CACHE";
 
     private final CodeMapper mapper;
 
@@ -19,14 +20,9 @@ public class CodeService {
         this.mapper = mapper;
     }
 
+    @Cacheable(cacheNames = CACHE_NAME, key = "#path + '@@' + #langCode")
     @Transactional(readOnly = true)
-    public Page<Code> findChildren(CodeParams params, String langCode) {
-        params.setPage(params.resolvedPage());
-        params.setPageSize(params.resolvedPageSize());
-
-        List<Code> contents = mapper.findChildren(
-                params.getParentId(), params.getPath(), langCode, params.getOffset(), params.getLimit());
-
-        return Page.of(contents, params);
+    public List<Code> findCodes(String path, String langCode) {
+        return mapper.findAll(path, langCode);
     }
 }

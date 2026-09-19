@@ -17,7 +17,7 @@
 |---|---|
 | [auth.md](auth.md) | 로그인/로그아웃 (JWT 발급, 세션 생성) |
 | [common-code.md](common-code.md) | 공통코드 조회/저장 (계층형 코드 트리) |
-| [code.md](code.md) | 공통코드 조회(사용자용) — 하위 코드 목록, 언어별 이름 |
+| [code.md](code.md) | 공통코드 조회(사용자용) — 정확한 경로 조회, 언어별 이름, 배열 응답 |
 | [i18n-message.md](i18n-message.md) | 다국어 메시지 조회/저장 |
 | [menu.md](menu.md) | 메뉴 관리 — 전체 트리 조회/저장(SYS_ADMIN 전용, 계층형) |
 | [session.md](session.md) | 로그인한 사용자의 메뉴 트리 조회, 메뉴 단위 화면(Pragma) 조각 서빙 |
@@ -31,8 +31,8 @@
   [session.md](session.md)의 Pragma 화면 조각 엔드포인트(`/pragma/{menuId}`, `/api/v1.0`
   프리픽스조차 없음 — 이유는 해당 문서에 설명).
   프런트엔드 `static/js/api/http.mjs`의 경로 화이트리스트는
-  `/api/v1.0/admin/`·`/api/v1.0/auth/`·`/api/v1.0/menu`·`/pragma/`만 허용한다
-  (`/api/v1.0/code`는 프런트가 아직 쓰지 않아 넣지 않았다).
+  `/api/v1.0/admin/`·`/api/v1.0/auth/`·`/api/v1.0/menu`·`/api/v1.0/code`·`/pragma/`만 허용한다
+  (사용자용 코드 조회는 codes(path), 관리용 목록은 list(resource, params)로 구분한다).
 - **인증**: 로그인([auth.md](auth.md))이 발급해 쿠키로 내려준 JWT를
   `Authorization: Bearer <token>` 헤더(우선) 또는 같은 토큰 쿠키로 보낸다
   (`BearerTokenAuthenticationFilter`가 둘 다 지원). 프런트는 쿠키에서 토큰을

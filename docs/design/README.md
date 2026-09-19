@@ -4,6 +4,8 @@
 
 ## 현재 기준
 
+- [메뉴·코드 리팩토링과 관리 화면 연결](plan/15-menu-code-refactor-integration.md)
+
 - [인증·세션 연동과 중복 로그인 확인 팝업](plan/14-session-auth-confirm-and-docs.md)
 - [로그인 확인 팝업과 문서 통합 결정](adr/0011-session-cookie-login-confirm.md)
 - [전체 API 계약](../api/README.md) · [인증](../api/auth.md) · [세션·Pragma](../api/session.md)
