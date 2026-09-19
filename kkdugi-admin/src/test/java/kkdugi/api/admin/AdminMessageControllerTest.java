@@ -20,10 +20,10 @@ import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
 import kkdugi.KkdugiAdminApplication;
-import kkdugi.app.admin.i18n.models.AdminMessage;
-import kkdugi.app.admin.i18n.models.AdminMessagePersistRequest;
-import kkdugi.app.admin.i18n.models.AdminMessageParams;
 import kkdugi.app.admin.i18n.mapper.AdminMessageMapper;
+import kkdugi.app.admin.i18n.models.AdminMessage;
+import kkdugi.app.admin.i18n.models.AdminMessageParams;
+import kkdugi.app.admin.i18n.models.AdminMessagePersistRequest;
 import kkdugi.core.i18n.service.KkdugiMessageSource;
 
 @SpringBootTest(classes = KkdugiAdminApplication.class)

@@ -332,16 +332,17 @@ public enum UserStatus implements CodeEnums {
 시그니처만 바꾸면 된다. `null` 반환 + 호출부 `if (x == null)` 체크보다
 호출부가 `.orElseThrow(...)`/`.map(...)`/`.orElse(...)`로 더 간결해진다
 (`SessionMapper.findById`/`findByUserId`, `SecurityUserDetailsMapper.findByUsername`가
-원래부터 이 패턴이었고, 2026-09-18에 `AdminCodeMapper.findById`/
-`AdminMenuMapper.findById`/`I18nMessageMapper.findByCodeAndLang`도 여기에
-맞췄다):
+원래부터 이 패턴이었고, 이 규칙이 정해진 2026-09-18에 공통코드·메뉴·다국어
+메시지의 PK/키 조회 메서드도 여기에 맞췄다 — 현재 클래스로는
+`AdminCodeMapper.findById`/`AdminMenuMapper.findById`/
+`I18nMessageMapper.findByCodeAndLang`):
 
 ```java
 // 매퍼
 Optional<CodeBase> findById(@Param("id") String id);
 
 // 서비스 — 못 찾으면 로그를 남기고 도메인 예외로 변환
-CodeBase existing = codeBaseMapper.findById(content.getId())
+CodeBase existing = adminCodeMapper.findById(content.getId())
         .orElseThrow(() -> {
             log.warn("...");
             return new AdminCodeConflictException(ERR_NOT_FOUND);

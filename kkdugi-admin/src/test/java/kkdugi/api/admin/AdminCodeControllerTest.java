@@ -21,8 +21,8 @@ import tools.jackson.databind.ObjectMapper;
 import kkdugi.KkdugiAdminApplication;
 import kkdugi.app.admin.code.models.AdminCode;
 import kkdugi.app.admin.code.models.AdminCodeLocale;
-import kkdugi.app.admin.code.models.AdminCodePersistRequest;
 import kkdugi.app.admin.code.models.AdminCodeParams;
+import kkdugi.app.admin.code.models.AdminCodePersistRequest;
 
 @SpringBootTest(classes = KkdugiAdminApplication.class)
 class AdminCodeControllerTest {

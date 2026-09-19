@@ -1,5 +1,7 @@
 # ADR-0007: 관리 CRUD API - 단일 엔드포인트 배치 저장, 행 단위 flat 모델, 전체 트랜잭션
 
+> **패키지 구조 갱신 (2026-09-19):** 이 문서가 서술하는 `core.<기능>`/`app.admin.<기능>` 배치는 [ADR-0016](0016-app-and-admin-feature-split.md)으로 사용자용(`app.<기능>`)과 관리자용(`app.admin.<기능>`)을 분리하는 구조로 바뀌었다. 아래 내용은 당시 결정의 기록이다.
+
 - 상태: Superseded by [ADR-0011](0011-api-define-admin-contract-and-record-models.md)
   (엔드포인트·Row 모델 전체 대체 — 아래 마지막 addendum 참고. 전체
   트랜잭션 원칙만 ADR-0011에도 그대로 계승됨)
