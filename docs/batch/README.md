@@ -104,6 +104,7 @@ cron은 초를 포함한 6필드 형식으로 고정하는 안을 제안한다. 
 - [Runner 기술 스택](runner-tech-stack.md): 채택한 Go 기반 구성, 로컬 SQLite·로그 보관, OS 서비스·프로세스 관리와 대안 비교.
 - [Runner 프로그램 구조](runner-structure.md): Go 패키지·worker·통신 루프, 병렬 실행 격리, 로컬 journal·복구·종료와 단계별 테스트 계획.
 - [Runner 실제 구현 계획](runner-implementation-plan.md): 순차 구현 단계·완료 기준, Ollama 역할 분담과 실제 검증 기록.
+- [R2 통신·등록 구현](runner-r2-contract.md): HTTPS client, 등록 CLI, 토큰 저장·응답 유실 복구와 로컬 설정.
 - [Admin–Runner API 계약](runner-api.md): 등록·세션·배정·시작·로그·완료·장애 복구 통신 계약, 미구현.
 - [배치 관리자 API 계약](admin-api.md): 설정 관리·수동 실행·취소·재실행·운영 복구 계약, 미구현.
 

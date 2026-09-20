@@ -1,0 +1,10 @@
+# Fill in the admin URL and the code created in admin. No token belongs in this file.
+data_dir = '../data'
+capacity = 1
+
+[admin]
+base_url = 'https://admin.example/api/v1.0/batch-agent'
+runner_code = 'worker-01'
+credential_dir = '../data/credentials'
+request_timeout_seconds = 30
+# ca_file = 'internal-ca.pem'

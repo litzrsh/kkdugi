@@ -4,6 +4,15 @@ type Config struct {
 	DataDir  string    `toml:"data_dir"`
 	Capacity int       `toml:"capacity"`
 	Programs []Program `toml:"programs"`
+	Admin    *Admin    `toml:"admin"`
+}
+
+type Admin struct {
+	BaseURL               string `toml:"base_url"`
+	RunnerCode            string `toml:"runner_code"`
+	CAFile                string `toml:"ca_file"`
+	CredentialDir         string `toml:"credential_dir"`
+	RequestTimeoutSeconds int    `toml:"request_timeout_seconds"`
 }
 
 type Program struct {

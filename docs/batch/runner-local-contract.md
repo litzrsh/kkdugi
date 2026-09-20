@@ -1,6 +1,6 @@
 # Runner 로컬 설정·입출력 구현 계약
 
-이 문서는 [R0~R1 구현](runner-implementation-plan.md)의 파일 형식이다. Admin API의 실행 권한을 대신하지 않는다.
+이 문서는 [R0~R2 구현](runner-implementation-plan.md)의 파일 형식이다. Admin API의 실행 권한을 대신하지 않는다.
 
 ## 설정
 
@@ -10,7 +10,8 @@
 | --- | --- | --- |
 | data_dir | string | 설정 파일 디렉터리 기준 상대경로 또는 절대경로 |
 | capacity | int | 1~200 |
-| programs | []Program | 적어도 하나, code 중복 금지 |
+| programs | []Program | 0개 이상, code 중복 금지. 설치 전 runner 등록을 허용 |
+| admin | 선택 Admin | 등록 시 필수. [R2 설정·등록 계약](runner-r2-contract.md) 참조 |
 
 `Program`은 Code/Version/Revision string 필드(tag: code/version/revision)와 Manifest 필드(tag: manifest)를 가진다. 길이는 각 20/50/200자 이내이며 비어 있으면 안 된다. Code는 ASCII 영문·숫자·밑줄·하이픈만 허용한다.
 

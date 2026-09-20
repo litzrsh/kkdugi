@@ -89,3 +89,27 @@ func TestValidationBoundaries(t *testing.T) {
 		})
 	}
 }
+
+func TestRegistrationOnlyConfigAndRelativePaths(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "runner.toml")
+	input := "data_dir = 'data'\ncapacity = 1\n[admin]\nbase_url = 'https://admin.example/context/api/v1.0/batch-agent/'\nrunner_code = 'worker-01'\nca_file = 'ca.pem'\n"
+	if err := os.WriteFile(path, []byte(input), 0600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Admin.CredentialDir != filepath.Join(dir, "data", "credentials") || cfg.Admin.CAFile != filepath.Join(dir, "ca.pem") || cfg.Admin.RequestTimeoutSeconds != 30 || strings.HasSuffix(cfg.Admin.BaseURL, "/") || len(cfg.Programs) != 0 {
+		t.Fatal(cfg)
+	}
+	for _, bad := range []string{strings.Replace(input, "https://", "http://", 1), input + "request_timeout_seconds = 301\n", input + "unknown = 1\n"} {
+		if err := os.WriteFile(path, []byte(bad), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Load(path); err == nil {
+			t.Fatal("bad admin config accepted")
+		}
+	}
+}

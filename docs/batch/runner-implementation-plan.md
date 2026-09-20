@@ -70,15 +70,25 @@ Reviewer 실행 중에는 다음 Ollama 요청을 시작하지 않는다. `EXIT_
 | Ollama | 로컬 서버와 `qwen2.5-coder:7b`, `qwen3.8:latest` 설치 확인 |
 | R0 | 완료: Go module, 엄격한 설정·manifest 검증, CLI version/verify, 예시 TOML, Ollama Go profile |
 | R1 | Windows 및 AlmaLinux 10 WSL2에서 구현·실행 테스트 완료: workspace, JSON 보존, 실제 프로세스·자손 제어. 운영 서비스 환경 검증은 R8에서 수행 |
-| R2~R9 | 미착수. HTTPS client부터 순서대로 진행. 현재 binary는 admin에 등록하거나 배정을 수신하지 않음 |
+| R2 | 완료: HTTPS client, 등록·세션 DTO, register CLI, 보호된 credential 저장. Windows 및 AlmaLinux 10 WSL2에서 TLS 테스트 서버로 검증 |
+| R3~R9 | 미착수. 다음 단계는 SQLite journal과 단일 인스턴스 잠금. 실제 admin 배치 API와 배정 수신 루프는 아직 미구현 |
 
-### 검증 결과
+### R0~R1 검증 결과
 
 - Go `go test ./...`, `go vet ./...`, Windows binary build 및 `version`/예시 설정 `verify` 통과.
 - 실제 Windows 테스트: 공백·한글 executable/argv, 2^53 초과 JSON 정수 보존, 부모 환경의 비밀 값 미상속, 종료 코드 7, timeout, 자식·손자 취소, 부모만 종료한 프로그램의 자손 정리, 출력 저장 실패 중 pipe drain, 병렬 workspace 격리.
 - Linux/amd64 `CGO_ENABLED=0` build 후 AlmaLinux 10 WSL2에서 4개 패키지의 테스트 binary와 `version`/`verify` 실제 실행 통과. Race 검사·서비스 설치는 미검증. 현재 환경에서 C compiler가 확인되지 않아 race 검사는 실행하지 않음.
 - Ollama 스크립트 Python 테스트 6개 통과. Java 기본 profile, Go prompt 선택, 모델 매핑 유지, thinking 옵션, 빈 응답 실패 처리를 검증.
 - Admin JS 테스트 55개 통과. Java는 296개 중 기존 `DefaultMenuSeedTest.everySeededMenu_hasJapaneseName` 1개 실패(`admin/user` 일본어 이름 누락), 나머지 295개 통과. Runner 변경으로 해결했다고 간주하지 않음.
+
+### R2 검증 결과
+
+- Go `go test -timeout 90s ./...`, `go vet ./...`, Windows 실행 파일 빌드 통과. Linux/amd64로 빌드한 7개 패키지 테스트를 AlmaLinux 10 WSL2에서 실제 실행하여 통과.
+- TLS 신뢰 체인·호스트명 검증, 사설 CA, redirect 차단, 인증·세션·멱등 헤더, bigint 문자열, 응답 크기·형식·필수 필드, HTTP 오류와 응답 유실 시 재전송 금지를 검증.
+- 실제 등록 CLI와 credential 저장을 TLS 테스트 서버에 연결하여 검증. 동시 등록 중 단일 요청 허용, pending 기록의 재기동 후 보존, 기존 credential 덮어쓰기 금지, Linux 파일 권한·Windows ACL, symlink/reparse 경로 거절을 포함.
+- Admin JS 55개 통과. Java 296개 중 `DefaultMenuSeedTest.everySeededMenu_hasJapaneseName` 1개 실패(이번 실행에서는 `admin/menu` 일본어 이름 누락), 나머지 295개 통과. 기존 실패이며 admin 코드는 변경하지 않음.
+- 실제 admin 배치 API 연동, race 검사, 운영 서비스 환경은 아직 검증하지 않음.
+- `coder --profile go`에 [R2 계약](runner-r2-contract.md)을 참조로 전달하여 등록·세션 DTO를 생성. 필드·JSON tag를 직접 대조한 뒤 적용했으며 통신·저장·검증 로직과 테스트는 주 에이전트가 작성.
 
 ### Ollama 활용과 발견한 문제
 
@@ -100,7 +110,7 @@ bin/kkdugi-runner.exe version
 bin/kkdugi-runner.exe verify --config configs/runner.windows.example.toml
 ```
 
-설정·입출력 필드는 [로컬 구현 계약](runner-local-contract.md)을 따른다. 예시 `whoami.exe`/`id` 설정은 파일 검증을 위한 예시이며 admin 승인이나 실행 권한을 만들지 않는다. Executor는 현재 테스트를 통해 실행한다. `register`·`run` CLI는 R2/R5에서 실제 동작을 구현할 때 추가한다.
+설정·입출력 필드는 [로컬 구현 계약](runner-local-contract.md)을 따른다. 예시 `whoami.exe`/`id` 설정은 파일 검증을 위한 예시이며 admin 승인이나 실행 권한을 만들지 않는다. Executor는 현재 테스트를 통해 실행한다. `register`는 [R2 계약](runner-r2-contract.md)에 따라 구현했으며 `run` CLI는 R5에서 배정 루프를 연결할 때 추가한다.
 
 운영에서 R1 executor를 사용하기 전에 R3의 START_INTENT 영속화와 R7의 crash 복구를 연결해야 한다. Workspace는 서비스 계정이 소유한 신뢰된 루트 디렉터리를 전제로 하며 악의적인 동일 계정 프로세스를 격리하는 sandbox가 아니다. Windows는 console 없는 실행을 사용하고, 일반화된 graceful signal 대신 stop grace 이후 Job Object 전체를 종료한다. Linux는 process group을 벗어나는 daemon을 지원하지 않으며 cgroup 격리는 후속 검증 대상이다. [Windows 프로세스 관리 근거](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)
 

@@ -15,6 +15,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/pelletier/go-toml/v2"
+	"kkdugi-runner/internal/client"
 )
 
 const MaxConfigBytes = 1 << 20
@@ -50,6 +51,30 @@ func Load(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	if cfg.Admin != nil {
+		a := cfg.Admin
+		if a.RequestTimeoutSeconds == 0 {
+			a.RequestTimeoutSeconds = 30
+		}
+		if a.CredentialDir == "" {
+			a.CredentialDir = filepath.Join(cfg.DataDir, "credentials")
+		}
+		for _, p := range []*string{&a.CredentialDir, &a.CAFile} {
+			if *p != "" {
+				if !filepath.IsAbs(*p) {
+					*p = filepath.Join(filepath.Dir(path), *p)
+				}
+				*p, err = filepath.Abs(*p)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+		a.BaseURL, err = client.NormalizeBaseURL(a.BaseURL)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &cfg, nil
 }
 
@@ -64,8 +89,19 @@ func (c *Config) Validate() error {
 	if c.Capacity < 1 || c.Capacity > 200 {
 		return errors.New("capacity must be between 1 and 200")
 	}
-	if len(c.Programs) == 0 {
-		return errors.New("at least one program is required")
+	if c.Admin != nil {
+		a := c.Admin
+		if _, err := client.NormalizeBaseURL(a.BaseURL); err != nil {
+			return err
+		}
+		if !codePattern.MatchString(a.RunnerCode) || a.RequestTimeoutSeconds < 0 || a.RequestTimeoutSeconds > 300 {
+			return errors.New("invalid admin runner_code or timeout")
+		}
+		for _, p := range []string{a.CAFile, a.CredentialDir} {
+			if p != "" && !validText(p, 4096) {
+				return errors.New("invalid admin file path")
+			}
+		}
 	}
 	seen := make(map[string]bool)
 	for i := range c.Programs {
