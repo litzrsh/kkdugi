@@ -99,6 +99,8 @@ TOML에는 admin 주소, runner identity, 동시 실행 수, state/log 경로와
 
 별도 `kkdugi-runner` Go 프로젝트를 제안한다. API DTO는 JSON 계약을 기준으로 만들며 admin의 Java 클래스·MyBatis 모델을 공유하지 않는다.
 
+구체적인 패키지, 실행 worker와 통신 루프, 로컬 저장 구조와 구현 순서는 [Runner 프로그램 구조](runner-structure.md)를 따른다.
+
 | 구성 | 책임 |
 | --- | --- |
 | agent/client | 등록·polling·heartbeat·결과 보고, protocol version |

@@ -1,7 +1,7 @@
 # 배치 시스템 설계 초안
 
 - 작성일: 2026-09-20
-- 상태: 검토용 초안. 기능·논리 테이블 설계이며 API 계약, DDL, 구현은 아직 확정하지 않는다.
+- 상태: 검토용 설계. 기능·논리 테이블·API v1과 runner 구조를 문서화했으며 DDL·구현은 후속 작업이다. 테스트 과정에서 계약과 내부 구조를 보완한다.
 - 확정 요구: admin은 `kkdugi-admin`에 구현, runner는 머신에 별도 설치, 등록 프로그램으로 Job 생성, 자동·수동 실행 지원.
 - 확정 요구: **Job 하나는 프로그램 하나를 실행한다.** 향후 여러 Job을 연결하는 Workflow로 확장할 수 있어야 한다.
 - 확정 요구: **Workflow의 진행 여부는 admin이 결정한다.** Runner의 Job 완료 이벤트를 받은 admin이 다음 단계를 자동 진행하거나 Workflow owner의 승인을 기다린다.
@@ -102,6 +102,7 @@ cron은 초를 포함한 6필드 형식으로 고정하는 안을 제안한다. 
 - [실행 및 장애 처리](execution.md): 통신, 상태 전이, 중복·재시도·취소 정책, 프로젝트 적용 규칙.
 - [Workflow 확장](workflow-extension.md): 지금 유지할 경계와 나중에 추가할 테이블.
 - [Runner 기술 스택](runner-tech-stack.md): 채택한 Go 기반 구성, 로컬 SQLite·로그 보관, OS 서비스·프로세스 관리와 대안 비교.
+- [Runner 프로그램 구조](runner-structure.md): Go 패키지·worker·통신 루프, 병렬 실행 격리, 로컬 journal·복구·종료와 단계별 테스트 계획.
 - [Admin–Runner API 계약](runner-api.md): 등록·세션·배정·시작·로그·완료·장애 복구 통신 계약, 미구현.
 - [배치 관리자 API 계약](admin-api.md): 설정 관리·수동 실행·취소·재실행·운영 복구 계약, 미구현.
 
