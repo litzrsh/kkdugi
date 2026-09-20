@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"path/filepath"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"kkdugi-runner/internal/client"
 	"kkdugi-runner/internal/config"
 	"kkdugi-runner/internal/credential"
+	"kkdugi-runner/internal/spool"
 	"kkdugi-runner/internal/state"
 )
 
@@ -42,6 +42,9 @@ type Agent struct {
 	reserved, healthy, accepting, draining bool
 	fatal                                  error
 	once                                   atomic.Bool
+	diskBlocked, recovering                atomic.Bool
+	spool                                  *spool.Spool
+	boundary                               func(string) // deterministic crash boundaries, nil in production
 	wg                                     sync.WaitGroup
 	workCtx                                context.Context
 	inputCtx                               context.Context
@@ -104,49 +107,22 @@ func (a *Agent) bootstrap(ctx context.Context) error {
 		a.settings = result
 		break
 	}
+	a.mu.Lock()
 	a.capacity = min(a.o.Config.Capacity, a.settings.Capacity)
+	a.mu.Unlock()
+	var spoolErr error
+	a.spool, spoolErr = spool.New(spool.Options{Directory: filepath.Join(a.o.Config.DataDir, "spool"), Store: a.o.Store, ChunkBytes: min(a.settings.Limits.LogChunkBytes, (a.settings.Limits.JSONBytes-256)/6), OnError: func(error) { a.diskBlocked.Store(true) }})
+	if spoolErr != nil {
+		return spoolErr
+	}
 	if a.pollInterval == 0 {
 		a.pollInterval = time.Duration(a.settings.PollSeconds) * time.Second
 	}
 	if a.heartbeatInterval == 0 {
 		a.heartbeatInterval = time.Duration(a.settings.HeartbeatSeconds) * time.Second
 	}
-	for cursor := ""; ; {
-		items, err := a.o.Store.Assignments(ctx, cursor, 200)
-		if err != nil {
-			return err
-		}
-		if len(items) == 0 {
-			break
-		}
-		for _, item := range items {
-			if item.Phase != state.Acked {
-				return ErrRecovery
-			}
-			cursor = item.ID
-		}
-	}
-	for cursor := ""; ; {
-		items, err := a.o.Store.Requests(ctx, cursor, 200)
-		if err != nil {
-			return err
-		}
-		if len(items) == 0 {
-			break
-		}
-		for _, item := range items {
-			if item.Status != "ACKED" && !strings.HasPrefix(item.Path, "/programs/") {
-				return ErrRecovery
-			}
-			cursor = item.ID
-		}
-	}
-	var ids []string
-	if err := a.retry(ctx, func() error { var e error; ids, e = a.o.Client.Unresolved(ctx, a.o.Token, a.session); return e }); err != nil {
+	if err := a.restore(ctx); err != nil {
 		return err
-	}
-	if len(ids) > 0 {
-		return ErrRecovery
 	}
 	if err := credential.EnsureDirectory(filepath.Join(a.o.Config.DataDir, "work")); err != nil {
 		return err
@@ -178,6 +154,9 @@ func (a *Agent) Run(ctx context.Context) error {
 		return errors.New("agent cannot be run twice")
 	}
 	if err := a.bootstrap(ctx); err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return err
 	}
 	a.inputCtx = ctx
@@ -191,16 +170,33 @@ func (a *Agent) Run(ctx context.Context) error {
 	defer cancel()
 	heartDone := make(chan struct{})
 	go func() { defer close(heartDone); a.heartbeats(workCtx) }()
+	recoveryDone := make(chan struct{})
+	go func() { defer close(recoveryDone); a.recoverLive(workCtx) }()
+	defer func() { cancel(); <-recoveryDone }()
+	logDone := make(chan struct{})
+	go func() { defer close(logDone); a.uploadLogs(workCtx) }()
+	defer func() { cancel(); <-logDone }()
 	defer func() { cancel(); <-heartDone }()
 	for {
 		if ctx.Err() != nil {
 			return a.drain(cancel)
 		}
+		if !a.spool.Healthy() {
+			a.diskBlocked.Store(true)
+		}
 		a.mu.Lock()
 		fatal := a.fatal
 		active := a.active
 		free := a.capacity - len(a.entries)
-		canClaim := fatal == nil && a.healthy && a.accepting && !a.reserved && free > 0
+		canClaim := !a.diskBlocked.Load() && !a.recovering.Load() && fatal == nil && a.healthy && a.accepting && !a.reserved && free > 0
+		for _, entry := range a.entries {
+			entry.mu.Lock()
+			pending := entry.reconcile
+			entry.mu.Unlock()
+			if pending {
+				canClaim = false
+			}
+		}
 		if canClaim {
 			a.reserved = true
 		}
@@ -210,6 +206,9 @@ func (a *Agent) Run(ctx context.Context) error {
 		}
 		if canClaim {
 			err := a.claim(claimCtx, free)
+			if needsReconcile(err) && ctx.Err() == nil {
+				err = a.recoverLostClaim(claimCtx)
+			}
 			if err != nil && ctx.Err() == nil {
 				a.fail(err)
 			}
@@ -248,6 +247,9 @@ func (a *Agent) claim(ctx context.Context, free int) error {
 	if err != nil {
 		return err
 	}
+	if a.boundary != nil {
+		a.boundary("received")
+	}
 	workerCtx, stop := context.WithCancel(a.workCtx)
 	lease, _ := assignment.LeaseUntil.Time()
 	e := &entry{assignment: assignment, phase: state.Received, lease: lease, cancel: stop, grace: time.Duration(assignment.Execution.StopGraceSeconds) * time.Second}
@@ -261,7 +263,7 @@ func (a *Agent) claim(ctx context.Context, free int) error {
 		defer a.wg.Done()
 		defer stop()
 		err := a.worker(workerCtx, e)
-		if err != nil {
+		if err != nil && !errors.Is(err, errHeld) {
 			a.fail(err)
 		}
 		a.mu.Lock()
@@ -284,7 +286,7 @@ func (a *Agent) Snapshot() client.Heartbeat {
 	if a.draining {
 		mode = "DRAINING"
 		free = 0
-	} else if a.fatal != nil || !a.healthy {
+	} else if a.fatal != nil || !a.healthy || a.diskBlocked.Load() || a.recovering.Load() {
 		mode = "DEGRADED"
 		free = 0
 	}
@@ -312,6 +314,16 @@ func (a *Agent) Snapshot() client.Heartbeat {
 }
 func (a *Agent) heartbeats(ctx context.Context) {
 	for ctx.Err() == nil {
+		a.mu.Lock()
+		for _, e := range a.entries {
+			e.mu.Lock()
+			if (e.phase == state.Running || e.phase == state.Stopping) && !time.Now().Before(e.lease) {
+				e.reconcile = true
+			}
+			e.mu.Unlock()
+		}
+		a.mu.Unlock()
+
 		response, err := a.o.Client.Heartbeat(ctx, a.o.Token, a.session, a.Snapshot())
 		if err != nil {
 			a.disconnected()
@@ -340,7 +352,7 @@ func (a *Agent) heartbeats(ctx context.Context) {
 					e.mu.Lock()
 					e.reconcile = true
 					e.mu.Unlock()
-					a.fail(ErrRecovery)
+					// Reconcile the existing executor; never restart it.
 				}
 				if item.LeaseUntil != nil {
 					lease, _ := item.LeaseUntil.Time()
@@ -356,9 +368,7 @@ func (a *Agent) heartbeats(ctx context.Context) {
 					e.reconcile = true
 				}
 				e.mu.Unlock()
-				if expired {
-					a.fail(ErrRecovery)
-				}
+
 			}
 		}
 		delay := a.heartbeatInterval

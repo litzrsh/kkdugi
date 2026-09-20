@@ -1,7 +1,7 @@
 # 배치 시스템 설계 초안
 
 - 작성일: 2026-09-20
-- 상태: 기능·논리 테이블·API v1과 runner 구조를 문서화하고 runner 초기 구성 요소의 구현·테스트를 시작했다. 배치 DDL·admin 연동과 나머지 구현은 후속 단계이며 [진행 기록](runner-implementation-plan.md)을 기준으로 확인한다.
+- 상태: Runner 구현·서비스 패키징과 연동 테스트 준비를 완료했다. Linux 실제 서비스 검증을 통과했으며 Windows 실제 SCM 검증은 남아 있다. Owner 결정에 따라 실제 R9는 admin 배치 API 구현 후 수행한다. [진행 기록](runner-implementation-plan.md)
 - 확정 요구: admin은 `kkdugi-admin`에 구현, runner는 머신에 별도 설치, 등록 프로그램으로 Job 생성, 자동·수동 실행 지원.
 - 확정 요구: **Job 하나는 프로그램 하나를 실행한다.** 향후 여러 Job을 연결하는 Workflow로 확장할 수 있어야 한다.
 - 확정 요구: **Workflow의 진행 여부는 admin이 결정한다.** Runner의 Job 완료 이벤트를 받은 admin이 다음 단계를 자동 진행하거나 Workflow owner의 승인을 기다린다.
@@ -108,6 +108,9 @@ cron은 초를 포함한 6필드 형식으로 고정하는 안을 제안한다. 
 - [R3 상태·영속 요청 구현](runner-r3-contract.md): SQLite schema, 단일 인스턴스 잠금, 세션 개설 복구, journal·요청·ACK 원자성.
 - [R4 프로그램 catalog 구현](runner-r4-contract.md): revision 이력, 설치 상태 보고, 승인 ACK와 실행 전 파일 대조.
 - [R5 Agent·배정 실행 구현](runner-r5-contract.md): `run` CLI, heartbeat·슬롯, 시작 허가·START_INTENT, 완료 ACK·drain과 후속 제한.
+- [R6·R7 로그·복구 구현](runner-r6-r7-contract.md): 영속 로그·마스킹·연속 ACK, 재시작 reconcile·UNKNOWN과 실제 crash 검증.
+- [R8 서비스·배포 운영 계약](runner-r8-r9-contract.md): Windows SCM·Linux systemd, 설치·계정·업데이트·제거와 실제 검증 범위.
+- [R9 실제 admin 수용 시나리오](runner-admin-acceptance.md): 연동 probe와 실행·복구·스케줄 검증 항목. 실제 수행은 admin 구현 후.
 - [Admin–Runner API 계약](runner-api.md): 등록·세션·배정·시작·로그·완료·장애 복구 통신 계약, 미구현.
 - [배치 관리자 API 계약](admin-api.md): 설정 관리·수동 실행·취소·재실행·운영 복구 계약, 미구현.
 

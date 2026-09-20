@@ -55,7 +55,12 @@ func TestWorkProgram(t *testing.T) {
 		os.Exit(14)
 	}
 	if input.Mode != "silent" {
-		fmt.Print("test output")
+		if input.Mode == "token" {
+			fmt.Print("test-")
+			fmt.Print("access")
+		} else {
+			fmt.Print("test output")
+		}
 	}
 	time.Sleep(time.Duration(input.Sleep) * time.Millisecond)
 	result := b
@@ -76,28 +81,36 @@ type response struct {
 	body   []byte
 }
 type fakeAdmin struct {
-	mu                sync.Mutex
-	server            *httptest.Server
-	queue             []client.Assignment
-	cache             map[string]response
-	signatures        map[string]string
-	lost              map[string]bool
-	counts            map[string]int
-	completed         map[string]client.Completion
-	active, maxActive int
-	session           int
-	boot              string
-	holdCompletion    bool
-	expired           bool
-	stop              bool
-	deny              bool
-	offline           bool
-	unknown           []string
+	mu                    sync.Mutex
+	server                *httptest.Server
+	queue                 []client.Assignment
+	cache                 map[string]response
+	signatures            map[string]string
+	lost                  map[string]bool
+	counts                map[string]int
+	completed             map[string]client.Completion
+	active, maxActive     int
+	session               int
+	boot                  string
+	holdCompletion        bool
+	expired               bool
+	stop                  bool
+	deny                  bool
+	offline               bool
+	unknown               []string
+	assigned              map[string]client.Assignment
+	logs                  map[string]map[int64]client.LogChunk
+	reconcileObservations []client.ReconcileRequest
+	holdLogs              bool
+	forceReconcile        bool
+	reportRecovered       bool
+	expireClaim           bool
+	rejectStart           bool
 }
 
 func newAdmin(t *testing.T) *fakeAdmin {
 	t.Helper()
-	f := &fakeAdmin{cache: map[string]response{}, signatures: map[string]string{}, lost: map[string]bool{}, counts: map[string]int{}, completed: map[string]client.Completion{}}
+	f := &fakeAdmin{cache: map[string]response{}, signatures: map[string]string{}, lost: map[string]bool{}, counts: map[string]int{}, completed: map[string]client.Completion{}, assigned: map[string]client.Assignment{}, logs: map[string]map[int64]client.LogChunk{}}
 	f.server = httptest.NewTLSServer(http.HandlerFunc(f.handle))
 	t.Cleanup(f.server.Close)
 	return f
@@ -149,6 +162,62 @@ func (f *fakeAdmin) handle(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(items)
 		return
 	}
+	if strings.HasPrefix(path, "/assignments/") && r.Method == "GET" {
+		id := strings.Split(path, "/")[2]
+		q, ok := f.assigned[id]
+		if !ok {
+			http.Error(w, "missing", 404)
+			return
+		}
+		d := client.AssignmentDetail{Assignment: q, Outcome: json.RawMessage("null"), LogOffsets: map[string]*client.Decimal{"STDOUT": nil, "STDERR": nil}, RunState: q.State}
+		if c, ok := f.completed[id]; ok {
+			d.Outcome = encode(c)
+		}
+		json.NewEncoder(w).Encode(d)
+		return
+	}
+	if strings.Contains(path, "/logs/") {
+		if f.holdLogs {
+			http.Error(w, "unavailable", 503)
+			return
+		}
+		parts := strings.Split(path, "/")
+		key := parts[2] + "/" + parts[4]
+		seq, _ := strconv.ParseInt(parts[5], 10, 64)
+		var c client.LogChunk
+		if json.Unmarshal(b, &c) != nil || client.LogHash(c.Text) != c.SHA256 {
+			http.Error(w, "bad chunk", 400)
+			return
+		}
+		if f.logs[key] == nil {
+			f.logs[key] = map[int64]client.LogChunk{}
+		}
+		if old, ok := f.logs[key][seq]; ok && old != c {
+			http.Error(w, "conflict", 409)
+			return
+		}
+		f.logs[key][seq] = c
+		if f.lost["log"] {
+			f.lost["log"] = false
+			conn, _, _ := w.(http.Hijacker).Hijack()
+			conn.Close()
+			return
+		}
+		through := int64(-1)
+		for {
+			if _, ok := f.logs[key][through+1]; !ok {
+				break
+			}
+			through++
+		}
+		var contiguous *client.Decimal
+		if through >= 0 {
+			d := client.Decimal(strconv.FormatInt(through, 10))
+			contiguous = &d
+		}
+		json.NewEncoder(w).Encode(client.LogAck{AcceptedSequence: client.Decimal(parts[5]), ContiguousThrough: contiguous})
+		return
+	}
 	if path == "/heartbeat" {
 		var hb client.Heartbeat
 		if json.Unmarshal(b, &hb) != nil {
@@ -165,6 +234,10 @@ func (f *fakeAdmin) handle(w http.ResponseWriter, r *http.Request) {
 				a.Action = "STOP"
 				a.StopReason = &reason
 				a.GraceSeconds = &grace
+			}
+			if f.forceReconcile {
+				a.Action = "RECONCILE"
+				a.LeaseUntil = nil
 			}
 			actions = append(actions, a)
 		}
@@ -183,6 +256,10 @@ func (f *fakeAdmin) handle(w http.ResponseWriter, r *http.Request) {
 	}
 	f.signatures[key] = signature
 	if prior, ok := f.cache[key]; ok {
+		if path == "/assignments/claim" && f.expireClaim {
+			http.Error(w, "expired", 410)
+			return
+		}
 		w.WriteHeader(prior.status)
 		w.Write(prior.body)
 		return
@@ -206,9 +283,17 @@ func (f *fakeAdmin) handle(w http.ResponseWriter, r *http.Request) {
 		f.queue = f.queue[1:]
 		item.Session = client.Decimal(strconv.Itoa(f.session))
 		reply = item
+		f.assigned[item.ID] = item
+		if f.expireClaim {
+			f.unknown = append(f.unknown, item.ID)
+		}
 		f.active++
 		f.maxActive = max(f.active, f.maxActive)
 	case strings.HasSuffix(path, "/start"):
+		if f.rejectStart {
+			http.Error(w, "conflict", 409)
+			return
+		}
 		kind = "start"
 		id := strings.Split(path, "/")[2]
 		deadline := time.Now().Add(15 * time.Second)
@@ -220,6 +305,36 @@ func (f *fakeAdmin) handle(w http.ResponseWriter, r *http.Request) {
 		kind = "started"
 		id := strings.Split(path, "/")[2]
 		reply = client.StartedAck{ID: id, State: "RUNNING", Action: "CONTINUE"}
+	case strings.HasSuffix(path, "/reconcile"):
+		kind = "reconcile"
+		id := strings.Split(path, "/")[2]
+		var q client.ReconcileRequest
+		json.Unmarshal(b, &q)
+		f.reconcileObservations = append(f.reconcileObservations, q)
+		disposition := "HOLD"
+		var lease *client.Timestamp
+		switch q.Observation {
+		case "FINISHED":
+			disposition = "RESOLVED"
+			if f.reportRecovered {
+				disposition = "REPORT_COMPLETION"
+			} else {
+				var c client.Completion
+				json.Unmarshal(q.Completion, &c)
+				f.completed[id] = c
+			}
+		case "NEVER_STARTED":
+			disposition = "RESOLVED"
+		case "RUNNING":
+			disposition = "CONTINUE_EXISTING"
+			d := client.Timestamp(time.Now().Add(time.Minute).UTC().Format(time.RFC3339))
+			lease = &d
+			if f.stop {
+				disposition = "STOP_AND_REPORT"
+			}
+		}
+		f.forceReconcile = false
+		reply = client.ReconcileResponse{ID: id, Disposition: disposition, Session: client.Decimal(strconv.Itoa(f.session)), LeaseUntil: lease}
 	case strings.HasSuffix(path, "/completion"):
 		kind = "completion"
 		if f.holdCompletion {
@@ -363,7 +478,7 @@ func TestResponseLossNeverRepeatsProcess(t *testing.T) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	c := f.completed[q.ID]
-	if c.Outcome != "SUCCEEDED" || !strings.Contains(string(c.Result), "9007199254740993") || c.Logs["STDOUT"].Status != "LOST" {
+	if c.Outcome != "SUCCEEDED" || !strings.Contains(string(c.Result), "9007199254740993") || c.Logs["STDOUT"].Status != "COMPLETE" {
 		t.Fatalf("unexpected completion %+v", c)
 	}
 	for _, path := range []string{"/assignments/claim", "/assignments/BA1/start", "/assignments/BA1/started", "/assignments/BA1/completion"} {
@@ -421,6 +536,12 @@ func TestStopTimeoutAndExpiredPermit(t *testing.T) {
 			f.expired = mode == "expired"
 			f.deny = mode == "denied"
 			a, s := newTestAgent(t, f, 1)
+			defer func() {
+				if t.Failed() {
+					v, e := s.Assignment(context.Background(), q.ID)
+					t.Logf("agent=%v stateError=%v phase=%s version=%d", a.failure(), e, v.Phase, v.Version)
+				}
+			}()
 			cancel, _ := runAgent(t, a)
 			eventually(t, func() bool { return acked(s, 1) })
 			cancel()
@@ -509,8 +630,11 @@ func TestDrainPersistsResultAndRestartBlocksReplay(t *testing.T) {
 	}
 	ctx, cancelNext := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelNext()
-	if err = next.Run(ctx); !errors.Is(err, ErrRecovery) {
-		t.Fatal("unresolved restart did not stop", err)
+	if err = next.Run(ctx); err != nil && !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatal("restart failed", err)
+	}
+	if !acked(reopened, 1) {
+		t.Fatal("completion not recovered")
 	}
 	if countStarts(t, q) != 1 {
 		t.Fatal("restart duplicated process")
@@ -520,11 +644,14 @@ func TestDrainPersistsResultAndRestartBlocksReplay(t *testing.T) {
 func TestServerUnresolvedBlocksClaim(t *testing.T) {
 	f := newAdmin(t)
 	f.unknown = []string{"BA_OLD"}
+	old := assignment(t, "BA_OLD", "echo", 0, 1)
+	old.Session = "0"
+	f.assigned[old.ID] = old
 	f.queue = []client.Assignment{assignment(t, "BA1", "echo", 0, 1)}
 	a, _ := newTestAgent(t, f, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	if err := a.Run(ctx); !errors.Is(err, ErrRecovery) {
+	if err := a.Run(ctx); err != nil && !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatal(err)
 	}
 	f.mu.Lock()

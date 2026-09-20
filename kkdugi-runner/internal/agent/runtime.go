@@ -53,5 +53,9 @@ func RunConfigured(ctx context.Context, cfg *config.Config, version string) erro
 	if err != nil {
 		return err
 	}
-	return a.Run(ctx)
+	err = a.Run(ctx)
+	if ctx.Err() != nil && errors.Is(err, context.Canceled) {
+		return nil
+	}
+	return err
 }

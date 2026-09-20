@@ -186,7 +186,7 @@ func (s *Store) migrate(ctx context.Context, fresh bool) error {
 	if s.conn.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version) != nil {
 		return ErrSchema
 	}
-	files := []string{"migrations/001_initial.sql", "migrations/002_program_catalog.sql"}
+	files := []string{"migrations/001_initial.sql", "migrations/002_program_catalog.sql", "migrations/003_logs_recovery.sql"}
 	if version < 0 || version > len(files) || (version == 0 && !fresh) {
 		return ErrSchema
 	}
@@ -230,15 +230,26 @@ func (s *Store) migrate(ctx context.Context, fresh bool) error {
 
 // A failed commit has an uncertain durable outcome. Reject further writes until reopen.
 func (s *Store) transact(ctx context.Context, fn func(*sql.Tx) error) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 	if s.closed || s.faulted {
 		return ErrStorage
 	}
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return ErrStorage
 	}
 	defer tx.Rollback()
 	if err = fn(tx); err != nil {
+		// No commit was attempted. Cancellation-induced query failures are not
+		// evidence of a damaged database; database/sql rolls this transaction back.
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		if errors.Is(err, ErrStorage) || errors.Is(err, ErrSchema) {
 			s.faulted = true
 		}

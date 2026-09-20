@@ -4,6 +4,8 @@ R5는 `run --config`를 연결한다. 세션 확정 → 미해결 상태 확인 
 
 상태: 구현 및 Windows·AlmaLinux 10 WSL2 실행 검증 완료. 실제 admin 배치 API는 아직 미구현이다.
 
+후속 변경: 아래 R5 시점의 로그 폐기·미해결 상태 일괄 중지 제한은 [R6·R7 구현](runner-r6-r7-contract.md)으로 대체되었다. 현재 동작은 해당 문서를 따른다.
+
 ## 실행 방법
 
 1. [R2 계약](runner-r2-contract.md)에 따라 admin HTTPS/CA, credential 디렉터리와 프로그램 TOML을 준비하고 `register --config <설정 파일>`로 등록한다.

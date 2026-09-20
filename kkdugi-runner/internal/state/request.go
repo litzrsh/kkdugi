@@ -71,7 +71,7 @@ func (s *Store) enqueue(ctx context.Context, tx *sql.Tx, session client.Decimal,
 			return r, ErrConflict
 		}
 		var n int
-		if tx.QueryRowContext(ctx, "SELECT count(*) FROM kkdugi_runner_request WHERE assignment_id=? AND path=? AND session=?", d.AssignmentID, d.Path, session).Scan(&n) != nil {
+		if tx.QueryRowContext(ctx, "SELECT count(*) FROM kkdugi_runner_request WHERE assignment_id=? AND path=? AND session=? AND id NOT IN (SELECT request_id FROM kkdugi_runner_superseded)", d.AssignmentID, d.Path, session).Scan(&n) != nil {
 			return r, ErrStorage
 		}
 		if n > 0 {
@@ -92,7 +92,7 @@ func (s *Store) enqueue(ctx context.Context, tx *sql.Tx, session client.Decimal,
 	if r.AssignmentID != "" {
 		assignment = r.AssignmentID
 	}
-	_, err = tx.ExecContext(ctx, "INSERT INTO kkdugi_runner_request VALUES(?,?,?,?,?,?,?,?,?,?,?,NULL)", r.ID, assignment, r.Method, r.Path, r.Key, r.CreatedAt, r.Session, []byte(r.Body), r.Hash, r.Status, r.NextAt)
+	_, err = tx.ExecContext(ctx, "INSERT INTO kkdugi_runner_request(id,assignment_id,method,path,request_key,created_at,session,body,body_hash,status,next_at,response) VALUES(?,?,?,?,?,?,?,?,?,?,?,NULL)", r.ID, assignment, r.Method, r.Path, r.Key, r.CreatedAt, r.Session, []byte(r.Body), r.Hash, r.Status, r.NextAt)
 	if err != nil {
 		return Request{}, s.sqlFailure(err)
 	}
@@ -146,6 +146,13 @@ func (s *Store) BeginSend(ctx context.Context, id string) (Request, error) {
 		}
 		if r.Session != session {
 			return ErrSession
+		}
+		var superseded int
+		if tx.QueryRowContext(ctx, "SELECT count(*) FROM kkdugi_runner_superseded WHERE request_id=?", id).Scan(&superseded) != nil {
+			return ErrStorage
+		}
+		if superseded > 0 {
+			return ErrConflict
 		}
 		if r.Status == "ACKED" {
 			return ErrConflict

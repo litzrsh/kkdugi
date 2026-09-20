@@ -74,7 +74,10 @@ Reviewer 실행 중에는 다음 Ollama 요청을 시작하지 않는다. `EXIT_
 | R3 | 구현 완료: SQLite migration·journal·영속 요청, OS 단일 인스턴스 잠금, 세션 개설 복구. 상태 저장 API이며 CLI run 연결은 R5 |
 | R4 | 구현 완료: 영속 catalog·revision 이력, 설치 PUT 보고·승인 ACK, 실행 전 파일·승인 대조. CLI 배정 루프 연결은 R5 |
 | R5 | 구현 완료: `run`, 세션·catalog·heartbeat·배정 worker, 시작 허가·START_INTENT·완료 ACK, 슬롯·drain. Windows 및 AlmaLinux 10 WSL2에서 실제 프로그램 실행 검증 |
-| R6~R9 | 미착수. 다음 단계는 영속 로그 spool·마스킹·전송. 실제 admin 배치 API는 아직 미구현 |
+| R6 | 구현 완료: 영속 로그 spool·마스킹·UTF-8 chunk·한도·연속 ACK·재전송. Windows 및 AlmaLinux 10 WSL2 검증 |
+| R7 | 구현 완료: 미해결 inventory·영속 reconcile·소유권 이전·완료 복구·UNKNOWN/HOLD. 양 OS에서 실제 runner 강제 종료·재기동 검증 |
+| R8 | 서비스 adapter·설치/업데이트/제거·checksum 배포 구현 완료. Linux systemd 전용 계정 실증 완료. Windows 실제 SCM 설치·계정 검증은 별도 환경에서 필요 |
+| R9 | 연동 probe·수용 시나리오 준비 완료. Owner 결정에 따라 실제 admin 배치 API 구현 후 수행 |
 
 ### R0~R1 검증 결과
 
@@ -125,6 +128,28 @@ Reviewer 실행 중에는 다음 Ollama 요청을 시작하지 않는다. `EXIT_
 - Admin JS 55개 통과. Java 296개 중 기존 `DefaultMenuSeedTest.everySeededMenu_hasJapaneseName` 1개 실패(`admin/menu` 일본어 이름 누락), 나머지 295개 통과. Admin 코드 변경 없음.
 - 로그 bytes 저장·전송은 R6, 재시작 후 자동 reconcile은 R7. 실제 admin 연동·race 검사·운영 OS 서비스 검증은 아직 수행하지 않음.
 
+### R6·R7 검증 결과
+
+- [R6·R7 계약](runner-r6-r7-contract.md)에 파일·SQLite v3·업로드·복구 판단과 운영 한계를 기록. `run`은 이전 boot의 미완료 결과와 로그를 자동 대조하고, UNKNOWN은 다시 시작하지 않고 HOLD 슬롯으로 유지한다.
+- Windows Go 11개 패키지 전체 테스트, Windows/Linux `go vet ./...` 및 runner 빌드 통과. Agent·spool·state·client 테스트 바이너리를 AlmaLinux 10 WSL2에서 실제 실행하여 통과.
+- 모든 read 간격의 secret 겹침·한글·emoji·invalid UTF-8·EOF와 비밀 값 외 원문 보존, 로그 순서 역전·중복·충돌·연속 ACK, 완료 ACK 후 로그 재기동 전송, 파일 유실·저장 실패·한도를 검증.
+- Runner subprocess를 RECEIVED/START_INTENT/RUNNING/OS 종료 후 완료 저장 전/FINISHED에서 실제 kill하고 같은 identity/data로 재기동. 미시작·UNKNOWN·완료 관측 구분과 start 중복 방지를 확인.
+- SQLite reconcile 적용 실패 시 전체 rollback, 같은 key/body의 복구 요청 재전송, 구 요청 superseded 차단, v1→v3 migration 보존·실패 rollback을 검증.
+- Linux에서 시작 직전 취소가 DB 요청 기록과 겹쳐 저장소 장애로 오인되는 문제를 재현·수정. HTTP 취소와 영속 BeginSend를 분리하고 commit 시도 전 취소는 손상으로 취급하지 않는다. 취소 시나리오 8회 연속 통과 후 전체 Linux 검사를 통과했다.
+- Admin JS 55개 통과. Java 296개 중 기존 `DefaultMenuSeedTest.everySeededMenu_hasJapaneseName` 1개 실패(`admin/menu` 일본어 이름 누락), 나머지 295개 통과. Admin 코드 변경 없음.
+- Ollama coder DTO의 잘못된 ProcessIdentity 재정의·omitempty를 수정해 적용. Reviewer 응답은 모순된 오류 판정과 잘린 결론 때문에 통과 근거로 채택하지 않고 직접 검토·장애 테스트 결과를 기록했다.
+- 재시작 후 OS 프로세스 재부착·종료 코드 회수는 지원하지 않는다. 실제 admin·운영 서비스 계정·정전·race 검증은 남아 있다.
+
+### R8 및 R9 준비 검증 결과
+
+- [서비스·배포 운영 계약](runner-r8-r9-contract.md)에 설치·등록·서비스 계정 권한·업데이트·제거 절차를 기록했다. 제거는 journal과 credential을 보존한다.
+- Windows Go 13개 패키지 테스트와 정적 검사, Windows/Linux 실행 파일 빌드. Linux systemd에서 실제 전용 계정으로 설치·업무 실행·checksum 거절·업데이트·실행 중 drain·정상 종료·제거 후 상태 보존을 검증했다.
+- Windows SCM 제어 handler 테스트와 PowerShell 문법 검증은 수행했다. 현재 Windows 계정은 관리자 권한이 없어 실제 SCM 설치·가상 계정 ACL·서비스 종료는 검증하지 않았다.
+- 정상 서비스 중지 중 bootstrap 취소가 실패 종료로 기록되던 문제를 수정했다. 상위 context 취소에 따른 정상 종료만 성공으로 정규화한다.
+- Ollama coder로 서비스 이름 검증을 생성하고 첫 글자 영숫자 허용 누락을 수정한 뒤 경계 테스트를 적용했다.
+- [실제 admin 수용 시나리오](runner-admin-acceptance.md)와 제한된 입력·출력의 probe 프로그램을 준비했다. 실제 R9는 admin 구현 후 수행한다는 owner 결정이며 fake admin 검증을 실제 연동 통과로 간주하지 않는다.
+- Admin JS 55개 통과. Java 296개 중 기존 `DefaultMenuSeedTest.everySeededMenu_hasJapaneseName` 1개 실패(`admin/menu` 일본어 이름 누락), 나머지 295개 통과. Admin 코드 변경 없음.
+
 ### Ollama 활용과 발견한 문제
 
 - `coder --profile go`: 로컬 설정 계약을 참조하여 `Config`/`Program`/`Manifest`/`FileDigest`를 생성. 필드·TOML tag를 직접 대조하고 gofmt 후 적용. 파싱·검증·프로세스 제어와 테스트는 주 에이전트가 작성.
@@ -147,6 +172,6 @@ bin/kkdugi-runner.exe verify --config configs/runner.windows.example.toml
 
 설정·입출력 필드는 [로컬 구현 계약](runner-local-contract.md)을 따른다. 예시 `whoami.exe`/`id` 설정은 파일 검증을 위한 예시이며 admin 승인이나 실행 권한을 만들지 않는다. `register`는 [R2 계약](runner-r2-contract.md), `run --config <설정 파일>`은 [R5 계약](runner-r5-contract.md)에 따라 구현했다. 실제 admin 배치 API는 아직 미구현이므로 현재 실행 연동은 TLS fake admin으로 검증했다.
 
-운영에서 R1 executor를 사용하기 전에 R3의 START_INTENT 영속화와 R7의 crash 복구를 연결해야 한다. Workspace는 서비스 계정이 소유한 신뢰된 루트 디렉터리를 전제로 하며 악의적인 동일 계정 프로세스를 격리하는 sandbox가 아니다. Windows는 console 없는 실행을 사용하고, 일반화된 graceful signal 대신 stop grace 이후 Job Object 전체를 종료한다. Linux는 process group을 벗어나는 daemon을 지원하지 않으며 cgroup 격리는 후속 검증 대상이다. [Windows 프로세스 관리 근거](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)
+현재 run은 R3의 START_INTENT 영속화와 R7의 crash 복구를 연결한다. 서비스 실행은 R8 운영 계약을 따른다. Workspace는 서비스 계정이 소유한 신뢰된 루트 디렉터리를 전제로 하며 악의적인 동일 계정 프로세스를 격리하는 sandbox가 아니다. Windows는 console 없는 실행을 사용하고, 일반화된 graceful signal 대신 stop grace 이후 Job Object 전체를 종료한다. Linux는 process group을 벗어나는 daemon을 지원하지 않으며 cgroup 격리는 후속 검증 대상이다. [Windows 프로세스 관리 근거](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)
 
 Go SDK는 설치된 1.27.1을 사용한다. [공식 배포 목록](https://go.dev/dl/)에서 확인한 버전이며 이후 의존성은 `go.mod`/`go.sum`에 고정한다.

@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"kkdugi-runner/internal/client"
@@ -19,6 +18,10 @@ import (
 
 type entry struct {
 	mu         sync.Mutex
+	recoveryMu sync.Mutex
+	journalMu  sync.Mutex
+	identity   client.ProcessIdentity
+	hold       bool
 	assignment client.Assignment
 	phase      state.Phase
 	lease      time.Time
@@ -45,23 +48,9 @@ func (e *entry) stopState() (string, time.Duration) {
 	return e.stopReason, e.grace
 }
 
-type outputPresence struct{ wrote atomic.Bool }
-
-func (w *outputPresence) Write(b []byte) (int, error) {
-	if len(b) > 0 {
-		w.wrote.Store(true)
-	}
-	return len(b), nil
-}
-func (w *outputPresence) logEnd() client.LogEnd {
-	status := "COMPLETE"
-	if w.wrote.Load() {
-		status = "LOST"
-	}
-	return client.LogEnd{Status: status}
-}
-
 func (a *Agent) change(e *entry, next state.Phase, detail json.RawMessage, request *state.RequestDraft, ack *state.Acknowledgement) (state.Request, error) {
+	e.journalMu.Lock()
+	defer e.journalMu.Unlock()
 	ctx := context.Background()
 	saved, err := a.o.Store.Assignment(ctx, e.assignment.ID)
 	if err != nil {
@@ -82,7 +71,7 @@ func (a *Agent) gate(e *entry, permit client.StartPermit) error {
 	defer e.mu.Unlock()
 	start, _ := permit.StartBefore.Time()
 	lease, _ := permit.LeaseUntil.Time()
-	if a.inputCtx.Err() != nil || a.draining || a.fatal != nil || !a.healthy || e.stopReason != "" || e.reconcile || !time.Now().Before(start) || !time.Now().Before(lease) || !time.Now().Before(e.lease) {
+	if a.inputCtx.Err() != nil || a.draining || a.fatal != nil || !a.healthy || a.diskBlocked.Load() || e.stopReason != "" || e.reconcile || !time.Now().Before(start) || !time.Now().Before(lease) || !time.Now().Before(e.lease) {
 		return ErrStartBlocked
 	}
 	saved, err := a.o.Store.Assignment(context.Background(), e.assignment.ID)
@@ -92,6 +81,9 @@ func (a *Agent) gate(e *entry, permit client.StartPermit) error {
 	_, err = a.o.Store.Commit(context.Background(), state.Mutation{Assignment: &state.AssignmentChange{ID: saved.ID, ExpectedVersion: saved.Version, ExpectedPhase: saved.Phase, NextPhase: state.StartIntent, Detail: encode(permit)}})
 	if err == nil {
 		e.phase = state.StartIntent
+		if a.boundary != nil {
+			a.boundary("start-intent")
+		}
 		if a.inputCtx.Err() != nil || !time.Now().Before(start) || !time.Now().Before(lease) || !time.Now().Before(e.lease) {
 			return ErrStartBlocked
 		}
@@ -101,7 +93,7 @@ func (a *Agent) gate(e *entry, permit client.StartPermit) error {
 func (a *Agent) worker(ctx context.Context, e *entry) error {
 	assignment := e.assignment
 	p := assignment.Program
-	program, err := a.catalog.Resolve(ctx, p.ID, p.Code, p.Version, p.Revision)
+	program, err := a.catalog.Resolve(context.Background(), p.ID, p.Code, p.Version, p.Revision)
 	if err != nil {
 		return a.finish(ctx, e, notStarted("FAILED", "PROGRAM_UNAPPROVED"), nil)
 	}
@@ -110,6 +102,7 @@ func (a *Agent) worker(ctx context.Context, e *entry) error {
 		return a.finish(ctx, e, notStarted("FAILED", "WORKSPACE_FAILED"), nil)
 	}
 	env := work.Environment()
+	secrets := []string{string(a.o.Token)}
 	for _, name := range program.Manifest.SecretNames {
 		if a.o.ResolveSecret == nil {
 			return a.finish(ctx, e, notStarted("FAILED", "SECRET_MISSING"), nil)
@@ -119,6 +112,7 @@ func (a *Agent) worker(ctx context.Context, e *entry) error {
 			return a.finish(ctx, e, notStarted("FAILED", "SECRET_MISSING"), nil)
 		}
 		env = append(env, name+"="+value)
+		secrets = append(secrets, value)
 	}
 	if _, err = a.change(e, state.Prepared, encode(map[string]string{"workspace": work.Dir}), nil, nil); err != nil {
 		return err
@@ -147,26 +141,36 @@ func (a *Agent) worker(ctx context.Context, e *entry) error {
 	}
 	a.mu.Unlock()
 	// Re-read approval and digest after waiting for the start permission response.
-	program, err = a.catalog.Resolve(ctx, p.ID, p.Code, p.Version, p.Revision)
+	program, err = a.catalog.Resolve(context.Background(), p.ID, p.Code, p.Version, p.Revision)
 	if err != nil {
 		return a.finish(ctx, e, notStarted("FAILED", "REVISION_MISMATCH"), nil)
 	}
-	var out, stderr outputPresence
+	out, stderr, err := a.spool.Open(assignment.ID, secrets)
+	if err != nil {
+		a.diskBlocked.Store(true)
+		return a.finish(ctx, e, notStarted("FAILED", "LOG_STORAGE_FAILED"), nil)
+	}
 	var journalErr error
 	startedDone := make(chan error, 1)
 	hasStarted := false
 	var identity client.Started
-	spec := executor.Spec{Executable: program.Manifest.Executable, Arguments: program.Manifest.Arguments, Directory: program.Manifest.WorkingDirectory, Environment: env, Stdout: &out, Stderr: &stderr, Timeout: time.Duration(assignment.Execution.TimeoutSeconds) * time.Second, StopGrace: time.Duration(assignment.Execution.StopGraceSeconds) * time.Second}
+	spec := executor.Spec{Executable: program.Manifest.Executable, Arguments: program.Manifest.Arguments, Directory: program.Manifest.WorkingDirectory, Environment: env, Stdout: out, Stderr: stderr, Timeout: time.Duration(assignment.Execution.TimeoutSeconds) * time.Second, StopGrace: time.Duration(assignment.Execution.StopGraceSeconds) * time.Second}
 	spec.BeforeStart = func() error { return a.gate(e, permit) }
 	spec.CancelGrace = func() time.Duration { _, g := e.stopState(); return g }
 	spec.OnStarted = func(pid int, at time.Time) {
 		timestamp := client.Timestamp(at.UTC().Format("2006-01-02T15:04:05.000000Z"))
 		identity = client.Started{StartedAt: timestamp, Process: client.ProcessIdentity{PID: client.Decimal(strconv.Itoa(pid)), StartedAt: timestamp, BootID: a.boot}}
+		e.mu.Lock()
+		e.identity = identity.Process
+		e.mu.Unlock()
 		r, err := a.change(e, state.Running, encode(identity), &state.RequestDraft{AssignmentID: assignment.ID, Method: "POST", Path: "/assignments/" + assignment.ID + "/started", Body: encode(identity)}, nil)
 		if err != nil {
 			journalErr = err
 			e.stop("SERVICE_STOP", 0)
 			return
+		}
+		if a.boundary != nil {
+			a.boundary("started")
 		}
 		hasStarted = true
 		go func() {
@@ -182,7 +186,13 @@ func (a *Agent) worker(ctx context.Context, e *entry) error {
 				}
 			}
 			if err != nil {
-				a.fail(err)
+				if needsReconcile(err) {
+					e.mu.Lock()
+					e.reconcile = true
+					e.mu.Unlock()
+				} else {
+					a.fail(err)
+				}
 			}
 			startedDone <- err
 		}()
@@ -198,6 +208,10 @@ func (a *Agent) worker(ctx context.Context, e *entry) error {
 		}
 	}
 	result := executor.Run(ctx, spec)
+	if a.boundary != nil {
+		a.boundary("exited")
+	}
+	stdoutEnd, stderrEnd := out.Close(), stderr.Close()
 	if journalErr != nil {
 		if hasStarted {
 			<-startedDone
@@ -212,7 +226,7 @@ func (a *Agent) worker(ctx context.Context, e *entry) error {
 		}
 		return errors.Join(ErrRecovery, err)
 	}
-	completion := client.Completion{Outcome: "SUCCEEDED", FinishedAt: now(), ExitCode: result.ExitCode, ProcessExited: true, Logs: map[string]client.LogEnd{"STDOUT": out.logEnd(), "STDERR": stderr.logEnd()}}
+	completion := client.Completion{Outcome: "SUCCEEDED", FinishedAt: now(), ExitCode: result.ExitCode, ProcessExited: true, Logs: map[string]client.LogEnd{"STDOUT": stdoutEnd, "STDERR": stderrEnd}}
 	if !result.StartedAt.IsZero() {
 		start := client.Timestamp(result.StartedAt.UTC().Format("2006-01-02T15:04:05.000000Z"))
 		completion.StartedAt = &start
@@ -268,7 +282,7 @@ func (a *Agent) worker(ctx context.Context, e *entry) error {
 		return err
 	}
 	if hasStarted {
-		if err = <-startedDone; err != nil {
+		if err = <-startedDone; err != nil && !needsReconcile(err) {
 			return err
 		}
 	}
@@ -284,6 +298,9 @@ func notStarted(outcome, code string) client.Completion {
 func (a *Agent) saveCompletion(e *entry, c client.Completion) (state.Request, error) {
 	body := encode(c)
 	_, err := a.change(e, state.Finished, body, nil, nil)
+	if err == nil && a.boundary != nil {
+		a.boundary("finished")
+	}
 	return state.Request{Body: body}, err
 }
 func (a *Agent) finish(ctx context.Context, e *entry, c client.Completion, prior error) error {
@@ -305,11 +322,25 @@ func (a *Agent) finish(ctx context.Context, e *entry, c client.Completion, prior
 		return err
 	}
 	if prior != nil {
+		if needsReconcile(prior) {
+			e.mu.Lock()
+			e.reconcile = true
+			e.mu.Unlock()
+			return a.reportCompletion(a.workCtx, e, r, c)
+		}
 		return prior
 	}
 	return a.reportCompletion(a.workCtx, e, r, c)
 }
 func (a *Agent) reportCompletion(ctx context.Context, e *entry, r state.Request, c client.Completion) error {
+	e.recoveryMu.Lock()
+	defer e.recoveryMu.Unlock()
+	e.mu.Lock()
+	needs := e.reconcile || e.hold
+	e.mu.Unlock()
+	if needs {
+		return a.reconcileCompletion(ctx, e)
+	}
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -322,6 +353,9 @@ func (a *Agent) reportCompletion(ctx context.Context, e *entry, r state.Request,
 		return err
 	}
 	body, err := a.send(ctx, r.ID)
+	if needsReconcile(err) {
+		return a.reconcileCompletion(ctx, e)
+	}
 	if err != nil {
 		return err
 	}

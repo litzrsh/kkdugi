@@ -82,7 +82,7 @@ func (c *Client) AssignmentCommand(ctx context.Context, token Secret, session De
 		statuses = append(statuses, 204)
 	} else {
 		parts := strings.Split(path, "/")
-		if len(parts) != 4 || parts[0] != "" || parts[1] != "assignments" || !programCodePattern.MatchString(parts[2]) || (parts[3] != "start" && parts[3] != "started" && parts[3] != "completion") {
+		if len(parts) != 4 || parts[0] != "" || parts[1] != "assignments" || !programCodePattern.MatchString(parts[2]) || (parts[3] != "start" && parts[3] != "started" && parts[3] != "completion" && parts[3] != "reconcile") {
 			return nil, ErrProtocol
 		}
 	}

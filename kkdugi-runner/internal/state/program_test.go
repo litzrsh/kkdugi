@@ -13,7 +13,7 @@ func legacyState(t *testing.T) (*Store, string) {
 	s, dir := newStore(t)
 	activate(t, s)
 	commit(t, s, claim())
-	for _, statement := range []string{"DROP TABLE kkdugi_runner_program", "DROP TABLE kkdugi_runner_program_revision", "DELETE FROM kkdugi_runner_migration WHERE version=2", "PRAGMA user_version=1"} {
+	for _, statement := range []string{"DROP TABLE kkdugi_runner_log_chunk", "DROP TABLE kkdugi_runner_log_stream", "DROP TABLE kkdugi_runner_reconcile", "DROP TABLE kkdugi_runner_superseded", "DROP INDEX kkdugi_runner_single_claim", "ALTER TABLE kkdugi_runner_request DROP COLUMN superseded", "CREATE UNIQUE INDEX kkdugi_runner_single_claim ON kkdugi_runner_request(session) WHERE path='/assignments/claim' AND status!='ACKED'", "DELETE FROM kkdugi_runner_migration WHERE version=3", "DROP TABLE kkdugi_runner_program", "DROP TABLE kkdugi_runner_program_revision", "DELETE FROM kkdugi_runner_migration WHERE version=2", "PRAGMA user_version=1"} {
 		if _, err := s.conn.ExecContext(context.Background(), statement); err != nil {
 			t.Fatal(err)
 		}
@@ -33,7 +33,7 @@ func TestUpgradeV1PreservesRequests(t *testing.T) {
 		t.Fatal("migration lost request", err)
 	}
 	var version int
-	if err = s.conn.QueryRowContext(context.Background(), "PRAGMA user_version").Scan(&version); err != nil || version != 2 {
+	if err = s.conn.QueryRowContext(context.Background(), "PRAGMA user_version").Scan(&version); err != nil || version != 3 {
 		t.Fatal(version, err)
 	}
 	if _, err = s.BeginSend(context.Background(), after[0].ID); !errors.Is(err, ErrSession) {

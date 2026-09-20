@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kkdugi-runner/internal/client"
+	"kkdugi-runner/internal/state"
 )
 
 func wait(ctx context.Context, d time.Duration) bool {
@@ -66,8 +67,24 @@ func (a *Agent) send(ctx context.Context, id string) ([]byte, error) {
 		if err := a.failure(); err != nil {
 			return nil, err
 		}
-		r, err := a.o.Store.BeginSend(ctx, id)
+		superseded, err := a.o.Store.Superseded(ctx, id)
 		if err != nil {
+			return nil, err
+		}
+		if superseded {
+			return nil, errReconcile
+		}
+		r, err := a.o.Store.BeginSend(context.Background(), id)
+		if errors.Is(err, state.ErrNotDue) {
+			if !wait(ctx, 100*time.Millisecond) {
+				return nil, ctx.Err()
+			}
+			continue
+		}
+		if err != nil {
+			if superseded, _ := a.o.Store.Superseded(ctx, id); superseded {
+				return nil, errReconcile
+			}
 			return nil, err
 		}
 		if len(r.Body) > a.settings.Limits.JSONBytes {
