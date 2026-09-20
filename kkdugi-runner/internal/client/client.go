@@ -106,6 +106,7 @@ type request struct {
 	body         []byte
 	statuses     []int
 	noStore      bool
+	array        bool
 }
 
 func validateObject(b []byte) error {
@@ -226,7 +227,12 @@ func (c *Client) send(ctx context.Context, r request) ([]byte, error) {
 	if err != nil || media != "application/json" || (params["charset"] != "" && !strings.EqualFold(params["charset"], "utf-8")) {
 		return nil, ErrProtocol
 	}
-	if err := validateObject(b); err != nil {
+	if r.array {
+		trim := bytes.TrimSpace(b)
+		if len(trim) == 0 || trim[0] != '[' || !utf8.Valid(trim) || !json.Valid(trim) {
+			return nil, ErrProtocol
+		}
+	} else if err := validateObject(b); err != nil {
 		return nil, err
 	}
 	if r.noStore {

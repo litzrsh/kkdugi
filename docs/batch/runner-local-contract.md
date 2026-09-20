@@ -1,6 +1,8 @@
 # Runner 로컬 설정·입출력 구현 계약
 
-이 문서는 [R0~R2 구현](runner-implementation-plan.md)의 파일 형식이다. Admin API의 실행 권한을 대신하지 않는다.
+이 문서는 [Runner 구현](runner-implementation-plan.md)의 파일 형식이다. Admin API의 실행 권한을 대신하지 않는다. `run`과 보호된 secret 파일 경로는 [R5 계약](runner-r5-contract.md)을 따른다.
+
+실행 중 설치 상태·revision 이력·승인 대조는 [R4 catalog 계약](runner-r4-contract.md)을 따른다. TOML 형식은 유지하며 wire JSON은 별도 DTO로 변환한다.
 
 ## 설정
 

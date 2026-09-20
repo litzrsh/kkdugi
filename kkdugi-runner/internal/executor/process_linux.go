@@ -18,6 +18,9 @@ func startProcess(s Spec, out, stderr *os.File) (process, error) {
 	cmd := exec.Command(s.Executable, s.Arguments...)
 	cmd.Dir, cmd.Env, cmd.Stdout, cmd.Stderr = s.Directory, append([]string{}, s.Environment...), out, stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if err := beforeStart(s); err != nil {
+		return nil, err
+	}
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}

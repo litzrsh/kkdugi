@@ -180,13 +180,13 @@ Admin 테이블과 구분해 로컬 테이블은 `kkdugi_runner_*` prefix를 제
 
 | 로컬 테이블 | 저장 내용·주요 키 |
 | --- | --- |
-| `kkdugi_runner_meta` | schema version, runnerId, 확정 session, 현재 bootId, 미완료 세션 개설 요청. key/value |
+| `kkdugi_runner_meta` | schema version, runnerId, 확정 session, 현재 bootId, 미완료 세션 개설 요청. R3에서는 제약 있는 단일 행으로 확정 |
 | `kkdugi_runner_assignment` | assignmentId PK, Run/프로그램 snapshot, 소유 session, 내부 단계, 시작 허가·의도, 프로세스 식별, 종료 증거, 불변 완료 본문·hash, 완료 ACK |
 | `kkdugi_runner_request` | 요청 ID PK, assignmentId 선택, method/path/key, 작성 시각·session·본문·hash, 전송 상태·다음 시각. 인증 토큰은 저장하지 않음 |
 | `kkdugi_runner_log_stream` | (assignmentId, stream) PK, 다음 순번, 연속 ACK, 마지막 확정 순번, COMPLETE/TRUNCATED/LOST |
 | `kkdugi_runner_log_chunk` | (assignmentId, stream, sequence) PK, 상대 파일 경로, UTF-8 byte 수, digest, emittedAt, 영속·전송 상태 |
 
-ID·session·JSON 본문·UTC 시각은 TEXT, 카운터·순번·크기·플래그는 INTEGER를 기본으로 하고 protocol의 범위를 넘지 않게 한다. Session처럼 문자열로 저장한 숫자는 사전식 정렬로 대소 비교하지 않는다. 로그 본문은 SQLite 밖에 보관하고 DB에는 참조만 둔다. 업무 입력·결과가 들어 있으므로 state와 work도 credential과 마찬가지로 서비스 계정에 맞는 접근 권한을 설정한다.
+ID·session·UTC 시각은 TEXT, 카운터·순번·크기·플래그는 INTEGER를 기본으로 하고 protocol의 범위를 넘지 않게 한다. R3에서 JSON 본문은 원문 bytes를 보존하는 BLOB으로 확정했다. Session처럼 문자열로 저장한 숫자는 사전식 정렬로 대소 비교하지 않는다. 로그 본문은 SQLite 밖에 보관하고 DB에는 참조만 둔다. 업무 입력·결과가 들어 있으므로 state와 work도 credential과 마찬가지로 서비스 계정에 맞는 접근 권한을 설정한다. 구현된 컬럼·제약은 [R3 계약](runner-r3-contract.md)을 따른다.
 
 초기 DB 접근은 단일 작성 경로와 짧은 트랜잭션으로 직렬화한다. HTTP, 프로세스 start/wait, 큰 파일 I/O를 트랜잭션 안에서 수행하지 않는다. 요청을 전송하기 전에 요청 자체와 관련 상태를 커밋하고, 응답 반영과 다음 상태·요청 예약을 함께 커밋한다.
 

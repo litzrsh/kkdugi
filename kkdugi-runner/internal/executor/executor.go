@@ -21,6 +21,10 @@ type Spec struct {
 	Environment        []string  // Explicit allowlist; the runner environment is never inherited.
 	Stdout, Stderr     io.Writer // Must return promptly; called independently for each stream.
 	Timeout, StopGrace time.Duration
+	BeforeStart        func() error         // Last check and durable intent, immediately before the OS call.
+	OnStarted          func(int, time.Time) // Must return promptly; called once after successful spawn.
+	OnStopping         func(string)
+	CancelGrace        func() time.Duration // May shorten the configured grace for an explicit stop.
 }
 
 type Result struct {
@@ -39,6 +43,19 @@ type process interface {
 	Stop() error
 	Kill() error
 	Close() error
+}
+
+type noStartError struct{ cause error }
+
+func (e *noStartError) Error() string { return "process start gate refused" }
+func (e *noStartError) Unwrap() error { return e.cause }
+func beforeStart(s Spec) error {
+	if s.BeforeStart != nil {
+		if err := s.BeforeStart(); err != nil {
+			return &noStartError{cause: err}
+		}
+	}
+	return nil
 }
 
 func validate(s Spec) error {
@@ -69,7 +86,7 @@ func validate(s Spec) error {
 
 // Run is an internal primitive. The future agent must commit START_INTENT before calling it.
 func Run(ctx context.Context, s Spec) Result {
-	r := Result{Reason: "START_FAILED"}
+	r := Result{Reason: "START_FAILED", ProcessExited: true}
 	if err := validate(s); err != nil {
 		r.Err = err
 		return r
@@ -94,8 +111,13 @@ func Run(ctx context.Context, s Spec) Result {
 	}
 	defer errR.Close()
 	defer errW.Close()
+	r.ProcessExited = false
 	p, err := startProcess(s, outW, errW)
 	if err != nil {
+		var gate *noStartError
+		if errors.As(err, &gate) {
+			r.ProcessExited = true
+		}
 		r.Err = err
 		return r
 	}
@@ -116,6 +138,10 @@ func Run(ctx context.Context, s Spec) Result {
 		}()
 	}
 	deadline := time.Now().Add(s.Timeout)
+	if s.OnStarted != nil {
+		s.OnStarted(r.PID, r.StartedAt)
+	}
+	grace := s.StopGrace
 	var stopping, killed, parentExited time.Time
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
@@ -151,13 +177,22 @@ func Run(ctx context.Context, s Spec) Result {
 		if stopping.IsZero() && (ctx.Err() != nil || !now.Before(deadline)) {
 			if ctx.Err() != nil {
 				r.Reason = "CANCELED"
+				if s.CancelGrace != nil {
+					g := s.CancelGrace()
+					if g >= 0 && g < grace {
+						grace = g
+					}
+				}
 			} else {
 				r.Reason = "TIMED_OUT"
 			}
 			stopping = now
+			if s.OnStopping != nil {
+				s.OnStopping(r.Reason)
+			}
 			r.Err = errors.Join(r.Err, p.Stop())
 		}
-		if !stopping.IsZero() && killed.IsZero() && !now.Before(stopping.Add(s.StopGrace)) {
+		if !stopping.IsZero() && killed.IsZero() && !now.Before(stopping.Add(grace)) {
 			r.Err = errors.Join(r.Err, p.Kill())
 			killed = now
 		}

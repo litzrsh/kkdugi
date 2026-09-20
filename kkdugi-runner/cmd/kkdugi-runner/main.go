@@ -6,9 +6,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 
+	"kkdugi-runner/internal/agent"
 	"kkdugi-runner/internal/config"
+	"kkdugi-runner/internal/credential"
 	"kkdugi-runner/internal/registration"
 )
 
@@ -21,8 +25,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "kkdugi-runner %s %s/%s protocol=1\n", version, runtime.GOOS, runtime.GOARCH)
 		return 0
 	}
-	if len(args) == 0 || (args[0] != "verify" && args[0] != "register") {
-		fmt.Fprintln(stderr, "usage: kkdugi-runner version | verify --config <path> | register --config <path> (token on stdin)")
+	if len(args) == 0 || (args[0] != "verify" && args[0] != "register" && args[0] != "run") {
+		fmt.Fprintln(stderr, "usage: kkdugi-runner version | verify --config <path> | register --config <path> (token on stdin) | run --config <path>")
 		return 2
 	}
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
@@ -37,7 +41,22 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 2
 	}
 	cfg, err := config.Load(*path)
+	if args[0] == "run" {
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		if err == nil {
+			err = agent.RunConfigured(ctx, cfg, version)
+		}
+		if err != nil {
+			fmt.Fprintf(stderr, "run stopped: %v\n", err)
+			return 1
+		}
+		return 0
+	}
 	if args[0] == "register" {
+		if err == nil {
+			err = credential.EnsureDirectory(cfg.DataDir)
+		}
 		if err == nil {
 			err = registration.Run(context.Background(), cfg.Admin, version, stdin)
 		}

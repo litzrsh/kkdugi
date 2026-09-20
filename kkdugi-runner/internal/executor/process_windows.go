@@ -82,6 +82,9 @@ func startProcess(s Spec, out, stderr *os.File) (process, error) {
 	block := utf16.Encode([]rune(strings.Join(env, "\x00") + "\x00\x00"))
 	var pi windows.ProcessInformation
 	flags := uint32(windows.CREATE_SUSPENDED | windows.CREATE_NO_WINDOW | windows.CREATE_UNICODE_ENVIRONMENT | windows.EXTENDED_STARTUPINFO_PRESENT)
+	if err := beforeStart(s); err != nil {
+		return nil, err
+	}
 	err = windows.CreateProcess(app, command, nil, nil, true, flags, &block[0], directory, &si.StartupInfo, &pi)
 	runtime.KeepAlive(handles)
 	if err != nil {
