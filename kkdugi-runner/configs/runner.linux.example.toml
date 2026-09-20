@@ -1,0 +1,16 @@
+data_dir = '../data'
+capacity = 1
+
+[[programs]]
+code = 'identity-check'
+version = '1'
+revision = 'local-example-1'
+
+[programs.manifest]
+executable = '/usr/bin/id'
+arguments = []
+working_directory = '/tmp'
+input_contract = '1'
+input_mode = 'JSON_FILE'
+secret_names = []
+files = []

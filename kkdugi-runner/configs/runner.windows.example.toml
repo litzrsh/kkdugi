@@ -1,0 +1,17 @@
+# R0 verify example. This checks the installed executable; it does not execute it.
+data_dir = '../data'
+capacity = 1
+
+[[programs]]
+code = 'identity-check'
+version = '1'
+revision = 'local-example-1'
+
+[programs.manifest]
+executable = 'C:\Windows\System32\whoami.exe'
+arguments = []
+working_directory = 'C:\Windows'
+input_contract = '1'
+input_mode = 'JSON_FILE'
+secret_names = []
+files = []

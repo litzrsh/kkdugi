@@ -61,6 +61,27 @@ ROLES = {
     },
 }
 
+GO_RULES = """\
+Runner project rules:
+- Go module kkdugi-runner, internal packages with narrow responsibilities.
+- Follow the supplied runner API and architecture documents. Java/admin rules do not apply.
+- No workflow scheduling or retry creation in runner; admin owns those decisions.
+- Keep assignment inputs, outputs, and child environments isolated. Never log secrets.
+- Do not invent APIs, silently discard errors, or claim tests passed without running them.
+"""
+
+
+def system_prompt(role_name, profile):
+    if profile == "java":
+        return ROLES[role_name]["system"]
+    if profile != "go":
+        raise ValueError(f"Unknown profile: {profile}")
+    if role_name == "coder":
+        return ("You are a senior Go developer. Output the requested code only. "
+                "For multiple files, put the path before each code block.\n\n" + GO_RULES)
+    return ("You are a strict Go code reviewer. Report concrete bugs and missing edge cases, "
+            "most severe first. Cite the relevant code. If none, say so.\n\n" + GO_RULES)
+
 FENCE_ONLY = re.compile(r"^\s*```[\w+-]*\n(.*?)\n```\s*$", re.DOTALL)
 
 
@@ -115,16 +136,18 @@ def read_context(paths):
     return "\n\n".join(chunks)
 
 
-def call_ollama(role_name, request, context):
+def call_ollama(role_name, request, context, profile="java", think=None):
     role = ROLES[role_name]
     prompt = f"Request:\n{request}\n\nReference code:\n{context or '(none)'}"
     payload = {
         "model": role["model"],
-        "system": role["system"],
+        "system": system_prompt(role_name, profile),
         "prompt": prompt,
         "stream": False,
         "keep_alive": KEEP_ALIVE,
     }
+    if think is not None:
+        payload["think"] = think
     req = urllib.request.Request(
         OLLAMA_URL,
         data=json.dumps(payload).encode("utf-8"),
@@ -141,6 +164,8 @@ def call_ollama(role_name, request, context):
         sys.exit(f"Failed to call Ollama ({OLLAMA_URL}): {e}. Is the server running?")
 
     text = result.get("response", "")
+    if not isinstance(text, str) or not text.strip():
+        sys.exit(f"Ollama returned an empty response for role '{role_name}'; no code or review was produced.")
     if role["strip_fences"]:
         m = FENCE_ONLY.match(text)
         if m:
@@ -153,13 +178,18 @@ def main():
     sys.stdin.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-r", "--role", required=True, choices=sorted(ROLES), help="role to delegate the task to")
+    parser.add_argument("--profile", choices=("java", "go"), default="java",
+                        help="project rules to apply (default: java)")
+    parser.add_argument("--think", choices=("auto", "true", "false"), default="auto",
+                        help="Ollama thinking option; auto preserves model defaults")
     parser.add_argument("request", help="what to do")
     parser.add_argument("-c", "--code-file", action="append", default=[], metavar="PATH",
                         help="reference code file (repeatable; '-' reads stdin)")
     args = parser.parse_args()
     context = read_context(args.code_file)
     with ollama_lock(args.role):
-        print(call_ollama(args.role, args.request, context))
+        think = None if args.think == "auto" else args.think == "true"
+        print(call_ollama(args.role, args.request, context, args.profile, think))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 # Runner 프로그램 구조 설계
 
 - 작성일: 2026-09-20
-- 상태: **구현·테스트를 시작하기 위한 설계안**. Go 소스나 로컬 DB migration은 아직 추가하지 않았다. 테스트 결과에 따라 내부 패키지와 운영 기본값을 조정한다.
+- 상태: **구현·테스트의 기준 설계안**. 설정·workspace·executor의 초기 Go 구현을 시작했으며 로컬 DB·admin 연동은 후속 단계다. 실제 진척과 검증 범위는 [구현 계획](runner-implementation-plan.md)에 기록한다.
 - 기준: [채택 기술 스택](runner-tech-stack.md), [Admin–Runner API v1](runner-api.md), [실행 및 장애 처리](execution.md).
 - 범위: 별도 `kkdugi-runner` Go 프로젝트. Runner는 배정된 프로그램 하나를 실행한다. 스케줄, Job 재시도, Workflow 진행·owner 승인은 admin이 결정한다.
 
@@ -34,7 +34,7 @@ CLI / OS Service
 
 ## 2. 소스 디렉터리와 의존 관계
 
-아래는 생성할 프로젝트의 제안 구조이며 현재 존재하는 파일 목록이 아니다. 처음에는 단일 Go module로 시작한다.
+아래는 목표 프로젝트 구조이며 모든 파일이 구현되었다는 뜻은 아니다. 단일 Go module로 시작하고 [구현 계획](runner-implementation-plan.md)의 순서대로 패키지를 추가한다.
 
 ```text
 kkdugi-runner/
@@ -228,4 +228,4 @@ Chunk 임시 파일과 확정 파일을 구분하고 flush·rename·디렉터리
 
 Linux/Windows를 분리할 구조는 유지하되 최초 운영 OS와 버전·CPU 범위는 아직 확정하지 않았다. 해당 환경의 프로세스 관리·서비스 종료·SQLite 내구성 검증이 끝난 조합부터 지원 대상으로 표시한다. Admin과 함께 테스트할 때는 기존 Java·JS 테스트도 수행한다.
 
-이번 문서는 설계 결과이며 위 테스트를 이미 통과했다는 의미가 아니다. 최초 구현은 단계 1의 실행 경로부터 만들고, 각 단계에서 발견한 API 모호성은 [Runner API 계약](runner-api.md)에 함께 반영한다.
+이번 문서는 전체 설계 기준이며 위 테스트 전부를 통과했다는 의미가 아니다. 실제 구현·검증 상태는 [구현 계획](runner-implementation-plan.md)에 구분해 기록하고, 발견한 API 모호성은 [Runner API 계약](runner-api.md)에 함께 반영한다.

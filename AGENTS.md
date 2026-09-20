@@ -317,7 +317,11 @@ The script needs Python 3 and a running Ollama server (`localhost:11434`).
   python scripts/ollama_implements.py --role reviewer "<review request>" -c <file to review>
   ```
   - Pass reference code with `-c <file path>` (repeatable, `-` reads stdin); do not paste code into the arguments.
-  - The script injects the project rules (no records, extend `BaseModel`, package split, etc.) as the system prompt; do not repeat them in the request.
+  - For the Go runner, add `--profile go`; the default `java` profile preserves existing admin calls.
+    Example: `python scripts/ollama_implements.py --role coder --profile go "Write one runner work unit" -c docs/batch/runner-local-contract.md`.
+    `--think auto|true|false` optionally controls Ollama thinking; `auto` keeps model defaults.
+    Empty model responses are errors, never successful code generation or reviews.
+  - The script injects the selected profile's project rules as the system prompt; do not repeat them in the request. The default Java profile includes no records, `BaseModel`, and package split rules; the Go profile uses the runner's boundaries.
   - It prints the model's reply to stdout and does not write any files.
   - `reviewer` (27B) is slow on first load and per reply (a single small file took 4-6 minutes); use it only for reviews that matter.
 - **Run sequentially, never in parallel**: the local machine has 32GB RAM and only 8GB VRAM, so the 27B model runs mostly from system RAM.
@@ -328,4 +332,6 @@ The script needs Python 3 and a running Ollama server (`localhost:11434`).
 - **Verify**: never trust local-model output as-is. Review it, apply it yourself,
   fix rule violations, then run `./mvnw.cmd -B -ntp test` (from `kkdugi-admin/`)
   and report failures as they are.
+  For `kkdugi-runner/`, also run `go test ./...`, `go vet ./...`, and build the runner.
+  Cross compilation does not establish runtime support for another OS.
 <!-- ollama:end -->

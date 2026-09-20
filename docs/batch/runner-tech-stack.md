@@ -1,7 +1,7 @@
 # Runner 기술 스택
 
 - 작성일: 2026-09-20
-- 상태: **채택 (2026-09-20, 프로젝트 owner 승인)**. 기술 스택을 확정했으며 runner 코드·설치 패키지 구현과 성능 검증은 후속 작업이다.
+- 상태: **채택 (2026-09-20, 프로젝트 owner 승인)**. 초기 runner 구성 요소의 구현·검증을 시작했다. 범위와 미완료 단계는 [구현 계획](runner-implementation-plan.md)에 기록하며 서비스 설치 패키지와 성능 검증은 후속 작업이다.
 - 채택 조합: **Go + 표준 HTTP/JSON + TOML + 로컬 SQLite + OS 서비스**.
 - 지원 범위 검토 기준: Linux/Windows 모두 대응할 수 있는 구조, 최초 배포 후보는 linux/amd64와 windows/amd64. 실제 지원 OS 버전·CPU 범위는 운영 환경에 맞춰 확정한다.
 - [전체 설계](README.md) / [실행·복구 규칙](execution.md) / [Workflow 진행 책임](workflow-extension.md)
