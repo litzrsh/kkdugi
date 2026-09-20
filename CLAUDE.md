@@ -42,8 +42,8 @@ common codes were added the same day, and menu management followed on
 storage — its addendum documents the current DB-function-based ID scheme)
 — before making changes to those areas.
 
-Every new domain module (menu, permissions, users, session — all still
-upcoming) must follow
+Every domain module (code, message, menu, authority, user — all implemented
+— and any new one) must follow
 [docs/conventions/common-base-model.md](docs/conventions/common-base-model.md):
 per feature, split into `{package}.models` (domain models + search
 params + commands/results), `{package}.mapper` (MyBatis interfaces),
@@ -153,6 +153,10 @@ kkdugi
 │       ├─ i18n     — models(AdminMessage, AdminMessageParams, AdminMessagePersistRequest,
 │       │             MessageCode, MessageCodeRow), exceptions(AdminMessage*),
 │       │             mapper(AdminMessageMapper), service(AdminMessageService)
+│       ├─ authority — models(AdminAuthority, AdminAuthorityParams, AdminAuthorityPersistRequest,
+│       │             AdminAuthorityMenu, AdminAuthorityUser, AuthorityBase, ...),
+│       │             exceptions(AdminAuthority{Validation,Conflict,NotFound}Exception),
+│       │             mapper(AdminAuthorityMapper), service(AdminAuthorityService — SerialUtils.next(config))
 │       └─ user     — models(UserBase, AdminUser, AdminUserParams, AdminUserPersistRequest, AdminUserIds,
 │                     AdminUserChangeStatusRequest, UserAuthority, AdminUserAuthority,
 │                     AdminUserAuthoritiesRequest), exceptions(AdminUser*), mapper(AdminUserMapper),
@@ -160,7 +164,8 @@ kkdugi
 ├─ api              — controllers stay flat (not split into subpackages)
 │   ├─ CodeController (/api/v1.0/code), MenuController (/api/v1.0/menu)
 │   └─ admin        — AdminCodeController, AdminMenuController, AdminMessageController,
-│                     AdminUserController (/api/v1.0/admin/{code,menu,i18n,user}); validation/conflict exceptions
+│                     AdminAuthorityController, AdminUserController
+│                     (/api/v1.0/admin/{code,menu,i18n,authority,user}); validation/conflict exceptions
 │                     map to `ExceptionMessage`, see `kkdugi.core.exceptions`
 └─ web.admin        — Thymeleaf/Pragma entry points (IndexController, LoginController, PragmaController)
 ```
@@ -198,14 +203,20 @@ mapper XML file — mapper XML only calls it.
 
 ## Scope notes
 
-- Organization/org-chart features exist in the ERD (`erd/`) but are
-  explicitly out of scope for implementation.
-- No global exception handling or common response envelope exists yet; each
-  controller handles its own exceptions locally
-  (`AdminMessageController`/`AdminCodeController`).
-- `REG_ID`/`UPD_ID` (and `code_base`'s equivalents) are written as a fixed
-  `"SYSTEM"` placeholder — there is no session/auth system yet to supply a
-  real user id.
+- Organization/org-chart features are explicitly out of scope for
+  implementation. (The `erd/` directory that originally modeled them was
+  removed 2026-09-20; the Flyway migrations under
+  `src/main/resources/db/migration` are now the schema source of truth.)
+- No common response envelope exists. Exception handling is two-layered:
+  `kkdugi.core.exceptions.advice.RestfulExceptionAdvice` (`@RestControllerAdvice`)
+  handles `Restful*Exception(s)`, authentication/access-denied errors, and a
+  500 fallback; the per-domain `Admin*ValidationException`/`*ConflictException`/
+  `*NotFoundException` are still mapped to `ExceptionMessage` locally by
+  `@ExceptionHandler` methods in each admin controller.
+- `REG_ID`/`UPD_ID` (and `code_base`'s equivalents) are still written as a
+  fixed `"SYSTEM"` (a private `SYSTEM_USER_ID` constant in each
+  `app.admin.*` service) even though the session/auth system now exists
+  (`SessionUtils.getUser()`); wiring the real user id in is not done yet.
 - Common codes: `code` (the path segment) and `parentId` are immutable
   after creation — changing either is rejected (409). Moving/renaming a
   node in the tree requires delete + recreate for now (see ADR-0012 "미해결
@@ -232,5 +243,10 @@ mapper XML file — mapper XML only calls it.
   done (owner's decision). Details in
   [docs/user-system-design.md](docs/user-system-design.md) and
   [docs/api/user.md](docs/api/user.md).
-- Session system (user + permissions + menu) is a separate next step beyond
-  the API sections above.
+- The session system (login → JWT + `SessionUser`/`SessionMenu`, menu-based
+  authorization, the `/pragma/{menuId}` screen fragments) is implemented in
+  `kkdugi.core.security` / `kkdugi.web.admin`; see
+  [docs/api/auth.md](docs/api/auth.md),
+  [docs/api/session.md](docs/api/session.md),
+  [docs/api/request-context.md](docs/api/request-context.md), and
+  [docs/api/authority.md](docs/api/authority.md) for authority management.

@@ -42,8 +42,8 @@ common codes were added the same day, and menu management followed on
 storage — its addendum documents the current DB-function-based ID scheme)
 — before making changes to those areas.
 
-Every new domain module (menu, permissions, users, session — all still
-upcoming) must follow
+Every domain module (code, message, menu, authority, user — all implemented
+— and any new one) must follow
 [docs/conventions/common-base-model.md](docs/conventions/common-base-model.md):
 per feature, split into `{package}.models` (domain models + search
 params + commands/results), `{package}.mapper` (MyBatis interfaces),
@@ -153,6 +153,10 @@ kkdugi
 │       ├─ i18n     — models(AdminMessage, AdminMessageParams, AdminMessagePersistRequest,
 │       │             MessageCode, MessageCodeRow), exceptions(AdminMessage*),
 │       │             mapper(AdminMessageMapper), service(AdminMessageService)
+│       ├─ authority — models(AdminAuthority, AdminAuthorityParams, AdminAuthorityPersistRequest,
+│       │             AdminAuthorityMenu, AdminAuthorityUser, AuthorityBase, ...),
+│       │             exceptions(AdminAuthority{Validation,Conflict,NotFound}Exception),
+│       │             mapper(AdminAuthorityMapper), service(AdminAuthorityService — SerialUtils.next(config))
 │       └─ user     — models(UserBase, AdminUser, AdminUserParams, AdminUserPersistRequest, AdminUserIds,
 │                     AdminUserChangeStatusRequest, UserAuthority, AdminUserAuthority,
 │                     AdminUserAuthoritiesRequest), exceptions(AdminUser*), mapper(AdminUserMapper),
@@ -160,7 +164,8 @@ kkdugi
 ├─ api              — controllers stay flat (not split into subpackages)
 │   ├─ CodeController (/api/v1.0/code), MenuController (/api/v1.0/menu)
 │   └─ admin        — AdminCodeController, AdminMenuController, AdminMessageController,
-│                     AdminUserController (/api/v1.0/admin/{code,menu,i18n,user}); validation/conflict exceptions
+│                     AdminAuthorityController, AdminUserController
+│                     (/api/v1.0/admin/{code,menu,i18n,authority,user}); validation/conflict exceptions
 │                     map to `ExceptionMessage`, see `kkdugi.core.exceptions`
 └─ web.admin        — Thymeleaf/Pragma entry points (IndexController, LoginController, PragmaController)
 ```
@@ -198,14 +203,20 @@ mapper XML file — mapper XML only calls it.
 
 ## Scope notes
 
-- Organization/org-chart features exist in the ERD (`erd/`) but are
-  explicitly out of scope for implementation.
-- No global exception handling or common response envelope exists yet; each
-  controller handles its own exceptions locally
-  (`AdminMessageController`/`AdminCodeController`).
-- `REG_ID`/`UPD_ID` (and `code_base`'s equivalents) are written as a fixed
-  `"SYSTEM"` placeholder — there is no session/auth system yet to supply a
-  real user id.
+- Organization/org-chart features are explicitly out of scope for
+  implementation. (The `erd/` directory that originally modeled them was
+  removed 2026-09-20; the Flyway migrations under
+  `src/main/resources/db/migration` are now the schema source of truth.)
+- No common response envelope exists. Exception handling is two-layered:
+  `kkdugi.core.exceptions.advice.RestfulExceptionAdvice` (`@RestControllerAdvice`)
+  handles `Restful*Exception(s)`, authentication/access-denied errors, and a
+  500 fallback; the per-domain `Admin*ValidationException`/`*ConflictException`/
+  `*NotFoundException` are still mapped to `ExceptionMessage` locally by
+  `@ExceptionHandler` methods in each admin controller.
+- `REG_ID`/`UPD_ID` (and `code_base`'s equivalents) are still written as a
+  fixed `"SYSTEM"` (a private `SYSTEM_USER_ID` constant in each
+  `app.admin.*` service) even though the session/auth system now exists
+  (`SessionUtils.getUser()`); wiring the real user id in is not done yet.
 - Common codes: `code` (the path segment) and `parentId` are immutable
   after creation — changing either is rejected (409). Moving/renaming a
   node in the tree requires delete + recreate for now (see ADR-0012 "미해결
@@ -232,8 +243,13 @@ mapper XML file — mapper XML only calls it.
   done (owner's decision). Details in
   [docs/user-system-design.md](docs/user-system-design.md) and
   [docs/api/user.md](docs/api/user.md).
-- Session system (user + permissions + menu) is a separate next step beyond
-  the API sections above.
+- The session system (login → JWT + `SessionUser`/`SessionMenu`, menu-based
+  authorization, the `/pragma/{menuId}` screen fragments) is implemented in
+  `kkdugi.core.security` / `kkdugi.web.admin`; see
+  [docs/api/auth.md](docs/api/auth.md),
+  [docs/api/session.md](docs/api/session.md),
+  [docs/api/request-context.md](docs/api/request-context.md), and
+  [docs/api/authority.md](docs/api/authority.md) for authority management.
 
 <!-- graft:start -->
 ## Graft — repo context graph
@@ -276,3 +292,40 @@ re-read whole files.
 After big code changes, refresh the graph with `graft build` (deterministic,
 no API key, $0).
 <!-- graft:end -->
+
+<!-- ollama:start -->
+# Local Ollama delegation (main agent + local models)
+
+Any agent working in this repo (Codex, Claude Code, others) may delegate small,
+well-scoped work to local Ollama models through `scripts/ollama_implements.py`.
+The script needs Python 3 and a running Ollama server (`localhost:11434`).
+
+- **Main agent (you)**: analyze the request, decide which files change, and split
+  the work into small units. Parts that need many convention judgments
+  (e.g. service logic) should be written by you directly.
+- **Delegate by role** with `--role`. The role -> model mapping is fixed in the
+  script's `ROLES`; to change a model, edit only the script.
+
+  | Role | Model | Use for |
+  |---|---|---|
+  | `coder` | `qwen2.5-coder:7b` | Boilerplate: model classes, simple mappers |
+  | `reviewer` | `qwen3.8:latest` | Reviewing generated or existing code (bugs, project-rule violations) |
+
+- **How to call**:
+  ```bash
+  python scripts/ollama_implements.py --role coder "<requirements for one work unit>" -c <reference file> [-c <another file>]
+  python scripts/ollama_implements.py --role reviewer "<review request>" -c <file to review>
+  ```
+  - Pass reference code with `-c <file path>` (repeatable, `-` reads stdin); do not paste code into the arguments.
+  - The script injects the project rules (no records, extend `BaseModel`, package split, etc.) as the system prompt; do not repeat them in the request.
+  - It prints the model's reply to stdout and does not write any files.
+  - `reviewer` (27B) is slow on first load and per reply (a single small file took 4-6 minutes); use it only for reviews that matter.
+- **Run sequentially, never in parallel**: the local machine has 32GB RAM and only 8GB VRAM, so the 27B model runs mostly from system RAM.
+  - Run one call at a time and wait for it to finish before starting the next; do not launch `coder` and `reviewer` at the same time or fan calls out to parallel subagents.
+  - The script enforces this with a machine-wide lock file (`kkdugi-ollama.lock` in the OS temp dir). If another call is running, it exits immediately with code 3 and names the holder; wait for that call to finish and run yours again. Never delete the lock file (the OS releases it automatically if the holder dies).
+  - The script's timeout is 30 minutes and it asks Ollama to keep the model loaded for 30 minutes (`TIMEOUT_SEC`, `KEEP_ALIVE`). Do not retry a slow call: a retry queues a second request behind the first.
+  - Agent shell tools often cap a command at about 10 minutes. Run `reviewer` in the background (or with the longest allowed timeout) and wait for it to complete.
+- **Verify**: never trust local-model output as-is. Review it, apply it yourself,
+  fix rule violations, then run `./mvnw.cmd -B -ntp test` (from `kkdugi-admin/`)
+  and report failures as they are.
+<!-- ollama:end -->

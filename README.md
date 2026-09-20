@@ -89,7 +89,6 @@ kkdugi-admin/                     단일 Maven 애플리케이션
     static/                      JavaScript·CSS·폰트 등 정적 리소스
   src/test/                      Java 및 JavaScript 테스트
 docs/                            API 계약·설계·개발 규칙·ADR
-erd/                             데이터 모델 자료
 graft/                           코드 탐색용 컨텍스트 그래프
 docker-compose.yml               로컬 PostgreSQL·Redis
 ```

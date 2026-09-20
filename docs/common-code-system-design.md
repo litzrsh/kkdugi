@@ -19,9 +19,10 @@
 
 ## 데이터 모델
 
-ERD의 `KKDUGI_CODE_BASE`/`KKDUGI_CODE_LANG`/`KKDUGI_SERIAL_BASE`를 그대로
-따른다(Flyway `V2__create_serial_base.sql`, `V3__create_code.sql`,
-`V4__create_fn_get_serial.sql`).
+`KKDUGI_CODE_BASE`/`KKDUGI_CODE_LANG`/`KKDUGI_SERIAL_BASE` 테이블은 Flyway
+마이그레이션(`V2__create_serial_base.sql`, `V3__create_code.sql`,
+`V4__create_fn_get_serial.sql`)이 정의한다. 원래 기준이던 `erd/`는 2026-09-20에
+삭제되어 마이그레이션이 스키마의 기준이다.
 
 **`kkdugi_code_base`** — 코드 트리의 각 노드 1행.
 
@@ -114,7 +115,7 @@ i18n과 마찬가지로 컨트롤러는 `app.admin.code.models`의 타입을 요
 ## 검증
 
 - `code`(코드 값) 자체에는 `MessageCode` 같은 정규식 형식 검증이 없다 —
-  비어있지 않은지만 확인한다(ERD/스펙 어디에도 형식 규칙이 없음).
+  비어있지 않은지만 확인한다(스펙과 당시 ERD 어디에도 형식 규칙이 없었음).
 - `locale`은 insert/`update`(제공 시)에서 최소 1개 이상, 각 항목의
   `name`은 필수(`remarks`는 선택).
 

@@ -1,0 +1,134 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<DomainFile class="oracle.dbtools.crest.model.design.DomainFileWrapper" fileName="domains">
+   <domains>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Date (string)" directorySegmentName="seg_0" id="07586E43-E1AC-BBB8-EBF3-C0CD160EEF8A">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:37:44 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>8</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT025</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Boolean" directorySegmentName="seg_0" id="3EA06EAD-FEA1-55BF-32A0-0B048C2C4DF4">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:37:03 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>1</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT025</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="ID" directorySegmentName="seg_0" id="452DB87B-56C8-B572-7DC2-B4A84E66EB2E">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:35:17 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>20</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT024</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Date" directorySegmentName="seg_0" id="536B23E5-1B81-189C-3582-0B26CE62252F">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:38:13 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT007</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Timestamp" directorySegmentName="seg_0" id="596C479B-9DFA-A302-4E09-F0C6ED9B65CB">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:38:25 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT015</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Clob" directorySegmentName="seg_0" id="7F308678-D917-33E4-D644-B4FFA4D0E24E">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 05:55:09 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT028</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Text field" directorySegmentName="seg_0" id="962492F5-6744-E7FB-E3C2-3841BA51A57E">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:35:59 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>200</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT024</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Text field (Long)" directorySegmentName="seg_0" id="9C5F9569-7417-9AF0-0059-814EEC4A0205">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:36:15 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>4000</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT024</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Integer" directorySegmentName="seg_0" id="A36D3924-8371-BA32-FF12-7F41B1E29E4A">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:54:36 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT011</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Blob" directorySegmentName="seg_0" id="BEA43A08-1D3C-BC10-F0A0-F91B6EBA7E0D">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:36:48 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT029</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Code" directorySegmentName="seg_0" id="C891F0B4-38C8-5DC0-175D-62284AE0AFA9">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:37:14 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>20</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT024</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Unknown" id="DOM3000004">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:35:14 UTC</createdTime>
+         <ownerDesignName>System</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <fileName>defaultdomains</fileName>
+         <logicalDatatype>LOGDT017</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Text field (Short)" directorySegmentName="seg_0" id="F2F0B0EC-9619-C9BF-CD42-4867462BC4E5">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:35:32 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>50</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT024</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="Encrypted field" directorySegmentName="seg_0" id="F50FB5D0-442B-C992-21A4-FED958770C30">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:39:20 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>2048</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT024</logicalDatatype>
+      </Domain>
+      <Domain class="oracle.dbtools.crest.model.design.Domain" name="URL" directorySegmentName="seg_0" id="FD889E28-7203-0A86-C112-4A2C32938CF6">
+         <createdBy>litzrsh</createdBy>
+         <createdTime>2026-09-07 04:36:33 UTC</createdTime>
+         <ownerDesignName>domains</ownerDesignName>
+         <avTSortOrder>0</avTSortOrder>
+         <dataTypeSize>2000</dataTypeSize>
+         <fileName>domains</fileName>
+         <logicalDatatype>LOGDT024</logicalDatatype>
+      </Domain>
+   </domains>
+</DomainFile>
