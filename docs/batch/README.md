@@ -5,6 +5,7 @@
 - 확정 요구: admin은 `kkdugi-admin`에 구현, runner는 머신에 별도 설치, 등록 프로그램으로 Job 생성, 자동·수동 실행 지원.
 - 확정 요구: **Job 하나는 프로그램 하나를 실행한다.** 향후 여러 Job을 연결하는 Workflow로 확장할 수 있어야 한다.
 - 확정 요구: **Workflow의 진행 여부는 admin이 결정한다.** Runner의 Job 완료 이벤트를 받은 admin이 다음 단계를 자동 진행하거나 Workflow owner의 승인을 기다린다.
+- 채택 기술 스택: Runner는 **Go + HTTPS REST/JSON + TOML + 로컬 SQLite + OS 서비스**를 사용한다. 2026-09-20 프로젝트 owner 승인. [선정 근거](runner-tech-stack.md)
 - 그 외 아래 정책과 수치는 제안이며 구현 전에 조정할 수 있다.
 
 ## 1. 구성과 책임
@@ -63,7 +64,7 @@ Runner가 HTTPS로 admin에 작업을 요청하는 **pull 방식**을 제안한�
 5. Runner가 설치 정보를 admin에 보고한다. 관리자가 해당 설치를 승인하면 Job에서 사용할 수 있다. 실행 정의나 버전이 바뀌면 새 revision으로 재승인한다.
 6. 관리자가 승인된 프로그램·runner를 선택해 Job을 만들고 필요하면 스케줄을 연결한다.
 
-예: runner에는 `java` 실행 파일과 고정 인자 `-jar /opt/batch/sales.jar`를 등록한다. Job에는 `businessDate` 같은 업무 입력만 등록한다. Runner가 선언된 규칙에 따라 입력을 인자 배열로 변환하며, 임의의 shell 명령 문자열을 admin에서 전달하지 않는다. 스크립트는 승인된 interpreter와 script 경로를 고정해서 실행한다.
+예: runner에는 `java` 실행 파일과 고정 인자 `-jar /opt/batch/sales.jar`를 등록한다. Job에는 `businessDate` 같은 업무 입력만 등록한다. v1은 해석된 입력을 JSON 파일로 저장하고 환경 변수로 파일 위치를 전달한다. 스크립트는 승인된 interpreter와 script 경로를 고정하며 임의의 shell 명령 문자열을 admin에서 전달하지 않는다.
 
 입력은 Job 기본값에 수동 실행·스케줄의 값을 덮어쓴 후 검증한다. 일자 표현식이 필요하면 `scheduledAt`, 시간대 등 제한된 실행 컨텍스트만 지원하고 일반 스크립트 평가를 허용하지 않는다. 표현식을 해석한 최종 값은 Run에 저장하며 재시도에서 다시 계산하지 않는다. 비밀 값은 머신의 secret 참조로 관리한다.
 
@@ -92,13 +93,16 @@ cron은 초를 포함한 6필드 형식으로 고정하는 안을 제안한다. 
 3. **운영 확장:** runner pool/태그, 알림, 대용량 로그·산출물 저장소, 운영 통계.
 4. **Workflow:** admin이 담당하는 Job 연결·진행 판단, 자동 진행/owner 승인, 승인 대기·재개, 의존성·병렬 실행·조건 분기, 단계별 입력/결과 매핑, Workflow 실행·승인 이력.
 
-초기 제외: 프런트엔드 구현, 프로그램 원격 배포, 컨테이너 executor, 머신 자동 증설, 조직 관리, Workflow 엔진 구현. Runner 구현 언어·지원 OS·설치 형식은 별도 결정한다. 설계는 OS별 프로세스 트리 종료와 서비스 재시작 복구가 가능해야 한다는 요구만 둔다.
+초기 제외: 프런트엔드 구현, 프로그램 원격 배포, 컨테이너 executor, 머신 자동 증설, 조직 관리, Workflow 엔진 구현. Runner는 [Go 기반 기술 스택](runner-tech-stack.md)을 채택했다. 지원 OS 범위와 설치 형식은 운영 환경에 맞춰 확정하고, OS별 프로세스 트리 종료와 서비스 재시작 복구를 검증한다.
 
 ## 7. 상세 문서
 
-- [테이블 설계](tables.md): `kkdugi_batch_*` 필수 10개 테이블, 컬럼별 도메인·PostgreSQL 타입, 관계·제약조건·인덱스.
+- [테이블 설계](tables.md): `kkdugi_batch_*` 필수 11개 테이블, 컬럼별 도메인·PostgreSQL 타입, 관계·제약조건·인덱스. API 응답 유실 대응용 멱등 기록 테이블을 포함한다.
 - [도메인 적용 규칙](domain-types.md): Oracle 기준 `domains.xml`의 PostgreSQL 매핑과 배치 전용 확장·호환 예외.
 - [실행 및 장애 처리](execution.md): 통신, 상태 전이, 중복·재시도·취소 정책, 프로젝트 적용 규칙.
 - [Workflow 확장](workflow-extension.md): 지금 유지할 경계와 나중에 추가할 테이블.
+- [Runner 기술 스택](runner-tech-stack.md): 채택한 Go 기반 구성, 로컬 SQLite·로그 보관, OS 서비스·프로세스 관리와 대안 비교.
+- [Admin–Runner API 계약](runner-api.md): 등록·세션·배정·시작·로그·완료·장애 복구 통신 계약, 미구현.
+- [배치 관리자 API 계약](admin-api.md): 설정 관리·수동 실행·취소·재실행·운영 복구 계약, 미구현.
 
-다음 설계에서 우선 결정할 항목은 runner 지원 OS/언어, 머신에서 등록 후 admin 승인하는 운영 절차, runner 직접 지정으로 시작할지 여부, 로그 보관량이다. 이 문서의 기본안을 채택하면 그다음 API 계약과 실제 PostgreSQL DDL을 작성할 수 있다.
+API 설계는 위 두 계약을 기준으로 한다. v1은 runner 직접 지정, 머신 설치 보고 후 admin 승인, JSON 파일 입력 방식으로 구체화했다. 운영 기본값은 계약에 명시했으며 실제 지원 OS 범위와 PostgreSQL DDL·구현이 후속 작업이다.

@@ -38,7 +38,7 @@
 
 감사자 ID의 60자는 기존 사용자 PK·감사 컬럼과의 호환 예외다. 새 배치 PK/FK의 ID 도메인 길이 20자를 변경하는 근거로 사용하지 않는다. actor 종류는 Event의 `actor_type`으로 구분하고 ID에 접두사를 무제한 결합하지 않는다.
 
-## 2. 필수 테이블 10개
+## 2. 필수 테이블 11개
 
 ### 2.1 `kkdugi_batch_runner` — Runner
 
@@ -53,6 +53,7 @@
 | `agent_ver` | Text field (Short) | `varchar(50)` | Runner 버전, 등록 전 NULL 가능 |
 | `capacity_cnt` | Integer | `integer` | 동시 배정 최대 수, 양수 |
 | `session_ver` | Integer (범위 확장) | `bigint` | 재등록/재시작 시 발급되는 세션 세대, 이전 세션 구분 |
+| `boot_ref` | Text field (Short) | `varchar(50)` | 현재 runner 기동 UUID. 같은 세션 개설 요청의 재전송 판별, 최초 개설 전 NULL |
 | `last_seen_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 마지막 인증된 heartbeat, 등록 전 NULL |
 | `config_ver` | Integer (범위 확장) | `bigint` | 관리 설정 낙관적 잠금 버전 |
 
@@ -194,6 +195,8 @@ Run은 요청의 스냅샷이며 설정 변경으로 수정하지 않는다. `ac
 | `lease_until_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 배정 임대 만료 시각 |
 | `heartbeat_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 해당 배정의 마지막 heartbeat, 최초 수신 전 NULL |
 | `assigned_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 배정 시각 |
+| `start_permit_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 최초 시작 허가 시각, 허가 전 NULL. 재전송으로 변경하지 않음 |
+| `start_deadline_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 시작 허가 만료 시각, 허가 전 NULL. 배정 lease 이하 |
 | `started_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 프로세스 시작 시각, 시작 전 NULL |
 | `finished_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 종료 시각, 종료 전 NULL |
 | `process_ref` | Text field | `varchar(200)` | PID + 시작 시각 등 로컬 프로세스 식별, 시작 전 NULL |
@@ -243,6 +246,28 @@ Run은 요청의 스냅샷이며 설정 변경으로 수정하지 않는다. `ac
 | `detail_data` | Clob (JSON 확장) | `jsonb` | 변경 요약, 원인, 운영자 조치 사유. 인증키·비밀 값 제외 |
 
 수정 불가 이력으로 저장한다. 대상 종류/ID는 다형 참조라 일반 FK를 걸 수 없으며 서비스 검증과 삭제 제한으로 보완한다. 상태 변경과 해당 Event는 같은 트랜잭션에서 저장한다. 이는 메시지 발행용 outbox가 아니며 외부 알림 도입 시 별도 전달 보장 설계를 한다.
+
+### 2.11 `kkdugi_batch_api_request` — API 명령의 멱등 응답
+
+API 설계에서 추가한 테이블이다. Run 생성만 중복 방지해서는 claim 응답 유실, 빈 claim(204), 설정 생성/수정의 재전송을 처리할 수 없어 응답 기록을 별도로 둔다. 상태 변경과 응답 기록은 같은 트랜잭션이다.
+
+| 컬럼 | 참조 도메인 | PostgreSQL 타입 | 의미·제약 |
+| --- | --- | --- | --- |
+| `request_id` | ID | `varchar(20)` | PK, SerialUtils 생성 |
+| `subject_type` | Code | `varchar(20)` | USER / RUNNER |
+| `subject_id` | ID (기존 사용자 호환) | `varchar(60)` | 인증 주체 ID. 사용자 또는 runner라 직접 FK 대신 서비스 검증 |
+| `operation_hash` | Text field | `varchar(200)` | HTTP method+정규화path의SHA-256 hex64, 형식 CHECK |
+| `request_key` | Text field | `varchar(200)` | Idempotency-Key |
+| `request_hash` | Text field | `varchar(200)` | 본문·세션·프로토콜·생성시각 등의 의미상 동일성 hash |
+| `request_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 최초 요청의 key 생성 시각 |
+| `http_status` | Integer | `integer` | 재현할 HTTP 상태, 200~299 성공 범위 |
+| `response_data` | Clob (JSON 확장) | `jsonb` | 응답 본문, 204면NULL. 토큰 발급 응답은 저장 대상 아님 |
+| `location_text` | URL | `varchar(2000)` | 응답 Location, 없으면NULL |
+| `expires_dtm` | Timestamp (실행 시각 확장) | `timestamptz(6)` | 수신 기준72시간 후. 만료 후 정리 가능 |
+
+UQ `(subject_type, subject_id, operation_hash, request_key)` 및 정리용 `(expires_dtm)` 인덱스. 같은 key 경합은 트랜잭션 잠금/UQ로 직렬화한다. 실패로 롤백한 요청은 성공 응답 기록도 남지 않는다. 일회성 토큰 발급·heartbeat·세션 개설·로그복합키 API는 각자의 별도 멱등 규칙을 사용한다.
+
+만료 정리 후 오래된 key를 새 명령으로 받아들이지 않도록 `X-Request-Created-At`의 신규 요청 허용 창을 함께 검사한다. 자세한 규칙은 [Runner API](runner-api.md#2-멱등성과-타이밍)에 있다. 미해결 Run/Attempt의 보관을 이 테이블 만료와 연결하지 않는다.
 
 ## 3. 주요 인덱스·무결성
 
