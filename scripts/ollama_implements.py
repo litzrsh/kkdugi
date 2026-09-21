@@ -148,6 +148,14 @@ def call_ollama(role_name, request, context, profile="java", think=None):
     }
     if think is not None:
         payload["think"] = think
+    # 기본 컨텍스트(4096 토큰)보다 큰 입력은 Ollama가 앞부분을 조용히 잘라낸다. 큰 리뷰는
+    # OLLAMA_NUM_CTX=16384처럼 지정해서 실행한다(지정하지 않으면 기존 동작 그대로).
+    num_ctx = os.environ.get("OLLAMA_NUM_CTX")
+    if num_ctx:
+        payload["options"] = {"num_ctx": int(num_ctx)}
+    elif (len(prompt) + len(payload["system"])) / 3 > 3500:
+        print("warning: input may exceed Ollama's default 4096-token context and be truncated; "
+              "set OLLAMA_NUM_CTX (e.g. 16384) for large inputs", file=sys.stderr)
     req = urllib.request.Request(
         OLLAMA_URL,
         data=json.dumps(payload).encode("utf-8"),
