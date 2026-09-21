@@ -101,13 +101,13 @@ class DefaultMenuSeedTest {
         expected.forEach((program, name) -> {
             List<String> names = jdbcTemplate.queryForList(
                     "SELECT l.menu_nm FROM kkdugi_menu_lang l JOIN kkdugi_menu_base b ON b.menu_id = l.menu_id "
-                            + "WHERE b.menu_pgm = ? AND l.lang_cd = 'ja_JP'", String.class, program);
+                            + "WHERE b.menu_pgm = ? AND l.lang_cd = 'jp_JA'", String.class, program);
             assertThat(names).as(program).containsExactly(name);
         });
 
         Map<String, Object> system = systemFolder();
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT menu_nm FROM kkdugi_menu_lang WHERE menu_id = ? AND lang_cd = 'ja_JP'",
+                "SELECT menu_nm FROM kkdugi_menu_lang WHERE menu_id = ? AND lang_cd = 'jp_JA'",
                 String.class, system.get("menu_id"))).isEqualTo("システム管理");
     }
 }

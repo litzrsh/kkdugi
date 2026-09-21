@@ -21,9 +21,9 @@ class AdminLanguageServiceTest {
     @Test
     void usesAvailableChildrenWithExtra1AsLocaleAndPreservesOrder() {
         CodeService codes = mock(CodeService.class);
-        when(codes.findChildren("/SYS/LANG", "ko_KR")).thenReturn(List.of(row(" ko_KR ","한국어"),row("ja_JP","日本語")));
+        when(codes.findChildren("/SYS/LANG", "ko_KR")).thenReturn(List.of(row(" ko_KR ","한국어"),row("jp_JA","日本語")));
         var result = new AdminLanguageService(codes).languages(Locale.KOREA);
-        assertThat(result).extracting(option -> option.getCode()).containsExactly("ko_KR","ja_JP");
+        assertThat(result).extracting(option -> option.getCode()).containsExactly("ko_KR","jp_JA");
         assertThat(result).extracting(option -> option.getLabel()).containsExactly("한국어","日本語");
         verify(codes).findChildren("/SYS/LANG", "ko_KR");
     }

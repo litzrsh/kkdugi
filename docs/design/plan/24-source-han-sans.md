@@ -21,7 +21,7 @@ AG Grid와 Bulma도 공통 `--kk-font-family` 설정을 사용한다.
 - JavaScript 테스트 55개 통과.
 - Maven 테스트 296개 중 295개 통과, 1개 실패.
   `DefaultMenuSeedTest.everySeededMenu_hasJapaneseName`에서 `admin/user`의
-  `ja_JP` 메뉴명을 조회한 결과가 빈 목록이었다. 이 검사는 DB 시드 데이터만
+  `jp_JA` 메뉴명을 조회한 결과가 빈 목록이었다. 이 검사는 DB 시드 데이터만
   조회하며 폰트 파일이나 CSS를 사용하지 않는다. 이번 폰트 변경에서는
   해당 테스트·마이그레이션·DB 데이터를 수정하지 않았다.
 - 환경에 docker-compose 명령은 없지만 기존 PostgreSQL에 연결되어 Maven

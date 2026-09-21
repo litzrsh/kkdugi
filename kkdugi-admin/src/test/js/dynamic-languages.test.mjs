@@ -3,8 +3,8 @@ import {languageOptions} from '../../main/resources/static/js/i18n/languages.mjs
 import {createApi} from '../../main/resources/static/js/api/index.mjs';
 import {prepareLocalizedRow} from '../../main/resources/static/js/domain/batch.mjs';
 test('available languages use extra1, not the common code identity',()=>{
- const options=languageOptions([{code:'KOREAN',extra1:' ko_KR ',name:'한국어'},{code:'JAPANESE',extra1:'ja_JP',name:'日本語'},{extra1:'en_US',name:'English'},{extra1:'ja_JP',name:'duplicate'},{extra1:'',name:'empty'},{extra1:'__proto__',name:'invalid'},{extra1:'zh_Hant_TW'}]);
- assert.deepEqual(options,[{code:'ko_KR',label:'한국어'},{code:'ja_JP',label:'日本語'},{code:'en_US',label:'English'},{code:'zh_Hant_TW',label:'zh_Hant_TW'}]);assert.deepEqual(languageOptions([]),[]);
+ const options=languageOptions([{code:'KOREAN',extra1:' ko_KR ',name:'한국어'},{code:'JAPANESE',extra1:'jp_JA',name:'日本語'},{extra1:'en_US',name:'English'},{extra1:'jp_JA',name:'duplicate'},{extra1:'',name:'empty'},{extra1:'__proto__',name:'invalid'},{extra1:'zh_Hant_TW'}]);
+ assert.deepEqual(options,[{code:'ko_KR',label:'한국어'},{code:'jp_JA',label:'日本語'},{code:'en_US',label:'English'},{code:'zh_Hant_TW',label:'zh_Hant_TW'}]);assert.deepEqual(languageOptions([]),[]);
 });
 test('language child request retains locale, origin menu, cancellation and exact-path defaults',async()=>{
  const calls=[],controller=new AbortController(),api=createApi({},async(url,options)=>{calls.push({url,...options});return Response.json([]);}).forMenu('M_MESSAGES');

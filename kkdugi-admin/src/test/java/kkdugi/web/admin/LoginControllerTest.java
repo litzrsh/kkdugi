@@ -48,12 +48,12 @@ class LoginControllerTest {
         mvc=MockMvcBuilders.webAppContextSetup(context).apply(SecurityMockMvcConfigurers.springSecurity()).build();
     }
     @Test void anonymousLoginUsesExtra1AndLocalizedLabelsInsteadOfFixedOptions() throws Exception {
-        when(codes.findChildren("/SYS/LANG", "ja_JP")).thenReturn(List.of(language("JA", "ja_JP", "日本語"),language("FR", "fr_FR", "Français & langue"),language("EMPTY", null, "Invalid")));
-        String html=languageMvc.perform(get("/kk/login").contextPath("/kk").param("lang","ja_JP"))
+        when(codes.findChildren("/SYS/LANG", "jp_JA")).thenReturn(List.of(language("JA", "jp_JA", "日本語"),language("FR", "fr_FR", "Français & langue"),language("EMPTY", null, "Invalid")));
+        String html=languageMvc.perform(get("/kk/login").contextPath("/kk").param("lang","jp_JA"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        assertThat(html).contains("value=\"ja_JP\" selected=\"selected\"", "日本語", "value=\"fr_FR\"", "Français &amp; langue")
+        assertThat(html).contains("value=\"jp_JA\" selected=\"selected\"", "日本語", "value=\"fr_FR\"", "Français &amp; langue")
                 .doesNotContain("value=\"ko_KR\"", "value=\"en_US\"", "value=\"JA\"", ">Invalid<", "vue.global");
-        verify(codes).findChildren("/SYS/LANG", "ja_JP");
+        verify(codes).findChildren("/SYS/LANG", "jp_JA");
         java.nio.file.Path output=java.nio.file.Path.of("target", "login-test-output");
         java.nio.file.Files.createDirectories(output);java.nio.file.Files.writeString(output.resolve("dynamic-ja.html"),html);
     }
