@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.app.batch.mapper.BatchEventMapper">
+
+  <insert id="insert" parameterType="kkdugi.app.batch.models.BatchEvent">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchEventMapper.insert */
+INSERT INTO kkdugi_batch_event
+    (event_id, target_type, target_id, event_type, from_stat, to_stat, actor_type, actor_id,
+     occurred_dtm, detail_data, reg_dtm, reg_id)
+VALUES
+    (#{id}, #{targetType}, #{targetId}, #{eventType}, #{fromStat,jdbcType=VARCHAR}, #{toStat,jdbcType=VARCHAR},
+     #{actorType}, #{actorId}, clock_timestamp(), CAST(#{detailData,jdbcType=VARCHAR} AS jsonb),
+     (now() AT TIME ZONE 'UTC'), #{actorId})
+]]>
+  </insert>
+
+</mapper>

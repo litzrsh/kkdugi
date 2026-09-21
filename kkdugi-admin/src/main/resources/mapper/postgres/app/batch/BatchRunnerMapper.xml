@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.app.batch.mapper.BatchRunnerMapper">
+
+  <resultMap id="runnerResultMap" type="kkdugi.app.batch.models.BatchRunner"
+             extends="kkdugi.core.models.CommonMapper.baseResultMap">
+    <id property="id" column="runner_id"/>
+    <result property="code" column="runner_cd"/>
+    <result property="name" column="runner_nm"/>
+    <result property="status" column="runner_stat"/>
+    <result property="hostname" column="host_nm"/>
+    <result property="os" column="os_cd"/>
+    <result property="agentVersion" column="agent_ver"/>
+    <result property="capacity" column="capacity_cnt"/>
+    <result property="sessionVer" column="session_ver"/>
+    <result property="bootRef" column="boot_ref"/>
+    <result property="lastSeenAt" column="last_seen_dtm"/>
+    <result property="online" column="online"/>
+    <result property="configVer" column="config_ver"/>
+    <result property="totalSize" column="total_size"/>
+  </resultMap>
+
+  <resultMap id="heartbeatStateResultMap" type="kkdugi.app.batch.models.BatchHeartbeatState">
+    <result property="status" column="runner_stat"/>
+    <result property="capacity" column="capacity_cnt"/>
+  </resultMap>
+
+  <sql id="baseColumns">
+<![CDATA[
+runner_id, runner_cd, runner_nm, runner_stat, host_nm, os_cd, agent_ver, capacity_cnt, session_ver, boot_ref,
+last_seen_dtm, config_ver, reg_dtm, reg_id, upd_dtm, upd_id
+]]>
+  </sql>
+
+  <select id="search" resultMap="runnerResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.search */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+, (last_seen_dtm IS NOT NULL AND last_seen_dtm > clock_timestamp() - make_interval(secs => #{onlineSeconds}::double precision)) AS online
+, COUNT(*) OVER() AS total_size
+FROM kkdugi_batch_runner
+]]>
+    <where>
+      <if test="code != null and code != ''">
+<![CDATA[
+AND runner_cd LIKE '%' || #{code} || '%'
+]]>
+      </if>
+      <if test="name != null and name != ''">
+<![CDATA[
+AND runner_nm LIKE '%' || #{name} || '%'
+]]>
+      </if>
+      <if test="status != null and status != ''">
+<![CDATA[
+AND runner_stat = #{status}
+]]>
+      </if>
+    </where>
+<![CDATA[
+ORDER BY reg_dtm DESC, runner_id DESC
+OFFSET #{offset} LIMIT #{limit}
+]]>
+  </select>
+
+  <select id="findById" resultMap="runnerResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.findById */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+, (last_seen_dtm IS NOT NULL AND last_seen_dtm > clock_timestamp() - make_interval(secs => #{onlineSeconds}::double precision)) AS online
+FROM kkdugi_batch_runner
+WHERE runner_id = #{id}
+]]>
+  </select>
+
+  <select id="lockById" resultMap="runnerResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.lockById */
+SELECT
+]]>
+    <include refid="baseColumns"/>
+<![CDATA[
+FROM kkdugi_batch_runner
+WHERE runner_id = #{id}
+FOR UPDATE
+]]>
+  </select>
+
+  <select id="countByCode" resultType="int">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.countByCode */
+SELECT COUNT(*) FROM kkdugi_batch_runner WHERE runner_cd = #{code}
+]]>
+  </select>
+
+  <insert id="insert" parameterType="kkdugi.app.batch.models.BatchRunner">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.insert */
+INSERT INTO kkdugi_batch_runner
+    (runner_id, runner_cd, runner_nm, runner_stat, capacity_cnt, reg_dtm, reg_id)
+VALUES
+    (#{id}, #{code}, #{name}, #{status}, #{capacity}, (now() AT TIME ZONE 'UTC'), #{creatorId})
+]]>
+  </insert>
+
+  <update id="update">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.update */
+UPDATE kkdugi_batch_runner
+SET runner_nm = #{name}, capacity_cnt = #{capacity}, runner_stat = #{status},
+    config_ver = config_ver + 1, upd_dtm = (now() AT TIME ZONE 'UTC'), upd_id = #{updaterId}
+WHERE runner_id = #{id} AND config_ver = #{expectedVersion}
+]]>
+  </update>
+
+  <update id="changeStatus">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.changeStatus */
+UPDATE kkdugi_batch_runner
+SET runner_stat = #{status}, config_ver = config_ver + 1,
+    upd_dtm = (now() AT TIME ZONE 'UTC'), upd_id = #{updaterId}
+WHERE runner_id = #{id}
+]]>
+  </update>
+
+  <update id="markRegistered">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.markRegistered */
+UPDATE kkdugi_batch_runner
+SET runner_stat = 'ACTIVE', host_nm = #{hostname}, os_cd = #{os}, agent_ver = #{agentVersion},
+    config_ver = config_ver + 1, upd_dtm = (now() AT TIME ZONE 'UTC'), upd_id = #{updaterId}
+WHERE runner_id = #{id}
+]]>
+  </update>
+
+  <update id="openSession">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.openSession */
+UPDATE kkdugi_batch_runner
+SET session_ver = session_ver + 1, boot_ref = #{bootId}, agent_ver = #{agentVersion}
+WHERE runner_id = #{id}
+]]>
+  </update>
+
+  <!-- UPDATE ... RETURNING은 조회 결과를 돌려주므로 select로 실행한다. -->
+  <select id="touch" resultMap="heartbeatStateResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.touch */
+UPDATE kkdugi_batch_runner
+SET last_seen_dtm = clock_timestamp()
+WHERE runner_id = #{id} AND session_ver = #{session} AND runner_stat IN ('ACTIVE', 'PAUSED')
+RETURNING runner_stat, capacity_cnt
+]]>
+  </select>
+
+  <delete id="deleteById">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.deleteById */
+DELETE FROM kkdugi_batch_runner WHERE runner_id = #{id}
+]]>
+  </delete>
+
+  <select id="now" resultType="java.time.Instant">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchRunnerMapper.now */
+SELECT clock_timestamp()
+]]>
+  </select>
+
+</mapper>

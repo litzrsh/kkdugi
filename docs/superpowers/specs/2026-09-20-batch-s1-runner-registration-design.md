@@ -1,7 +1,7 @@
 # 배치 관리자 S1 — Runner 등록 계층 설계
 
 - 작성일: 2026-09-20
-- 상태: 설계 확정 대기 (리뷰 요청 전)
+- 상태: S1 구현 완료 (2026-09-21) — 계획: [S1 구현 계획](../plans/2026-09-20-batch-s1-runner-registration.md)
 - 관련: [배치 설계 README](../../batch/README.md), [테이블](../../batch/tables.md), [관리자 API](../../batch/admin-api.md), [Runner API](../../batch/runner-api.md), [계획 검토](../../batch/admin-plan-review.md), [ADR-0016](../../adr/0016-app-and-admin-feature-split.md), [ADR-0017](../../adr/0017-menu-context-security-aspect.md)
 
 ## 1. 배경과 원칙
@@ -33,12 +33,13 @@ kkdugi.app.batch                 배치 단일 기능 패키지 (관리자·runn
 ├─ mapper      BatchRunnerMapper, BatchCredentialMapper, BatchEventMapper, BatchApiRequestMapper
 ├─ service     BatchRunnerService, BatchEnrollmentService, BatchAgentService,
 │              BatchTokenService, BatchIdempotencyService, BatchEventService
-├─ exceptions  Batch{Validation,Conflict,NotFound,Credential,Forbidden,...}Exception (code = batch.*)
+├─ exceptions  BatchException(status, code) + BatchErrors (code = batch.*)
 └─ config      BatchAgentSecurityConfig, BatchProperties
 
 kkdugi.api
-├─ admin.AdminBatchRunnerController   /api/v1.0/admin/batch/runners …
-└─ BatchAgentController               /api/v1.0/batch-agent/…
+├─ admin.AdminBatchRunnerController   /api/v1.0/admin/batch/runners …   (kkdugi.api.admin)
+├─ BatchAgentController               /api/v1.0/batch-agent/…
+└─ BatchApiSupport                    공통 예외 핸들러 부모
 
 resources: mapper/postgres/app/batch/*.xml, db/migration/V13__create_batch_runner.sql
 ```
@@ -47,7 +48,7 @@ resources: mapper/postgres/app/batch/*.xml, db/migration/V13__create_batch_runne
 - **ADR-0016의 `app.<기능>`/`app.admin.<기능>` 분리를 배치에는 적용하지 않는다.** 관리자 API와 Runner API가 같은 테이블·도메인 로직(Run, 배정)을 공유해서, 분리하면 서로 import할 수 없어 공유가 막힌다.
 - **enum은 `app.batch.enums`에 둔다.** CLAUDE.md는 코드 기반 enum을 `kkdugi.core.enums`에 두도록 하지만, 배치 enum은 분리 시 함께 나가야 한다. MyBatis `default-enum-type-handler`는 `CodeEnums` 구현체면 패키지와 무관하게 동작한다.
 - Runner API는 **배치가 소유한 별도 `SecurityFilterChain`**(`securityMatcher("/api/v1.0/batch-agent/**")`, 기존 체인보다 높은 `@Order`)으로 인증한다. `core.security`는 수정하지 않는다. 현재 core 체인은 `/api/**` 전체를 사용자 JWT 인증 대상으로 묶기 때문이다.
-- 예외는 기존 admin 컨트롤러처럼 각 컨트롤러의 `@ExceptionHandler`로 `{code, message}`에 매핑한다. `RestfulExceptionAdvice`는 수정하지 않는다.
+- 예외는 기존 admin 컨트롤러처럼 컨트롤러의 `@ExceptionHandler`로 `{code, message}`에 매핑한다(구현: 두 컨트롤러의 공통 부모 `BatchApiSupport`에 핸들러를 둔다). `RestfulExceptionAdvice`는 수정하지 않는다.
 - migration은 우선 기존 `db/migration`에 V13으로 둔다. Flyway 버전은 전역 유일이므로 분리 시 별도 위치로 옮길 수 있다.
 - **S1 산출물에 ADR-0019(배치 라이브러리 경계)를 쓰고 CLAUDE.md의 패키지 구조·enum 규칙에 예외를 반영한다.** 후속 구현이 이 결정과 어긋나지 않게 한다.
 
@@ -59,7 +60,7 @@ resources: mapper/postgres/app/batch/*.xml, db/migration/V13__create_batch_runne
 - CHECK: `runner_stat IN (REGISTERING, ACTIVE, PAUSED, REVOKED)`, `credential_type IN (ENROLLMENT, ACCESS)`, `capacity_cnt` 1~200, `operation_hash` 64자 hex, `http_status` 200~299 등.
 - 인덱스: `runner_cd` UQ, credential `(runner_id)`, event `(target_type, target_id, occurred_dtm)`, api_request UQ `(subject_type, subject_id, operation_hash, request_key)` + `(expires_dtm)`.
 - ID는 `SerialConfig`/`SerialUtils.next`로 생성하고 접두사는 `BR`(runner), `BC`(credential), `BE`(event), `BQ`(api_request)다. 날짜 12자리 + 순번 4자리 + 접두사 2자리 = 18자로 20자 안에 들어간다.
-- 업무 시각 `timestamptz(6)`은 UTC `Instant`로 매핑한다. MyBatis 매핑은 첫 mapper 테스트에서 검증한다. 만료·유효성 판정은 앱 시계가 아니라 **DB `now()`** 로 한다.
+- 업무 시각 `timestamptz(6)`은 UTC `Instant`로 매핑한다. MyBatis 매핑은 첫 mapper 테스트에서 검증한다. 만료·유효성 판정은 앱 시계가 아니라 **DB `clock_timestamp()`** 로 한다. `now()`는 트랜잭션 시작 시각이라 runner 행 잠금에서 기다리는 동안 이미 만료된 토큰을 유효로 볼 수 있다([계획 검토](../../batch/admin-implementation-plan-review.md) 4번). 감사 컬럼(`reg_dtm`/`upd_dtm`)만 트랜잭션 시각을 쓴다.
 
 ## 5. 멱등 명령 기반 (`BatchIdempotencyService`)
 
@@ -94,6 +95,8 @@ resources: mapper/postgres/app/batch/*.xml, db/migration/V13__create_batch_runne
 
 공통: `X-Protocol-Version: 1` 필수(없거나 다르면 409 `batch.protocol.unsupported`), 오류는 `{code, message}`.
 
+관리자 API와 Runner API 모두 요청 본문은 **UTF-8 기준 1 MiB 이하**여야 하며 초과는 413 `batch.payload.too_large`다(계약). 배치 소유 서블릿 필터가 Content-Length와 무관하게 실제로 읽은 byte 수로 판정하므로 chunked 요청도 제한된다. 처리 순서는 **인증(401/403) → 본문 한도(413) → 프로토콜 버전(409)·메뉴 권한(403) → 요청 검증(400)** 이다. 요청 DTO의 정수 필드는 JSON 정수, 문자열 필드는 JSON 문자열만 받는다(Jackson 기본 변환으로 `1.9`→1, `"1"`→1, `1`→`"1"`이 되지 않도록 배치 DTO 필드에만 엄격한 deserializer를 붙이고 전역 설정은 바꾸지 않는다).
+
 - **인증**: 토큰은 `{credentialId}.{256-bit 난수}`, DB에는 SHA-256만 저장하고 상수 시간 비교한다. 폐기·만료·미존재는 401 `batch.credential.invalid`, 토큰 종류 불일치(등록 토큰으로 일반 endpoint 등)는 403 `batch.runner.forbidden`. `last_used_dtm`은 1분 이상 지났을 때만 갱신한다.
 - **`POST /registrations`** (ENROLLMENT 토큰): runner 행 잠금 → `REGISTERING` 확인 → 토큰 원자 소비 → `runnerCode` 대조(불일치 403) → 호스트/OS/버전 저장 → ACCESS 토큰 생성(기본 30일, `kkdugi.batch.access-token-ttl`) → `ACTIVE` 전환(**가정**: 설치 승인이 실제 실행 관문이므로 PAUSED를 거치지 않는다). `architecture`는 검증만 하고 event `detail_data`에 남긴다. 응답 `{runnerId, credentialId, accessToken, tokenExpiresAt, session:"0"}`, `no-store`.
 - **`POST /sessions`** (ACCESS): runner 행 잠금 아래 `boot_ref = :bootId`이면 현재 세대를 그대로 반환(재전송), 아니고 `session_ver = :expectedSession`이면 `session_ver + 1`과 `boot_ref` 갱신, 그 외 409 `batch.session.stale`. `REGISTERING`/`REVOKED` runner는 거절한다. 응답에 heartbeat/poll/lease 주기(기본 10/3/60초)와 `limits`를 포함한다.
@@ -109,10 +112,11 @@ resources: mapper/postgres/app/batch/*.xml, db/migration/V13__create_batch_runne
 
 ## 9. 테스트와 검증
 
-기존 방식대로 실제 Postgres(`docker-compose up -d`)에서 `./mvnw.cmd -B -ntp test`로 실행한다.
+기존 방식대로 실제 Postgres(`docker-compose up -d`)에서 `./mvnw.cmd -B -ntp test`로 실행한다. 구현 전에 베이스라인 결과를 기록하고, 이후에는 베이스라인에 없던 실패만 이 작업의 회귀로 본다.
 
 - **mapper/service 통합**: 동시 등록 토큰 소비(1건만 성공), 동시 세션 개설 CAS, bootId 재전송, 폐기·만료 토큰 거절, 토큰 종류별 접근, `If-Match` 412/428, 상태 전이, 삭제 규칙, event/멱등 기록의 롤백 원자성.
-- **동시성 경합**: **등록 대 폐기**, **세션 대 폐기**, 등록 토큰 재발급 대 등록.
+- **동시성 경합**: **등록 대 폐기**, **세션 대 폐기**, 등록 토큰 재발급 대 등록, **잠금 대기 중 만료된 토큰**(등록·세션 개설이 잠금을 얻은 시점에 이미 만료됐으면 401).
+- **입력 경계**: 본문 한도 이하/정확한 경계/1 byte 초과, 다중 byte UTF-8, 선행 공백, Content-Length 없는 요청, 거절 시 상태·event·멱등 기록 미생성. 잘못된 JSON 타입(`capacity` 1.9/`"1"`, `expectedSession` 숫자, `freeSlots` 문자열)과 heartbeat 항목의 `phase` 누락/null은 500이 아니라 400.
 - **멱등**: 같은 key 재요청 재현(생성·PUT·DELETE·폐기), 같은 key/다른 본문 409, 동시 요청 직렬화, 응답 유실(성공 후 재전송 시 version 증가에도 최초 응답 재현), 오래된 신규 key 410, 롤백 시 기록 없음.
 - **API/권한**(MockMvc + `TestAuthorization`): 허용 메뉴의 READ/WRTE/DELT 성공과 권한 부족 403, **다른 메뉴의 WRTE 비트로 runner를 생성하는 요청 403**, SYS_ADMIN 제한 endpoint의 일반 사용자 403, 오류 `{code, message}` 형식.
 - **보안 체인**: 사용자 JWT로 `/batch-agent/**` 호출 시 401, runner 토큰으로 `/api/v1.0/admin/**` 호출 시 401, 기존 인증 테스트 회귀 없음(전체 `mvn test`).
@@ -130,3 +134,4 @@ resources: mapper/postgres/app/batch/*.xml, db/migration/V13__create_batch_runne
 - 등록 성공 시 runner 상태를 `ACTIVE`로 두는 것은 문서에 없는 **가정**이다.
 - 삭제 허용 상태(`REGISTERING`/`REVOKED`), `online` 판정 창(`3 × heartbeatSeconds`), ACCESS 토큰 기본 유효기간(30일)도 가정이며 `BatchProperties`로 조정할 수 있다.
 - program 식별자 `admin/batch/runner`는 기존 컨벤션(`admin/user`, `admin/authority`)을 따른 제안이다.
+- 구현 계획에서 확정한 세부: PUT의 `status`는 선택(생략하면 유지, 지정하면 `ACTIVE`/`PAUSED`이고 현재 상태도 `ACTIVE`/`PAUSED`여야 함). `config_ver`는 등록·폐기·재발급(`REVOKED`→`REGISTERING`)·PUT에서 올라가고 heartbeat·세션 개설에서는 올라가지 않는다. 예외는 단일 `BatchException`이다. `kkdugi_batch_event.run_id`/`attempt_no`는 컬럼만 두고 S3에서 FK를 추가한다.

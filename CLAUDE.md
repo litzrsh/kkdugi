@@ -161,11 +161,15 @@ kkdugi
 │                     AdminUserChangeStatusRequest, UserAuthority, AdminUserAuthority,
 │                     AdminUserAuthoritiesRequest), exceptions(AdminUser*), mapper(AdminUserMapper),
 │                     service(AdminUserService, TemporaryPasswordGenerator — SerialUtils.next(config), prefix U)
+├─ app.batch        — batch (single feature package built for future library extraction, depends on core only,
+│                     ADR-0019): enums, exceptions, config (runner-API SecurityFilterChain, body-limit filter),
+│                     models, mapper, service
 ├─ api              — controllers stay flat (not split into subpackages)
 │   ├─ CodeController (/api/v1.0/code), MenuController (/api/v1.0/menu)
+│   ├─ BatchAgentController (/api/v1.0/batch-agent, runner-only auth), BatchApiSupport (shared handlers)
 │   └─ admin        — AdminCodeController, AdminMenuController, AdminMessageController,
-│                     AdminAuthorityController, AdminUserController
-│                     (/api/v1.0/admin/{code,menu,i18n,authority,user}); validation/conflict exceptions
+│                     AdminAuthorityController, AdminUserController, AdminBatchRunnerController
+│                     (/api/v1.0/admin/{code,menu,i18n,authority,user,batch/runners}); validation/conflict exceptions
 │                     map to `ExceptionMessage`, see `kkdugi.core.exceptions`
 └─ web.admin        — Thymeleaf/Pragma entry points (IndexController, LoginController, PragmaController)
 ```
@@ -250,3 +254,16 @@ mapper XML file — mapper XML only calls it.
   [docs/api/session.md](docs/api/session.md),
   [docs/api/request-context.md](docs/api/request-context.md), and
   [docs/api/authority.md](docs/api/authority.md) for authority management.
+- Batch (`kkdugi.app.batch`, S1 implemented 2026-09-21; design in
+  [docs/batch/](docs/batch/README.md), [S1 spec](docs/superpowers/specs/2026-09-20-batch-s1-runner-registration-design.md),
+  [ADR-0019](docs/adr/0019-batch-library-boundary.md), API in [docs/api/batch-runner.md](docs/api/batch-runner.md)) is built to
+  be extracted into a library later, so it deliberately differs from the conventions above: one feature package instead of
+  `app.<feature>`/`app.admin.<feature>`; its enums live in `kkdugi.app.batch.enums` (not `core.enums`); the runner API
+  (`/api/v1.0/batch-agent/**`) is authenticated by a batch-owned `SecurityFilterChain` with runner tokens (never touch
+  `core.security` for it, and never register that filter as a bean); errors are one `BatchException(status, code)`;
+  message keys `batch.*` go in `messages*.properties`; request DTO scalars are type-strict (`BatchStrict*`
+  deserializers), bodies are capped at 1 MiB by a batch-owned servlet filter, and validity checks use
+  `clock_timestamp()` (not `now()`). Batch admin commands take `Idempotency-Key` +
+  `X-Request-Created-At` and `If-Match`, and every runner state change locks the runner row first. Only the runner
+  registration layer exists so far (runner CRUD, enrollment, register/session/heartbeat) — programs, jobs, runs,
+  assignments, schedules are later slices (S2~S5).

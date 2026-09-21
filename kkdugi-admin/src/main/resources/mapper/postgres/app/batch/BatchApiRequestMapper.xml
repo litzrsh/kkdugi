@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kkdugi.app.batch.mapper.BatchApiRequestMapper">
+
+  <resultMap id="apiRequestResultMap" type="kkdugi.app.batch.models.BatchApiRequest">
+    <id property="id" column="request_id"/>
+    <result property="subjectType" column="subject_type"/>
+    <result property="subjectId" column="subject_id"/>
+    <result property="operationHash" column="operation_hash"/>
+    <result property="requestKey" column="request_key"/>
+    <result property="requestHash" column="request_hash"/>
+    <result property="requestedAt" column="request_dtm"/>
+    <result property="httpStatus" column="http_status"/>
+    <result property="responseText" column="response_text"/>
+    <result property="location" column="location_text"/>
+  </resultMap>
+
+  <select id="lock" resultType="int">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchApiRequestMapper.lock */
+SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtextextended(#{lockKey}, 0))) AS locked
+]]>
+  </select>
+
+  <select id="findActive" resultMap="apiRequestResultMap">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchApiRequestMapper.findActive */
+SELECT request_id, subject_type, subject_id, operation_hash, request_key, request_hash, request_dtm, http_status,
+       response_data::text AS response_text, location_text
+FROM kkdugi_batch_api_request
+WHERE subject_type = #{subjectType} AND subject_id = #{subjectId}
+  AND operation_hash = #{operationHash} AND request_key = #{requestKey}
+  AND expires_dtm > clock_timestamp()
+]]>
+  </select>
+
+  <delete id="deleteExpired">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchApiRequestMapper.deleteExpired */
+DELETE FROM kkdugi_batch_api_request
+WHERE subject_type = #{subjectType} AND subject_id = #{subjectId}
+  AND operation_hash = #{operationHash} AND request_key = #{requestKey}
+  AND expires_dtm <= clock_timestamp()
+]]>
+  </delete>
+
+  <insert id="insert">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchApiRequestMapper.insert */
+INSERT INTO kkdugi_batch_api_request
+    (request_id, subject_type, subject_id, operation_hash, request_key, request_hash, request_dtm, http_status,
+     response_data, location_text, expires_dtm, reg_dtm, reg_id)
+VALUES
+    (#{row.id}, #{row.subjectType}, #{row.subjectId}, #{row.operationHash}, #{row.requestKey}, #{row.requestHash},
+     #{row.requestedAt}, #{row.httpStatus}, CAST(#{row.responseText,jdbcType=VARCHAR} AS jsonb),
+     #{row.location,jdbcType=VARCHAR}, clock_timestamp() + make_interval(secs => #{retentionSeconds}::double precision),
+     (now() AT TIME ZONE 'UTC'), #{row.subjectId})
+]]>
+  </insert>
+
+  <select id="isFresh" resultType="boolean">
+<![CDATA[
+/* QueryID=kkdugi.app.batch.mapper.BatchApiRequestMapper.isFresh */
+SELECT abs(extract(epoch FROM (clock_timestamp() - CAST(#{createdAt} AS timestamptz)))) <= #{skewSeconds}
+]]>
+  </select>
+
+</mapper>
